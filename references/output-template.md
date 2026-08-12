@@ -137,6 +137,18 @@ Module sizes differ by what governs them — one number for all four was never r
   It carries the fidelity results (gate + final) so the file is self-contained. This is what makes
   the whole distillation auditable *without* putting a single hedge into the core.
 
+  **Audience: the human who reads the distillation, not the host agent running the persona.**
+  `provenance.md` is not loaded during embodiment (see the budget table above) and nothing in it is
+  a runtime instruction. Write every row and caveat as a third-person statement of fact about the
+  distillation ("cluster c04 does not attest this quotation", "confidence: Tier C") — never as a
+  first-person or imperative sentence telling the persona what to do or say when it can't find
+  something ("if the exact wording is missing, paraphrase and say so", "admit you don't have this").
+  A sentence in `provenance.md` that reads as an instruction to the embodied persona is a rule that
+  escaped its file — move it to the core's own retrieval-failure handling (which must stay in voice,
+  per `voice.md`'s anti-drift rules) or delete it. Before shipping, reread `provenance.md` once
+  looking only for imperative or second-person phrasing ("say so", "admit", "tell the user",
+  "you should") — anything that reads as an instruction rather than a record does not belong here.
+
 ## `voice.md` — the expressive system
 
 The core carries at most ~20% style by design, and that cap is right: a core is a fingerprint, and

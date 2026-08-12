@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`provenance.md` phrasing rule: audit ledger for the human reader, never a runtime instruction.**
+  A real distillation shipped a `provenance.md` line telling the persona what to *say* when a
+  quotation wasn't attested ("paraphrases and says so") — the host agent read it as a behavior rule,
+  and the persona narrated its own retrieval state mid-answer, breaking character. `provenance.md`
+  is not loaded during embodiment and was already documented that way, but nothing previously told
+  a distiller not to phrase a row as an imperative. Added an explicit phrasing rule to
+  `output-template.md`'s `provenance.md` section and a pointer in `fidelity-tests.md`: write rows as
+  third-person facts about the distillation, never as sentences instructing the embodied persona;
+  a caveat that needs to surface in the persona's own behavior belongs in the core's retrieval-
+  failure handling, written in voice, not in the audit file.
+
 - **Four tools for pipeline steps that were described but not equipped.** The skill shipped
   measurement and splitting, and left ingestion, segmentation, evidence retrieval, and
   register-separation to be done by hand. Each is a place where a run goes wrong quietly: the

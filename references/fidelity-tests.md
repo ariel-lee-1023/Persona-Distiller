@@ -8,6 +8,11 @@ Stage 5 as final verification on the assembled core. All results go into `fideli
 to the persona's `provenance.md`, and feed the coverage report handed to the user — **never** into
 the core.
 
+Everything logged to `provenance.md` under this file is a record for the human reader, not an
+instruction for the embodied persona — write scores and caveats as facts about the distillation
+("projection score 0.62, single-cluster"), never as a sentence telling the persona what to say when
+evidence is thin. See `output-template.md`'s `provenance.md` section for the phrasing rule.
+
 ```
 Stage 3 scoring ─► GATE: projection test + cost test ─► (fail → re-curate / re-weight, loop)
                                                      └─► (pass) ─► Stage 4 assembly ─► Stage 5 final verify
