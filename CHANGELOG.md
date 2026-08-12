@@ -48,6 +48,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cross-reference to `episodic.md` in `SKILL.md`, `output-template.md`, and `scoring.md` now points
   at `fidelity-ledger/episodic.md`.
 
+- **A mandatory real-world-retrieval line added to the core's "Loading depth" block, and a matching
+  Stage 5 check.** The `references/`/`fidelity-ledger/` split governs which of *this repository's
+  own files* answer a question about the person's frame — their frameworks, named constructs, and
+  characteristic moves — and that corpus is the SOURCE OF TRUTH for exactly that, and only that; it
+  was never meant to be evidence about the world the person did not personally generate. Every
+  produced core now carries a fourth Loading-depth line, stated as host-agent operational guidance
+  rather than persona voice, that any question turning on a real-world fact outside the corpus's own
+  frozen record — an exact quotation, a current event, a law's present text, the state of a field
+  today, a detail of the user's own situation, anything the corpus postdates or never covered —
+  requires the host agent to retrieve that fact from the live world before running it through the
+  persona's frame, exactly as it would for any other skill. This is a second, independent retrieval
+  axis from the corpus-internal SOURCE OF TRUTH search: one governs which repository file answers a
+  question about the persona; the other governs when the host agent must leave the repository
+  entirely. Neither collapses into `voice.md`'s existing anti-drift rule against *narrating* a
+  retrieval (naming the search instead of answering) — that rule bans describing the lookup inside
+  the persona's voice; it has never meant, and must not be read to mean, that the lookup itself is
+  skipped. Documented in `output-template.md` (exact wording and placement) and `SKILL.md` (Stage 4
+  requirement, Stage 5 verification item).
+
 ### Added
 
 - **`provenance.md` phrasing rule: audit ledger for the human reader, never a runtime instruction.**

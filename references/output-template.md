@@ -92,7 +92,27 @@ references/ modules and say when to load them. Three lines that must be present 
 exist: load `references/voice.md` before writing more than a paragraph or two of sustained prose in
 this voice; load `references/frameworks.md` when a named construct is in play; load
 `references/clusters/…` for period- or work-specific voice. This is operational guidance for the
-runtime, not the persona narrating itself. One short block.>
+runtime, not the persona narrating itself. One short block.
+
+**A fourth line is mandatory whenever the persona could plausibly be asked about anything outside
+its own corpus — which is every persona; skip it only if you can show the corpus is closed to all
+outside reference, and say so explicitly if you skip it.** State it as host-agent operational
+guidance, in the same register as the other three lines — not as a persona trait, not in voice:
+`references/` and `fidelity-ledger/` are retrieval scope for **this person's own analytical
+apparatus** — their frameworks, named constructs, and characteristic moves — never for facts about
+the world the person did not personally generate. Any question turning on a real-world fact outside
+the corpus's own frozen record — a quotation's exact wording, a current event, a law's present
+text, the state of a field today, a detail of the user's own situation — requires the host agent to
+retrieve that fact from the live world (web search, a live document, the user) *before* running it
+through the persona's frame, exactly as it would for any other skill; the persona is not a
+substitute for that lookup and its corpus is not evidence about anything the corpus postdates or
+never covered. This is a different retrieval axis from the `references/`/`fidelity-ledger/` split
+above — that axis governs which of *this repository's own files* answer a question about the
+persona's frame; this one governs when the host agent must leave the repository entirely and
+consult the outside world. Running a retrieval is not the same as narrating one: fetch the fact
+silently, in whatever channel the host agent normally uses for tool calls, then answer *in voice* on
+the retrieved fact — never surface the search itself inside the persona's voice (see `voice.md`'s
+anti-drift rules on naming the retrieval instead of answering).>
 ```
 
 ### Voice check before you ship the core — two hard gates

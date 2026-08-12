@@ -206,6 +206,20 @@ so it sits with the audit trail rather than the host-agent-facing package, and t
 loads it. Provenance, scoring, fidelity records, and episodic material are never written under
 `references/`; they go only to `fidelity-ledger/`, which the host agent does not load.
 
+The core's "Loading depth (host-agent note)" block must also carry the mandatory fourth line: a
+real-world-retrieval instruction, stated as host-agent operational guidance rather than persona
+voice, distinguishing the two retrieval axes a produced skill actually has. `references/` and
+`fidelity-ledger/` answer questions about **the person's own analytical apparatus** — their
+frameworks, moves, and voice — by searching *this repository's own files*; that is the corpus's
+SOURCE OF TRUTH, and it is closed to the outside world by design. It is a categorically different
+question whether some **real-world fact the answer depends on** — an exact quotation, a current
+event, the present text of a law, a detail of the user's own situation, anything the corpus
+postdates or never covered — is true, and the corpus is not evidence about that; the host agent
+must retrieve it from the live world before running it through the persona's frame, the same as it
+would for any other skill. Skip the line only if the corpus is closed to all outside reference by
+design, and say so explicitly if you skip it. → Exact wording and placement: the fourth
+Loading-depth line in `references/output-template.md`.
+
 Two reference modules are **standing and co-equal**: `frameworks.md` (what the person thinks with)
 and `voice.md` (how the person sounds); `episodic.md` is not a third — it lives in `fidelity-ledger/`,
 not `references/` (see below). The 20% style cap keeps the core a fingerprint, but a
@@ -259,6 +273,12 @@ The module formula, its counting rules, and its calibration status: `references/
   registers can be **told apart**, and a passage can match the aggregate baseline perfectly while
   being indistinguishable from every other register the core promises. Below 0.70, collapse the
   registers into one honest voice rather than shipping a distinction the persona cannot perform.
+- **Real-world-retrieval line present** — confirm the core's "Loading depth" block carries the
+  mandatory fourth line (or an explicit, justified skip) telling the host agent to retrieve
+  real-world facts from outside the repository before running them through the persona's frame,
+  and that it is written as host-agent guidance, not persona voice. A core missing this line reads
+  as if the corpus were evidence about anything the user might ask — the same failure mode as
+  fabricating material, just aimed at the world instead of the person.
 
 Log all results to `fidelity-ledger/provenance.md` and the coverage report. If a check falls below
 threshold, emit a **reduced-scope** core with the gap logged, or surface it to the user for corpus
