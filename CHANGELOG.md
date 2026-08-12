@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`provenance.md` moved out of `references/` into a new top-level `fidelity-ledger/` package, and
+  `episodic.md`'s scope clarified to a positive definition.** Two related fixes to the honesty
+  split:
+  - **Provenance relocation.** `references/` is host-agent-facing — the persona loads modules from
+    it at runtime — so a file that maps core elements to sources, records computed budgets, and
+    logs gate/fidelity scores never belonged inside it structurally, even though nothing in it was
+    ever meant to be spoken. `provenance.md` now ships at
+    `<slug>-perspective/fidelity-ledger/provenance.md`, a sibling of `references/` rather than a
+    member of it. This makes the audience split structural instead of just documented: it is no
+    longer possible for a host agent enumerating `references/` to pick up the audit file by
+    accident. Content is unchanged — the per-element source table, the computed-budget log, and
+    the mirrored `fidelity.json` results all move together, verbatim. Every cross-reference to
+    `provenance.md` in `SKILL.md`, `output-template.md`, `fidelity-tests.md`, `scoring.md`,
+    `pipeline.md`, and the JSON schemas now points at `fidelity-ledger/provenance.md`.
+  - **`episodic.md` scope, clarified.** The module was previously defined only negatively
+    ("attested but lower-scoring material," "expression and modulation elements do not go here"),
+    which left the actual admission test implicit. It is now defined positively: `episodic.md`
+    holds concrete, attested, one-off **happenings** — specific incidents, anecdotes, and
+    decision-record fragments that a reader could point to as things that occurred, and that did
+    not clear a cluster module's 1,800-token floor or were demoted from one for space. Two
+    exclusions are now explicit rather than implied: named constructs go to `frameworks.md` even
+    from a single aside (episodic keeps the incident, not the idea), and any expression/modulation
+    element goes to `voice.md` regardless of where it was demoted from. `episodic.md` stays inside
+    `references/` — it is still host-agent-facing, on-demand material, unlike the ledger.
+
 ### Added
 
 - **`provenance.md` phrasing rule: audit ledger for the human reader, never a runtime instruction.**

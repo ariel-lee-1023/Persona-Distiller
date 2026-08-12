@@ -63,7 +63,10 @@ After scoring, cut an element if **any** of these is true:
 
 Do not smooth, blend, or "partially include" low-value material. A deleted element that was merely
 low-scoring (not generic/meta/conflicting) can still be **demoted to references** if it is attested
-and someone might want it on demand — but it does not touch the core.
+and someone might want it on demand — but it does not touch the core. A concrete, attested
+incident or decision-record fragment demoted this way goes to `references/episodic.md`; a
+demoted expression or modulation element goes to `references/voice.md` instead (see
+`output-template.md`).
 
 ## Elevation & retention (hard) — why weights alone are not enough
 
@@ -160,8 +163,8 @@ these in order — stop as soon as the pool clears:
    = 0; that is a corpus fact, not a curation failure, and Stage 2 will not find what is not there.
    Confirm against `dialogue_ratio` before assuming the pass was lazy.
 3. **Ship a reduced-scope core below the floor.** Narrow what the persona claims in the frontmatter
-   description, log the shortfall and the computed `supply` in `provenance.md`, and name it in the
-   coverage report.
+   description, log the shortfall and the computed `supply` in `fidelity-ledger/provenance.md`, and
+   name it in the coverage report.
 
 Never top the core up with `stable_style` material to reach the floor. It would breach the 20% cap,
 and it is precisely the failure mode this whole design exists to prevent: a core that is fluent,
@@ -224,7 +227,9 @@ This is the question `output-template.md`'s "one file per high-value source clus
 Below 1,800 the cluster cannot carry a module that is more than a summary. Do **not** pad it. Either:
 
 1. **Fold it into its nearest sibling module** as a subsection, if they share a register or period; or
-2. **Demote its material to `episodic.md`** and let the core and `voice.md` carry what mattered.
+2. **Demote its concrete, attested material to `episodic.md`** (events, not concepts or expression —
+   see `output-template.md`'s episodic scope) and let the core, `frameworks.md`, and `voice.md`
+   carry what mattered.
 
 A persona with six clusters and four modules is a normal, honest outcome. Six thin modules is not.
 
@@ -247,8 +252,8 @@ the worst-case weight of a single exchange:
 loaded_worst_case = core_budget + 2 × max(module_budget) + voice.md + frameworks.md
 ```
 
-Two modules because a close secondary ranking may load one. Record this line in `provenance.md`
-alongside the core budget.
+Two modules because a close secondary ranking may load one. Record this line in
+`fidelity-ledger/provenance.md` alongside the core budget.
 
 ### Calibration status — read before trusting the constants
 
@@ -261,10 +266,10 @@ term pushes max error to 9.7–16.2%, and a flat constant (which is what a band 
 
 That is a defensible set of magnitudes, not a universal constant. Ten points, one corpus, one
 language, one genre. Treat the *structure* as settled and the *coefficients* as provisional: when a
-run finishes, record the realised module sizes and their inputs in `provenance.md` so the next
-calibration has more than one corpus behind it. If a run lands consistently 20%+ off in one direction
-across all its modules, the fixed term (600) is the one to move first — it is the least
-corpus-invariant part of the formula.
+run finishes, record the realised module sizes and their inputs in `fidelity-ledger/provenance.md`
+so the next calibration has more than one corpus behind it. If a run lands consistently 20%+ off in
+one direction across all its modules, the fixed term (600) is the one to move first — it is the
+least corpus-invariant part of the formula.
 
 ## Gate before assembly
 
@@ -272,8 +277,8 @@ Scoring does not flow straight into Stage 4. Before assembly, run the **projecti
 gate** in `fidelity-tests.md`; a failing projection score means you re-curate (down-weight over-fit
 elements, promote better-generalizing ones) or narrow scope and re-score, and a cost-gate miss means
 you re-include or elevate the missing divergence. Record both outcomes in the persona's
-`provenance.md`, and note any weight change they triggered. Only a set that clears both gates gets
-assembled.
+`fidelity-ledger/provenance.md`, and note any weight change they triggered. Only a set that clears
+both gates gets assembled.
 
 ## Auto-weighting hooks
 

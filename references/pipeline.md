@@ -23,8 +23,8 @@ Keep these artifacts for the whole run — do not clean up between stages. Three
 the control flow is a **loop** (a failed gate sends you back to re-curate, which needs
 `extractions.json` and the previous `scores.json`); the hard deletion rule is only defensible
 because `scores.json` logs every keep/cut with its reason; and the honesty split relocates all
-caveats into the coverage report and `provenance.md`, which are built from `coverage_map.json` and
-`fidelity.json`.
+caveats into the coverage report and `fidelity-ledger/provenance.md`, which are built from
+`coverage_map.json` and `fidelity.json`.
 
 Only the finished persona directory is delivered to the user, at the persona-out location resolved
 at the start of the run. The work dir is your scratchpad and stays behind.

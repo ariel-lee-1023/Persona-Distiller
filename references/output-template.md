@@ -1,30 +1,38 @@
-# Stage 4 — Core assembly & references packaging
+# Stage 4 — Core assembly, references packaging & the Fidelity Ledger
 
-Two artifacts: the **core** (embodiment) and the **references package** (depth + honesty +
-provenance). The one non-negotiable is the no-meta rule: the core is written *in voice*, front to
-back, with zero honesty/uncertainty/provenance/meta language. All of that relocates to references
-and to the coverage report.
+Three artifacts: the **core** (embodiment), the **references package** (depth, host-agent-facing),
+and the **Fidelity Ledger** (honesty + provenance, human-facing). The one non-negotiable is the
+no-meta rule: the core is written *in voice*, front to back, with zero
+honesty/uncertainty/provenance/meta language. All of that relocates to the Fidelity Ledger and to
+the coverage report — never to `references/`, which the host agent loads at runtime and which must
+stay just as free of honesty/provenance language as the core.
 
 ## Directory layout
 
 ```
 <slug>-perspective/
 ├── SKILL.md                 # core embodiment artifact, sized to the computed budget, front-loaded
-└── references/
-    ├── clusters/            # one file per cluster clearing the 1,800 floor; size computed
-    │                        #   per cluster by scripts/cluster_budget.py
-    │   ├── c03-<label>.md
-    │   └── …
-    ├── frameworks.md        # the person's named frameworks / recurring constructs, defined
-    ├── voice.md             # the measured expressive system — parallel in status to frameworks.md
-    ├── episodic.md          # attested but lower-scoring passages, kept on demand
-    └── provenance.md        # which source file/cluster each core element came from + fidelity scores
+├── references/              # host-agent-facing: loaded at runtime, never contains provenance/scores
+│   ├── clusters/            # one file per cluster clearing the 1,800 floor; size computed
+│   │                        #   per cluster by scripts/cluster_budget.py
+│   │   ├── c03-<label>.md
+│   │   └── …
+│   ├── frameworks.md        # the person's named frameworks / recurring constructs, defined
+│   ├── voice.md             # the measured expressive system — parallel in status to frameworks.md
+│   └── episodic.md          # concrete attested one-off material: incidents, anecdotes, decision
+│                              #   fragments that did not clear a cluster module's floor
+└── fidelity-ledger/         # human-facing: the honesty/audit package, never loaded by the host agent
+    └── provenance.md        # which source file/cluster each core element came from, computed
+                             #   budgets, and gate/final fidelity scores
 ```
 
 `frameworks.md` and `voice.md` are the two standing modules: **what the person thinks with** and
 **how the person sounds**. Both are cross-corpus and always produced (when the corpus supports
-them); `clusters/`, `episodic.md`, and `provenance.md` are per-source, residual, and audit
-respectively.
+them); `clusters/` and `episodic.md` are per-source and residual, both still under `references/`
+because the host agent loads them on demand. `fidelity-ledger/provenance.md` is the audit file: it
+lives outside `references/` entirely because it is written for the human who reads the
+distillation, not for the agent running it, and it must never be loaded into the embodiment
+context.
 
 ## Core `SKILL.md` template
 
@@ -89,7 +97,8 @@ runtime, not the persona narrating itself. One short block.>
 1. **Voice purity.** Reread the body as if you were the person. If any line reads as *about* them
    rather than *as* them, rewrite or cut it. Ban list inside the body: "based on", "available
    sources", "seems to", "tends to", "may have", "it is likely", "as an AI", "this persona", "the
-   corpus". If you need one of those to say something true, that truth belongs in `provenance.md`.
+   corpus". If you need one of those to say something true, that truth belongs in
+   `fidelity-ledger/provenance.md`.
 2. **Minimum presence.** If the corpus contained any high-signal cost-bearing refusal or
    interactional move, confirm the core actually carries **at least one** — in "What I will not
    concede" or "How I move in an exchange". A core that is fluent but has shed every costly
@@ -97,7 +106,7 @@ runtime, not the persona narrating itself. One short block.>
    re-curate; do not ship. (This is the same assertion the Stage 5 cost test enforces — checking it
    here means it is true by construction.)
 
-## References package contents
+## References package contents (host-agent-facing)
 
 Module sizes differ by what governs them — one number for all four was never right:
 
@@ -106,13 +115,12 @@ Module sizes differ by what governs them — one number for all four was never r
 | `clusters/*.md` | **computed per cluster** — `scripts/cluster_budget.py`, formula in `scoring.md`; floor 1,800, hard ceiling 6,000 | the only modules loaded *mid-embodiment*, so each is sized to the constructs, moves and evidence routed to it rather than to a shared band. Typical range 2,000–4,500 |
 | `frameworks.md` | soft ~4,000 | scales with how many named constructs the person actually has; preserving their exact terms costs words |
 | `voice.md` | soft ~4,000 | the full expressive system the core's 20% style cap cannot hold; loaded whenever sustained prose is being written in the voice |
-| `episodic.md` | soft ~4,000 | demoted material — if it is outgrowing this, promote the best of it or cut the rest |
-| `provenance.md` | **no ceiling** | one row per core element; an audit file's completeness beats its size, and it is not loaded during embodiment |
+| `episodic.md` | soft ~4,000 | concrete one-off material — if it is outgrowing this, promote the best of it into a cluster module or cut the rest |
 
 - **`clusters/*.md`** — for each cluster whose computed budget clears the 1,800 floor, an on-demand
   module: the distinctive voice and moves in that period/work, with the example passages that
-  evidenced them. This is where episodic specificity lives so the core can stay lean. Three rules
-  come with the budget and are easy to get wrong (full statement in `scoring.md`):
+  evidenced them. Three rules come with the budget and are easy to get wrong (full statement in
+  `scoring.md`):
   - **The floor decides which clusters get a module at all.** Below 1,800 the module would be a
     summary — fold the cluster into its nearest sibling module, or demote it to `episodic.md`. Four
     modules from six clusters is a normal outcome; six thin ones is not.
@@ -125,29 +133,45 @@ Module sizes differ by what governs them — one number for all four was never r
   paraphrase). Include which clusters use it.
 - **`voice.md`** — the person's expressive system, measured and written as operative rules. See
   the dedicated section below; this is the module that makes the 20% style cap safe.
-- **`episodic.md`** — attested but lower-scoring material someone might still want: demoted
-  elements, one-off but real passages, edge cases. Clearly lower-priority. **Expression and
-  modulation elements do not go here** — they go to `voice.md`; episodic keeps the other classes.
-- **`provenance.md`** — the honesty ledger: a table mapping each core element to its source
-  file(s) and cluster(s), its projection score, its **cost-gate status** (was it a high-signal
-  divergence? is it in the core?), whether any gate forced re-curation, and any confidence caveats.
-  It also records the **computed core budget** — supply term, ceiling row, final budget, the core's
-  actual size, and if the floor was triggered, how that was resolved — so the core's size is as
-  auditable as its contents.
-  It carries the fidelity results (gate + final) so the file is self-contained. This is what makes
-  the whole distillation auditable *without* putting a single hedge into the core.
+- **`episodic.md`** — **positive scope: concrete, attested, one-off happenings** — specific
+  incidents, anecdotes, and decision-record fragments that are real and citable but did not earn a
+  cluster module of their own, because they fell under a cluster's 1,800-token floor or were
+  demoted from a cluster module for space. The test for whether something belongs here: could a
+  reader point to it as *an event* (something that happened, was said, or was decided on a specific
+  occasion)? If yes, and it isn't already the anchor evidence for a surviving core element or
+  cluster module, it goes here. Two exclusions keep it from becoming a dumping ground:
+  - **No concepts.** A named construct or recurring framework belongs in `frameworks.md` even if
+    its only attestation is a single aside — `episodic.md` holds the incident, not the idea it
+    illustrates.
+  - **No expression or modulation.** Any style, register, or modulation element demoted for space
+    goes to `voice.md` regardless of source, never here. If `episodic.md` starts reading like a
+    stylometry appendix, misrouted material has leaked in from Stage 3.
 
-  **Audience: the human who reads the distillation, not the host agent running the persona.**
-  `provenance.md` is not loaded during embodiment (see the budget table above) and nothing in it is
-  a runtime instruction. Write every row and caveat as a third-person statement of fact about the
-  distillation ("cluster c04 does not attest this quotation", "confidence: Tier C") — never as a
-  first-person or imperative sentence telling the persona what to do or say when it can't find
-  something ("if the exact wording is missing, paraphrase and say so", "admit you don't have this").
-  A sentence in `provenance.md` that reads as an instruction to the embodied persona is a rule that
-  escaped its file — move it to the core's own retrieval-failure handling (which must stay in voice,
-  per `voice.md`'s anti-drift rules) or delete it. Before shipping, reread `provenance.md` once
-  looking only for imperative or second-person phrasing ("say so", "admit", "tell the user",
-  "you should") — anything that reads as an instruction rather than a record does not belong here.
+## The Fidelity Ledger (human-facing, never loaded by the host agent)
+
+`fidelity-ledger/provenance.md` is the honesty ledger: a table mapping each core element to its
+source file(s) and cluster(s), its projection score, its **cost-gate status** (was it a
+high-signal divergence? is it in the core?), whether any gate forced re-curation, and any
+confidence caveats. It also records the **computed core budget** — supply term, ceiling row, final
+budget, the core's actual size, and if the floor was triggered, how that was resolved — so the
+core's size is as auditable as its contents. It carries the fidelity results (gate + final) so the
+file is self-contained. This is what makes the whole distillation auditable *without* putting a
+single hedge into the core, and without that auditability ever entering `references/`.
+
+**No ceiling** — one row per core element; an audit file's completeness beats its size.
+
+**Audience: the human who reads the distillation, not the host agent running the persona.** The
+Fidelity Ledger sits outside `references/` precisely so it is structurally impossible for the host
+agent to load it mid-embodiment, and nothing in it is a runtime instruction. Write every row and
+caveat as a third-person statement of fact about the distillation ("cluster c04 does not attest
+this quotation", "confidence: Tier C") — never as a first-person or imperative sentence telling
+the persona what to do or say when it can't find something ("if the exact wording is missing,
+paraphrase and say so", "admit you don't have this"). A sentence in `provenance.md` that reads as
+an instruction to the embodied persona is a rule that escaped its file — move it to the core's own
+retrieval-failure handling (which must stay in voice, per `voice.md`'s anti-drift rules) or delete
+it. Before shipping, reread `provenance.md` once looking only for imperative or second-person
+phrasing ("say so", "admit", "tell the user", "you should") — anything that reads as an
+instruction rather than a record does not belong here.
 
 ## `voice.md` — the expressive system
 
@@ -228,7 +252,8 @@ variants.
 **When the corpus cannot support it.** A corpus with a low `firsthand_ratio`, or only a couple of
 firsthand clusters in one register, cannot yield a register range or reliable modulation rules.
 Ship the sections the corpus does support, omit the rest, and record the omission in
-`provenance.md` and the coverage report — never fill the gaps with plausible-sounding prose rules.
+`fidelity-ledger/provenance.md` and the coverage report — never fill the gaps with
+plausible-sounding prose rules.
 
 ## A filled micro-example (illustrative, not a real person)
 
@@ -245,7 +270,7 @@ Ask me to predict and I will decline the number and give you the mechanism inste
 that names no cause is a horoscope. I concede facts freely and premises almost never.
 ```
 
-Corresponding `provenance.md` row (where the honesty lives):
+Corresponding `fidelity-ledger/provenance.md` row (where the honesty lives):
 
 ```markdown
 | element | core section | sources | clusters | projection | cost-gate | note |

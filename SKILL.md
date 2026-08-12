@@ -56,9 +56,10 @@ seems to", no "as an AI embodying". Those move the reader out of the voice and d
 identification. This is a deliberate departure from provenance-forward distillers.
 
 Honesty does not disappear — it **relocates**. Coverage gaps, source citations, confidence, and
-limitations live in the *references package* and in the *coverage report you hand the user*,
-never inside the embodiment artifact. You keep full auditability; the persona keeps its voice.
-(This split is the whole trick — do not collapse it.)
+limitations live in the *Fidelity Ledger* (a human-facing audit package, separate from the
+`references/` the host agent loads) and in the *coverage report you hand the user*, never inside
+the embodiment artifact, and never inside `references/`. You keep full auditability; the persona
+keeps its voice. (This split is the whole trick — do not collapse it.)
 
 ---
 
@@ -182,8 +183,8 @@ formula, the floor procedure, worked scoring examples, weight-tuning, and the lo
 
 ### Gate before Stage 4 — mandatory, and it feeds back *(do not skip)*
 Assembly is downstream of passing two gates. Their results are logged to the persona's
-`provenance.md` and are **used to adjust inclusion and weighting** — they are control signals, not
-just reports:
+`fidelity-ledger/provenance.md` and are **used to adjust inclusion and weighting** — they are
+control signals, not just reports:
 - **Projection gate** — run the held-out projection test (procedure in `fidelity-tests.md`) on the
   top-ranked projectible regularities *now, before assembly*. If it misses threshold, re-curate:
   down-weight the over-fit elements, promote better-generalizing ones, or narrow the persona's
@@ -195,10 +196,14 @@ just reports:
 This loop is what stops a style-heavy, low-projectibility set from reaching the (structurally
 correct) template and inheriting its bias. → `references/fidelity-tests.md`.
 
-### Stage 4 — Assemble core + package references
-Write the core `SKILL.md` (embodiment artifact) and the `references/` package (depth + episodic
-content + provenance). The core follows a fixed template and obeys the no-meta rule absolutely.
-Episodic content and lower-scoring-but-attested passages live in references, never the core.
+### Stage 4 — Assemble core + package references + Fidelity Ledger
+Write three things: the core `SKILL.md` (embodiment artifact), the `references/` package (depth,
+loaded by the host agent), and the `fidelity-ledger/` package (the human-facing audit trail —
+provenance, budgets, gate and test results). The core follows a fixed template and obeys the
+no-meta rule absolutely. Concrete, attested episodes and decision-record fragments that did not
+make a cluster module live in `references/episodic.md`, still loaded on demand by the host agent —
+never the core. Provenance, scoring, and fidelity records are never written under `references/`;
+they go only to `fidelity-ledger/`, which the host agent does not load.
 
 Two reference modules are **standing and co-equal**: `frameworks.md` (what the person thinks with)
 and `voice.md` (how the person sounds). The 20% style cap keeps the core a fingerprint, but a
@@ -208,6 +213,14 @@ measured `style_metrics.py` baseline, and anti-drift pairs — is written to `vo
 clusters only, and the core's loading block tells the host to load it before any sustained prose.
 The cap routes surplus style there; it does not discard it. Material cut under the 0.55 rule stays
 cut — `voice.md` takes the demoted, never the deleted.
+
+`references/episodic.md` is the fourth, residual module: concrete, attested, one-off material —
+specific incidents, anecdotes, and decision-record fragments — that is real and citable but did not
+clear a cluster module's own 1,800-token floor, or a decision/aside demoted from a cluster module
+for space. It holds *events*, not concepts or expression: a named construct belongs in
+`frameworks.md` even if it surfaced in a single aside, and any expression or modulation element
+belongs in `voice.md` regardless of where it was demoted from. If it isn't a specific attested
+happening someone could point to, it does not belong in `episodic.md`.
 
 **The cluster modules are budgeted too, by the same logic as the core.** Size each one with
 `scripts/cluster_budget.py` before writing it — a flat band is a guess that a rich cluster under-uses
@@ -225,7 +238,7 @@ The module formula, its counting rules, and its calibration status: `references/
 ### Stage 5 — Final fidelity verification *(the gates already ran at 3.5; this confirms the assembled core)*
 - **Projection re-check** — confirm the assembled persona's reasoning still predicts the masked
   held-out passages (`scripts/holdout_split.py` gives the reproducible seeded split); record the
-  score in `provenance.md`.
+  score in `fidelity-ledger/provenance.md`.
 - **Cost / presence assertion** — re-confirm every high-signal divergence landed in the core, and
   assert the hard minimum: **if the corpus contains any high-signal cost-bearing refusal or
   interactional move, the core must contain at least one.** Failing this blocks delivery — go
@@ -242,9 +255,10 @@ The module formula, its counting rules, and its calibration status: `references/
   being indistinguishable from every other register the core promises. Below 0.70, collapse the
   registers into one honest voice rather than shipping a distinction the persona cannot perform.
 
-Log all results to `provenance.md` and the coverage report. If a check falls below threshold,
-emit a **reduced-scope** core with the gap logged, or surface it to the user for corpus improvement
-— never paper over it. → Procedures, thresholds, and reporting: `references/fidelity-tests.md`.
+Log all results to `fidelity-ledger/provenance.md` and the coverage report. If a check falls below
+threshold, emit a **reduced-scope** core with the gap logged, or surface it to the user for corpus
+improvement — never paper over it. → Procedures, thresholds, and reporting:
+`references/fidelity-tests.md`.
 
 ---
 
@@ -254,16 +268,21 @@ A directory containing:
 - **`SKILL.md`** — the core embodiment artifact, sized to the **computed budget** (typically
   3,000–5,500 tokens; floor 3,000, ceiling 4,000–6,500 by corpus), front-loaded (compaction
   truncates from the end, so highest-value fingerprints come first).
-- **`references/`** — modular files sized for on-demand loading. Two are **standing, cross-corpus
-  modules of equal status**: `frameworks.md` (the person's named constructs, defined in their sense)
-  and `voice.md` (the measured expressive system — favored and *avoided* constructions, modulation
-  rules, register range, lexical fingerprint, the `style_metrics.py` baseline, and anti-drift
-  pairs). The rest are per-source or residual: one module per high-value source cluster,
-  `episodic.md` for demoted attested material, and `provenance.md` mapping each core element to its
-  source. Sizes: cluster modules are **computed per cluster** by `scripts/cluster_budget.py` (floor
-  1,800, hard ceiling 6,000; typically 2,000–4,500 — a cluster under the floor is folded or demoted
-  rather than written thin); `frameworks.md` / `voice.md` / `episodic.md` soft ~4,000;
-  `provenance.md` uncapped since it is an audit file.
+- **`references/`** — modular files sized for on-demand loading, **all host-agent-facing** (this is
+  what the persona loads at runtime; it never contains provenance, scores, or fidelity results).
+  Two are **standing, cross-corpus modules of equal status**: `frameworks.md` (the person's named
+  constructs, defined in their sense) and `voice.md` (the measured expressive system — favored and
+  *avoided* constructions, modulation rules, register range, lexical fingerprint, the
+  `style_metrics.py` baseline, and anti-drift pairs). The rest are per-source or residual: one
+  module per high-value source cluster, and `episodic.md` for concrete, attested one-off
+  material — specific incidents, anecdotes, decision-record fragments — that did not clear a
+  cluster module's floor. Sizes: cluster modules are **computed per cluster** by
+  `scripts/cluster_budget.py` (floor 1,800, hard ceiling 6,000; typically 2,000–4,500 — a cluster
+  under the floor is folded or demoted rather than written thin); `frameworks.md` / `voice.md` /
+  `episodic.md` soft ~4,000.
+- **`fidelity-ledger/`** — **human-facing**, never loaded by the host agent: `provenance.md`
+  mapping each core element to its source, the computed budgets, and the gate/final fidelity
+  results. Uncapped, since it is an audit package and its completeness matters more than its size.
 
 Name the output directory with a user-supplied or auto-generated slug + `-perspective`
 (e.g. `deneen-perspective`), and write it to the persona-out location resolved at the start of the
