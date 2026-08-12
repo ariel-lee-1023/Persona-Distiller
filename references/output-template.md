@@ -12,27 +12,29 @@ stay just as free of honesty/provenance language as the core.
 ```
 <slug>-perspective/
 ├── SKILL.md                 # core embodiment artifact, sized to the computed budget, front-loaded
-├── references/              # host-agent-facing: loaded at runtime, never contains provenance/scores
+├── references/              # host-agent-facing: loaded at runtime, never contains
+│   │                        #   provenance/scores/episodic material
 │   ├── clusters/            # one file per cluster clearing the 1,800 floor; size computed
 │   │                        #   per cluster by scripts/cluster_budget.py
 │   │   ├── c03-<label>.md
 │   │   └── …
 │   ├── frameworks.md        # the person's named frameworks / recurring constructs, defined
-│   ├── voice.md             # the measured expressive system — parallel in status to frameworks.md
-│   └── episodic.md          # concrete attested one-off material: incidents, anecdotes, decision
-│                              #   fragments that did not clear a cluster module's floor
+│   └── voice.md             # the measured expressive system — parallel in status to frameworks.md
 └── fidelity-ledger/         # human-facing: the honesty/audit package, never loaded by the host agent
-    └── provenance.md        # which source file/cluster each core element came from, computed
-                             #   budgets, and gate/final fidelity scores
+    ├── provenance.md        # which source file/cluster each core element came from, computed
+    │                        #   budgets, and gate/final fidelity scores
+    └── episodic.md          # concrete attested one-off material: incidents, anecdotes, decision
+                             #   fragments that did not clear a cluster module's floor
 ```
 
 `frameworks.md` and `voice.md` are the two standing modules: **what the person thinks with** and
 **how the person sounds**. Both are cross-corpus and always produced (when the corpus supports
-them); `clusters/` and `episodic.md` are per-source and residual, both still under `references/`
-because the host agent loads them on demand. `fidelity-ledger/provenance.md` is the audit file: it
-lives outside `references/` entirely because it is written for the human who reads the
-distillation, not for the agent running it, and it must never be loaded into the embodiment
-context.
+them); `clusters/` is per-source and residual, still under `references/` because the host agent
+loads it on demand. `fidelity-ledger/provenance.md` and `fidelity-ledger/episodic.md` are the two
+human-facing files: both live outside `references/` entirely because they are written for the human
+who reads the distillation, not for the agent running it — provenance because it is the audit
+trail, episodic because it is attested-but-unranked source material rather than reasoning the host
+agent should load — and neither must ever enter the embodiment context.
 
 ## Core `SKILL.md` template
 
@@ -115,15 +117,15 @@ Module sizes differ by what governs them — one number for all four was never r
 | `clusters/*.md` | **computed per cluster** — `scripts/cluster_budget.py`, formula in `scoring.md`; floor 1,800, hard ceiling 6,000 | the only modules loaded *mid-embodiment*, so each is sized to the constructs, moves and evidence routed to it rather than to a shared band. Typical range 2,000–4,500 |
 | `frameworks.md` | soft ~4,000 | scales with how many named constructs the person actually has; preserving their exact terms costs words |
 | `voice.md` | soft ~4,000 | the full expressive system the core's 20% style cap cannot hold; loaded whenever sustained prose is being written in the voice |
-| `episodic.md` | soft ~4,000 | concrete one-off material — if it is outgrowing this, promote the best of it into a cluster module or cut the rest |
 
 - **`clusters/*.md`** — for each cluster whose computed budget clears the 1,800 floor, an on-demand
   module: the distinctive voice and moves in that period/work, with the example passages that
   evidenced them. Three rules come with the budget and are easy to get wrong (full statement in
   `scoring.md`):
   - **The floor decides which clusters get a module at all.** Below 1,800 the module would be a
-    summary — fold the cluster into its nearest sibling module, or demote it to `episodic.md`. Four
-    modules from six clusters is a normal outcome; six thin ones is not.
+    summary — fold the cluster into its nearest sibling module, or demote it to
+    `fidelity-ledger/episodic.md`. Four modules from six clusters is a normal outcome; six thin
+    ones is not.
   - **Hitting the `n_apparatus`/`n_moves` caps means the cluster was cut wrong**, not that the module
     needs trimming. Re-cut it at Stage 1 with `segment.py` rather than deleting evidence.
   - **Size to the constructs, not to the source.** Module length tracks conceptual density, not word
@@ -133,19 +135,10 @@ Module sizes differ by what governs them — one number for all four was never r
   paraphrase). Include which clusters use it.
 - **`voice.md`** — the person's expressive system, measured and written as operative rules. See
   the dedicated section below; this is the module that makes the 20% style cap safe.
-- **`episodic.md`** — **positive scope: concrete, attested, one-off happenings** — specific
-  incidents, anecdotes, and decision-record fragments that are real and citable but did not earn a
-  cluster module of their own, because they fell under a cluster's 1,800-token floor or were
-  demoted from a cluster module for space. The test for whether something belongs here: could a
-  reader point to it as *an event* (something that happened, was said, or was decided on a specific
-  occasion)? If yes, and it isn't already the anchor evidence for a surviving core element or
-  cluster module, it goes here. Two exclusions keep it from becoming a dumping ground:
-  - **No concepts.** A named construct or recurring framework belongs in `frameworks.md` even if
-    its only attestation is a single aside — `episodic.md` holds the incident, not the idea it
-    illustrates.
-  - **No expression or modulation.** Any style, register, or modulation element demoted for space
-    goes to `voice.md` regardless of source, never here. If `episodic.md` starts reading like a
-    stylometry appendix, misrouted material has leaked in from Stage 3.
+
+`episodic.md` is not a `references/` module — see the Fidelity Ledger section below for its scope
+and exclusions; it lives in `fidelity-ledger/` because it is attested source material, not
+reasoning the host agent should load.
 
 ## The Fidelity Ledger (human-facing, never loaded by the host agent)
 
@@ -157,6 +150,23 @@ budget, the core's actual size, and if the floor was triggered, how that was res
 core's size is as auditable as its contents. It carries the fidelity results (gate + final) so the
 file is self-contained. This is what makes the whole distillation auditable *without* putting a
 single hedge into the core, and without that auditability ever entering `references/`.
+
+`fidelity-ledger/episodic.md` — soft ~4,000 — is the residual record of **concrete, attested,
+one-off happenings**: specific incidents, anecdotes, and decision-record fragments that are real
+and citable but did not earn a cluster module of their own, because they fell under a cluster's
+1,800-token floor or were demoted from a cluster module for space. The test for whether something
+belongs here: could a reader point to it as *an event* (something that happened, was said, or was
+decided on a specific occasion)? If yes, and it isn't already the anchor evidence for a surviving
+core element or cluster module, it goes here. It sits in `fidelity-ledger/`, not `references/`,
+because it is attested-but-unranked source material rather than something the host agent should
+load into the embodiment context — the same reasoning that keeps provenance out of `references/`.
+Two exclusions keep it from becoming a dumping ground:
+- **No concepts.** A named construct or recurring framework belongs in `frameworks.md` even if
+  its only attestation is a single aside — `episodic.md` holds the incident, not the idea it
+  illustrates.
+- **No expression or modulation.** Any style, register, or modulation element demoted for space
+  goes to `voice.md` regardless of source, never here. If `episodic.md` starts reading like a
+  stylometry appendix, misrouted material has leaked in from Stage 3.
 
 **No ceiling** — one row per core element; an audit file's completeness beats its size.
 

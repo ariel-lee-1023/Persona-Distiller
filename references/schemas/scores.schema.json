@@ -95,12 +95,12 @@
           "words_firsthand": { "type": "integer", "minimum": 1 },
           "floor_triggered": {
             "type": "boolean",
-            "description": "True when supply fell below 1800. The floor decides whether the cluster earns a module at all, and is never a padding target: fold it into its nearest sibling module, or demote its concrete attested material (events, not concepts or expression) to references/episodic.md."
+            "description": "True when supply fell below 1800. The floor decides whether the cluster earns a module at all, and is never a padding target: fold it into its nearest sibling module, or demote its concrete attested material (events, not concepts or expression) to fidelity-ledger/episodic.md."
           },
           "floor_resolution": {
             "type": "string",
             "minLength": 1,
-            "description": "Required in practice when floor_triggered is true: which sibling absorbed it, or that it went to references/episodic.md, and why."
+            "description": "Required in practice when floor_triggered is true: which sibling absorbed it, or that it went to fidelity-ledger/episodic.md, and why."
           },
           "recut_flagged": {
             "type": "boolean",

@@ -201,12 +201,14 @@ Write three things: the core `SKILL.md` (embodiment artifact), the `references/`
 loaded by the host agent), and the `fidelity-ledger/` package (the human-facing audit trail —
 provenance, budgets, gate and test results). The core follows a fixed template and obeys the
 no-meta rule absolutely. Concrete, attested episodes and decision-record fragments that did not
-make a cluster module live in `references/episodic.md`, still loaded on demand by the host agent —
-never the core. Provenance, scoring, and fidelity records are never written under `references/`;
-they go only to `fidelity-ledger/`, which the host agent does not load.
+make a cluster module live in `fidelity-ledger/episodic.md` — attested but not reasoning material,
+so it sits with the audit trail rather than the host-agent-facing package, and the host agent never
+loads it. Provenance, scoring, fidelity records, and episodic material are never written under
+`references/`; they go only to `fidelity-ledger/`, which the host agent does not load.
 
 Two reference modules are **standing and co-equal**: `frameworks.md` (what the person thinks with)
-and `voice.md` (how the person sounds). The 20% style cap keeps the core a fingerprint, but a
+and `voice.md` (how the person sounds); `episodic.md` is not a third — it lives in `fidelity-ledger/`,
+not `references/` (see below). The 20% style cap keeps the core a fingerprint, but a
 fingerprint is not enough to *write* as someone at length, so the rest of the expressive system —
 favored and **avoided** constructions, modulation rules, register range, lexical fingerprint, the
 measured `style_metrics.py` baseline, and anti-drift pairs — is written to `voice.md` from firsthand
@@ -214,13 +216,16 @@ clusters only, and the core's loading block tells the host to load it before any
 The cap routes surplus style there; it does not discard it. Material cut under the 0.55 rule stays
 cut — `voice.md` takes the demoted, never the deleted.
 
-`references/episodic.md` is the fourth, residual module: concrete, attested, one-off material —
+`fidelity-ledger/episodic.md` is the residual record: concrete, attested, one-off material —
 specific incidents, anecdotes, and decision-record fragments — that is real and citable but did not
 clear a cluster module's own 1,800-token floor, or a decision/aside demoted from a cluster module
 for space. It holds *events*, not concepts or expression: a named construct belongs in
 `frameworks.md` even if it surfaced in a single aside, and any expression or modulation element
 belongs in `voice.md` regardless of where it was demoted from. If it isn't a specific attested
-happening someone could point to, it does not belong in `episodic.md`.
+happening someone could point to, it does not belong in `episodic.md`. It lives in `fidelity-ledger/`
+rather than `references/` because it is attested-but-unranked source material, not something the
+host agent should load into the embodiment context — the same reasoning that keeps provenance out
+of `references/`.
 
 **The cluster modules are budgeted too, by the same logic as the core.** Size each one with
 `scripts/cluster_budget.py` before writing it — a flat band is a guess that a rich cluster under-uses
@@ -230,7 +235,7 @@ count*: it is a function of the constructs, moves and evidence routed to the clu
 fencing cost that scales with how many sibling modules it must distinguish itself from, plus a
 damped corrective for corpus mass. Two flags carry more information than the number: a cluster
 under the **1,800 floor** has not earned a module (fold it into a sibling, or demote it to
-`episodic.md` — never pad), and a cluster that saturates the input caps was **cut wrong** and goes
+`fidelity-ledger/episodic.md` — never pad), and a cluster that saturates the input caps was **cut wrong** and goes
 back to Stage 1 for re-segmentation rather than having its evidence trimmed.
 → Exact templates, the `voice.md` spec, and directory layout: `references/output-template.md`.
 The module formula, its counting rules, and its calibration status: `references/scoring.md`.
@@ -269,20 +274,22 @@ A directory containing:
   3,000–5,500 tokens; floor 3,000, ceiling 4,000–6,500 by corpus), front-loaded (compaction
   truncates from the end, so highest-value fingerprints come first).
 - **`references/`** — modular files sized for on-demand loading, **all host-agent-facing** (this is
-  what the persona loads at runtime; it never contains provenance, scores, or fidelity results).
-  Two are **standing, cross-corpus modules of equal status**: `frameworks.md` (the person's named
-  constructs, defined in their sense) and `voice.md` (the measured expressive system — favored and
-  *avoided* constructions, modulation rules, register range, lexical fingerprint, the
-  `style_metrics.py` baseline, and anti-drift pairs). The rest are per-source or residual: one
-  module per high-value source cluster, and `episodic.md` for concrete, attested one-off
-  material — specific incidents, anecdotes, decision-record fragments — that did not clear a
-  cluster module's floor. Sizes: cluster modules are **computed per cluster** by
+  what the persona loads at runtime; it never contains provenance, scores, fidelity results, or
+  episodic material). Two are **standing, cross-corpus modules of equal status**: `frameworks.md`
+  (the person's named constructs, defined in their sense) and `voice.md` (the measured expressive
+  system — favored and *avoided* constructions, modulation rules, register range, lexical
+  fingerprint, the `style_metrics.py` baseline, and anti-drift pairs). The rest is per-source: one
+  module per high-value source cluster. Sizes: cluster modules are **computed per cluster** by
   `scripts/cluster_budget.py` (floor 1,800, hard ceiling 6,000; typically 2,000–4,500 — a cluster
-  under the floor is folded or demoted rather than written thin); `frameworks.md` / `voice.md` /
-  `episodic.md` soft ~4,000.
+  under the floor is folded into a sibling or demoted to `fidelity-ledger/episodic.md` rather than
+  written thin); `frameworks.md` / `voice.md` soft ~4,000.
 - **`fidelity-ledger/`** — **human-facing**, never loaded by the host agent: `provenance.md`
   mapping each core element to its source, the computed budgets, and the gate/final fidelity
-  results. Uncapped, since it is an audit package and its completeness matters more than its size.
+  results; and `episodic.md`, concrete attested one-off material — specific incidents, anecdotes,
+  decision-record fragments — that did not clear a cluster module's floor. Both are attested but not
+  reasoning material, so neither belongs in the host-agent-facing package. Uncapped, since it is an
+  audit package and its completeness matters more than its size; `episodic.md` keeps its own soft
+  ~4,000 guide so it stays a residual record rather than growing into a dumping ground.
 
 Name the output directory with a user-supplied or auto-generated slug + `-perspective`
 (e.g. `deneen-perspective`), and write it to the persona-out location resolved at the start of the

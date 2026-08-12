@@ -34,6 +34,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     element goes to `voice.md` regardless of where it was demoted from. `episodic.md` stays inside
     `references/` — it is still host-agent-facing, on-demand material, unlike the ledger.
 
+- **`episodic.md` moved out of `references/` into `fidelity-ledger/`, alongside `provenance.md`.**
+  Superseding the entry directly above: on reflection, `episodic.md`'s positive scope test — could
+  a reader point to it as a specific attested happening? — makes it attested source material, not
+  reasoning the host agent should load mid-embodiment, so it belongs with the audit trail rather
+  than with `frameworks.md`/`voice.md`/`clusters/`. `episodic.md` now ships at
+  `<slug>-perspective/fidelity-ledger/episodic.md`. Content and scope are unchanged — concrete,
+  attested, one-off happenings that did not clear a cluster module's floor, with the same
+  no-concepts/no-expression exclusions — only its location and audience designation move: it is now
+  human-facing like `provenance.md`, never loaded by the host agent. `references/` therefore now
+  holds only `frameworks.md`, `voice.md`, and `clusters/` — nothing in it is attested-but-unranked
+  material anymore, only the standing and per-cluster modules the host agent loads at runtime. Every
+  cross-reference to `episodic.md` in `SKILL.md`, `output-template.md`, and `scoring.md` now points
+  at `fidelity-ledger/episodic.md`.
+
 ### Added
 
 - **`provenance.md` phrasing rule: audit ledger for the human reader, never a runtime instruction.**

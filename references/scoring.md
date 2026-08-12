@@ -62,11 +62,10 @@ After scoring, cut an element if **any** of these is true:
    weaker rather than averaging them into a muddle.
 
 Do not smooth, blend, or "partially include" low-value material. A deleted element that was merely
-low-scoring (not generic/meta/conflicting) can still be **demoted to references** if it is attested
-and someone might want it on demand — but it does not touch the core. A concrete, attested
-incident or decision-record fragment demoted this way goes to `references/episodic.md`; a
-demoted expression or modulation element goes to `references/voice.md` instead (see
-`output-template.md`).
+low-scoring (not generic/meta/conflicting) can still be **demoted** if it is attested and someone
+might want it on demand — but it does not touch the core. A concrete, attested incident or
+decision-record fragment demoted this way goes to `fidelity-ledger/episodic.md`; a demoted
+expression or modulation element goes to `references/voice.md` instead (see `output-template.md`).
 
 ## Elevation & retention (hard) — why weights alone are not enough
 
@@ -227,9 +226,9 @@ This is the question `output-template.md`'s "one file per high-value source clus
 Below 1,800 the cluster cannot carry a module that is more than a summary. Do **not** pad it. Either:
 
 1. **Fold it into its nearest sibling module** as a subsection, if they share a register or period; or
-2. **Demote its concrete, attested material to `episodic.md`** (events, not concepts or expression —
-   see `output-template.md`'s episodic scope) and let the core, `frameworks.md`, and `voice.md`
-   carry what mattered.
+2. **Demote its concrete, attested material to `fidelity-ledger/episodic.md`** (events, not concepts
+   or expression — see `output-template.md`'s episodic scope) and let the core, `frameworks.md`, and
+   `voice.md` carry what mattered.
 
 A persona with six clusters and four modules is a normal, honest outcome. Six thin modules is not.
 
