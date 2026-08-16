@@ -50,6 +50,36 @@ it cut them.
 - 0.5 — a recurring interest within one domain.
 - 0.0 — mentioned once or twice.
 
+### Scoring the two classes added in 3.0
+
+`procedure` and `verdict` are scored on the same five probes, but two of the rubrics need a
+reading that is not obvious from the text above, and getting it wrong systematically underrates
+both classes.
+
+**`procedure` elements** — ordered method: a guard, a translation rule, a routing row.
+- *Projectibility* is the probe that matters, and it should score high almost by construction: a
+  procedure that does not generalise to an unseen question is not a procedure, it is a description
+  of one answer. Score it against unseen **question types**, not unseen topics.
+- *Interactional visibility* is often 0.0 for a guard that fires before the exchange begins. That
+  is correct and is not a reason to drop the element; the class priority below protects it.
+- A procedure with no stated position in the sequence is not admissible as `procedure`. Send it
+  back as a `projectible_regularity` or reclassify it.
+
+**`verdict` elements** — a stable judgment on a named object.
+- *Projectibility* here means something narrower than for other classes: not "does it predict
+  other stances" but "is it stable across the corpus". A verdict restated consistently in three
+  clusters scores 1.0 even though it predicts nothing beyond its own object. This is deliberate.
+  A store of settled cases is worth having precisely because it is *not* re-derived, and scoring
+  it on reach would delete the whole class.
+- *Cost / refusal* is scored normally, and often high: the verdicts worth storing are usually the
+  ones that cost the person something to hold.
+- A verdict must record its corpus hit count (`scripts/name_audit.py`) alongside its score. A
+  judgment attested once, in an aside, is an aside — demote it to `episodic.md`.
+- A verdict that could not have been produced by the person's own method layer is a remembered
+  conclusion rather than a judgment. Keep it if it is well attested, but flag it in the ledger;
+  it will not generalise, and a host agent that treats it as exemplary will misjudge the next
+  object of the same kind.
+
 ## The deletion rule (hard)
 
 After scoring, cut an element if **any** of these is true:
@@ -79,9 +109,16 @@ mechanism that makes the whole design work.
 then by composite within class:
 
 ```
-cost_refusal  ≈  projectible_regularity   >   interactional   >   variation/modulation
-                                                            >   preoccupation   >   stable_style
+procedure  ≈  cost_refusal  ≈  verdict  ≈  projectible_regularity
+                                >   interactional   >   variation/modulation
+                                >   preoccupation   >   stable_style
 ```
+
+`procedure` joins the top band because it is the only class that tells the host agent what to do
+*first*; a core full of positions with no ordered method has no way to reach a position on
+anything the corpus did not already contain. `verdict` joins it because a settled case that gets
+re-derived at runtime is the most detectable failure mode a persona has — the answer changes
+slightly every turn, in a way no individual answer looks wrong.
 
 **2. Reserved claim.** Cost-bearing refusals, standing commitments, and variation/modulation
 patterns get *first claim* on core space. Fill them in before any stable style feature, then fill
@@ -119,12 +156,22 @@ survivors of that class, before the budget decides how many are actually written
 supply = 2,200
        + 250 × min(n_cost_refusal,  6)     # incl. standing commitments
        + 180 × min(n_projectible,   7)
+       + 200 × min(n_procedure,     5)     # guard, translation rule, routing rows
+       + 150 × min(n_verdict,       8)     # the roll-up costs less per entry than a rule
        + 140 × min(n_interactional, 5)
        + 120 × min(n_variation,     4)
 ```
 
 Preoccupation and stable_style contribute **nothing**. They never earn space; they fill space the
-diagnostics have already earned. Saturation is ~6,140 — a corpus that maxes every term.
+diagnostics have already earned. Saturation is ~8,340 — a corpus that maxes every term.
+
+The two new terms are priced differently on purpose. A procedure costs more per element than a
+refusal because it has to be written as an ordered move with its precondition attached, and the
+routing table it feeds carries a row of framing per entry. A verdict costs less because verdicts
+amortise: the first one pays for the section and the lookup convention, and each additional one is
+a line. The caps reflect what a core can carry before the reader stops finding anything —
+eight verdicts scan; twenty are a reference table and belong in `frameworks.md` §4 with only the
+roll-up in the core.
 
 **Step 2 — corpus ceiling.** From `coverage_map.json`, first matching row wins:
 
@@ -132,8 +179,14 @@ diagnostics have already earned. Saturation is ~6,140 — a corpus that maxes ev
 |---|---|
 | `firsthand_ratio` < 0.50 | **4,000** |
 | `total_tokens` < 50k **or** `n_clusters` < 4 | **4,000** |
-| `total_tokens` < 250k **or** `n_clusters` < 9 | **5,500** |
-| otherwise (≥250k tokens, ≥9 clusters, ≥2 periods in `temporal_spread`) | **6,500** |
+| `total_tokens` < 250k **or** `n_clusters` < 9 | **6,000** |
+| otherwise (≥250k tokens, ≥9 clusters, ≥2 periods in `temporal_spread`) | **7,500** |
+
+The two richer rows moved up by 500 and 1,000 in 3.0 to absorb the mandatory slots added to the
+core template — the axis, the three-part question-reading procedure, the vocabulary throttle, the
+stop condition, and a loading contract that grew from four lines to five parts. The thin-corpus
+rows did not move: a corpus that cannot support the diagnostics does not get more room to say so
+in.
 
 **Step 3 — clamp.**
 
@@ -141,13 +194,45 @@ diagnostics have already earned. Saturation is ~6,140 — a corpus that maxes ev
 core_budget = clamp(supply, floor = 3,000, ceiling)
 ```
 
-Measure against the rendered `SKILL.md` including frontmatter, ±10% tolerance. Record
-`core_budget`, its inputs, and which ceiling row applied at the top of `scores.json`.
+Measure against the rendered `SKILL.md` including frontmatter, **in tokens counted by
+`scripts/token_count.py`**, ±10% tolerance. Record `core_budget`, its inputs, the ceiling row that
+applied, and the tokenizer constants used, at the top of `scores.json`. Word counts are not a
+substitute: the ratio of tokens to words differs by roughly a factor of two between an English and
+a Chinese corpus, so a package budgeted in words is systematically mis-sized in one direction or
+the other, and nothing in the pipeline would report it.
 
 Worked: a dialogue-rich 180k-token corpus in 11 clusters yielding 3 cost-refusals, 5 regularities,
-3 interactional moves, 2 modulation patterns → supply 2,200+750+900+420+240 = **4,510**, ceiling
-5,500 → budget **4,510**. The same curation over a 30k-token corpus → ceiling 4,000 → budget
-**4,000**, and the two lowest-ranked survivors go to references.
+2 procedures, 4 verdicts, 3 interactional moves, 2 modulation patterns → supply
+2,200+750+900+400+600+420+240 = **5,510**, ceiling 6,000 → budget **5,510**. The same curation over
+a 30k-token corpus → ceiling 4,000 → budget **4,000**, and the lowest-ranked survivors go to
+references.
+
+### When supply exceeds the ceiling
+
+The 0.55 deletion rule governs Stage 3; it says nothing about Stage 4, where the material has
+already survived and the constraint is space rather than quality. Without a rule for this case a
+distiller improvises, and the improvisation is almost always the same one: compress every section
+a little. That is the worst available option — it degrades the sections that carry identification
+in order to preserve the ones that do not.
+
+Relocate in this order, stopping when the core fits:
+
+1. **`stable_style` surplus → `voice.md`.** Every style element beyond the two or three most
+   identifying ones. The 20% cap is an upper bound, not a target.
+2. **`preoccupation` beyond the first → `voice.md` §8 or the ledger.** A second preoccupation is
+   almost never doing work the first is not.
+3. **`verdict` entries beyond the roll-up → `frameworks.md` §4.** The core keeps the lookup
+   directive and the bare list of settled objects; the judgments themselves live in the module.
+   This is usually the largest single recovery available and it costs nothing at runtime, because
+   the loading contract already routes the host agent to §4 before it reasons about a named object.
+4. **Routing-table rows → the cluster module they route to.** Keep the guard, the translation rule,
+   and the highest-fan-in rows.
+5. **Only then, compress prose** — and compress within a section, never across the ladder.
+
+What may never be relocated to make room: the axis, the guard, the minimum cost-refusal, the
+vocabulary throttle, the stop condition, or any part of the loading contract. If the core still
+does not fit after step 5, the ceiling row is wrong for this corpus or the curation kept too much;
+record which, in the ledger.
 
 ### The floor (3,000) is a diagnostic trigger, never a padding target
 
@@ -194,6 +279,8 @@ supply_c = 600                                    # fixed frame: header block, o
          +  85 × min(n_applications,   8)         # distinct situations this cluster is the answer to
          +  30 × min(n_fragments,     24)         # attested evidence passages retained
          +  80 +  15 × min(n_siblings, 9)         # prohibitions, incl. one fence per sibling module
+         + 220 × max(n_registers - 1,  0)         # internal register split: header, no-pool line,
+         |                                        #   and a second column of style guidance (cap 3)
          + 400 × sqrt(words_c / words_firsthand)  # damped corpus-mass corrective
 
 module_budget_c = clamp(supply_c, floor = 1,800, ceiling = 6,000)
@@ -208,6 +295,7 @@ Counting rules, so these are read off Stage 2/3 artifacts rather than invented a
 | `n_applications` | distinct entry-situations the module is loaded for — for a persona with a router, the router's fan-in; otherwise the question-shapes this cluster answers better than its siblings |
 | `n_fragments` | attested evidence passages retained in the module |
 | `n_siblings` | other clusters that also get a module (capped at 9) |
+| `n_registers` | how many register families from `registers.json` have material inside this cluster (capped at 3) |
 | `words_c`, `words_firsthand` | `clusters/manifest.json` |
 
 `n_siblings` is the term most often missing from hand-written estimates and the one that grows
@@ -234,13 +322,29 @@ A persona with six clusters and four modules is a normal, honest outcome. Six th
 
 ### Cap saturation is a re-cut signal, not a trim signal
 
-The formula saturates around **4,775** — deliberately below the 6,000 ceiling, the same relationship
-the core's supply (6,140) has to its ceiling (6,500). So the ceiling only ever catches a hand-written
-overrun, and the interesting signal is elsewhere: if `n_apparatus > 12` or `n_moves > 12`, the cluster
-is carrying **two registers**, and the fix is upstream. Go back to Stage 1 and re-cut it with
-`segment.py` by period or theme. Never buy the space back by deleting evidence — that treats the
-symptom (a fat file) and leaves the cause (boundary drift, so one "cluster" averages two voices) in
-place.
+The formula saturates around **5,215** — deliberately below the 6,000 ceiling, the same relationship
+the core's supply has to its own ceiling. So the ceiling only ever catches a hand-written overrun,
+and the interesting signal is elsewhere: if `n_apparatus > 12` or `n_moves > 12`, the cluster is
+carrying **two registers**. Never buy the space back by deleting evidence — that treats the symptom
+(a fat file) and leaves the cause in place.
+
+There are two legitimate fixes, and the choice between them turns on a single question: **do the
+two registers cover the same topic domain?**
+
+- **No — RECUT.** The cluster spans two domains as well as two registers, and the boundary drifted.
+  Go back to Stage 1 and re-cut with `segment.py` by period or theme. This is the default.
+- **Yes — SPLIT_IN_MODULE.** Two registers, one domain: the same subject matter handled in a
+  written register in one source and a spoken one in another. Re-cutting here is the wrong
+  instrument, because the two halves would each need the full prohibition frame against all the
+  same siblings, and fencing cost is the term that grows fastest with sibling count. Instead the
+  module stays one file and declares the split internally: a header naming both registers with the
+  measurements that distinguish them, an explicit line that the two sets of statistics must never
+  be pooled, and style guidance listed separately per side. Pass `--registers 2 --shared-domain` to
+  `scripts/cluster_budget.py`, which prices the extra frame and reports the verdict as
+  `SPLIT_IN_MODULE` instead of `RECUT`.
+
+"Same topic domain" is checked against the cluster's `n_applications`, not against intuition: if
+the two sides answer the same entry-situations, it is one domain.
 
 ### Report the runtime load, not the package size
 
@@ -254,6 +358,58 @@ loaded_worst_case = core_budget + 2 × max(module_budget) + voice.md + framework
 Two modules because a close secondary ranking may load one. Record this line in
 `fidelity-ledger/provenance.md` alongside the core budget.
 
+## The standing modules are computed too
+
+Until 3.0 the two standing modules were the last place in the skill where a size was a guess: both
+`frameworks.md` and `voice.md` carried a soft ~4,000 band while the core and every cluster module
+were computed from what survived. The band was wrong in both directions at once — it under-served
+a person with a large apparatus and it invited padding in a person with a small one — and it was
+self-contradictory besides, since the skill's own argument against flat bands applies to these two
+files more strongly than to the clusters, whose sizes at least vary with their source.
+
+**`frameworks.md`.** The driver is populated layers and entries, not corpus mass:
+
+```
+supply_f = 700                                    # §0 operating note + section frames
+         + 120 × min(n_constructs,   20)         # §3 entries: definition + clusters + hit count
+         + 200 × min(n_procedure,     6)         # §1 entries carry order and precondition
+         + 130 × min(n_epistemic,     6)         # §2
+         +  90 × min(n_verdict,      24)         # §4 — one line each once the frame is paid for
+         + 110 × min(n_moves,        10)         # §5
+         +  70 × min(n_personal,      6)         # §6
+         +  25 × min(n_constructs,   40)         # §7 index row per named construct
+
+frameworks_budget = clamp(supply_f, floor = 2,000, ceiling = 7,000)
+```
+
+**`voice.md`.** The driver is the number of register families, because a family is not a section —
+it is a column in the gap table, a set of guardrails, a tag on every rule, and its own anti-drift
+pairs. This is why the old flat band failed hardest on exactly the packages that needed the file
+most:
+
+```
+supply_v = 600                                    # §0 frame + §11 measurement provenance
+         + 550 × min(n_registers,     4)         # per family: identification line, guardrails,
+         |                                        #   gap-table column, its own opening/closing set
+         + 250 × (1 if any within-family gradient else 0)   # §1
+         +  90 × min(n_rules,        18)         # §5 + §7 construction and modulation rules
+         +  40 × min(n_avoid,        25)         # §6, quantified and family-tagged
+         + 120 × min(n_pairs,         8)         # §10 anti-drift pairs
+         +  60 × min(n_nopool_pairs,  6)         # §3
+
+voice_budget = clamp(supply_v, floor = 2,000, ceiling = 7,000)
+```
+
+Both clamp to the same range, and both saturate below their ceiling (5,000 and 5,190) for the same
+reason the cluster formula does: the ceiling should only ever catch a hand-written overrun, never a
+legitimately rich module.
+
+The floor here means something different from the cluster floor. A cluster below its floor does not
+get a module at all. A standing module below 2,000 gets written anyway — there is nowhere else for
+its material to go — but the shortfall is a finding: it means the corpus supports very little
+apparatus, or very little measurable expression, and that belongs in the coverage report and in the
+package's negative-space section rather than being padded out of sight.
+
 ### Calibration status — read before trusting the constants
 
 The unit prices were fitted against **ten modules from a single corpus** (a 630k-word, ten-register
@@ -264,11 +420,30 @@ term pushes max error to 9.7–16.2%, and a flat constant (which is what a band 
 18.9%.
 
 That is a defensible set of magnitudes, not a universal constant. Ten points, one corpus, one
-language, one genre. Treat the *structure* as settled and the *coefficients* as provisional: when a
-run finishes, record the realised module sizes and their inputs in `fidelity-ledger/provenance.md`
-so the next calibration has more than one corpus behind it. If a run lands consistently 20%+ off in
-one direction across all its modules, the fixed term (600) is the one to move first — it is the
-least corpus-invariant part of the formula.
+language, one genre. Treat the *structure* as settled and the *coefficients* as provisional. If a
+run lands consistently 20%+ off in one direction across all its modules, the fixed term (600) is
+the one to move first — it is the least corpus-invariant part of the formula.
+
+The standing-module and register coefficients above are weaker still: they were set by the same
+reasoning about what each structural element costs, and they have not been fitted against anything.
+They are stated as formulas rather than bands because a formula can be corrected by data and a band
+cannot.
+
+**Recording a run so the next calibration has something to work with.** Guessed coefficients only
+stop being guesses if runs are recorded, and a run is only comparable if the constants it used are
+recorded with it. Every run therefore writes three things into `fidelity-ledger/provenance.md` §1
+and §3:
+
+1. The **coefficient set actually used** — `python3 scripts/cluster_budget.py --emit-coefficients`
+   dumps it as JSON. A run that overrode constants with `--coefficients FILE` records the override
+   and the reason.
+2. The **tokenizer constants** from `scripts/token_count.py`, since every budget is denominated in
+   its output.
+3. The **realised sizes** of every module beside its computed budget — the residual, per module, is
+   the entire dataset. Without it a package contributes nothing to the next fit.
+
+This is the only feedback path the skill has: the tools cannot learn from a package that did not
+write down what they told it.
 
 ## Gate before assembly
 
@@ -297,29 +472,55 @@ inspectable and defensible.
   "weights": {"projectibility":0.30,"cost_refusal":0.25,"expressive_match":0.20,
               "interactional":0.15,"preoccupation":0.10},
   "weight_notes": "dialogue_ratio 0.35 → interactional 0.15 (unchanged)",
+  "tokenizer": {"script":"token_count.py","tokens_per_han_char":1.67,"tokens_per_latin_word":1.3},
+  "n_registers": 3,
   "core_budget": {
-    "supply": 4510, "ceiling": 5500, "ceiling_rule": "total_tokens<250k",
-    "budget": 4510, "floor_triggered": false,
-    "counts": {"cost_refusal":3,"projectible":5,"interactional":3,"variation":2}
+    "supply": 5510, "ceiling": 6000, "ceiling_rule": "total_tokens<250k",
+    "budget": 5510, "floor_triggered": false, "over_ceiling": false,
+    "counts": {"cost_refusal":3,"projectible":5,"procedure":2,"verdict":4,
+               "interactional":3,"variation":2}
+  },
+  "standing_budgets": {
+    "frameworks": {"supply":4270,"budget":4270,"realised":4180},
+    "voice": {"supply":4310,"budget":4310,"realised":4395}
   },
   "cluster_budgets": [
-    {"cluster_id":"c03","supply":3310,"budget":3310,
-     "counts":{"apparatus":7,"moves":8,"applications":7,"fragments":13,"siblings":9},
+    {"cluster_id":"c03","supply":3310,"budget":3310,"realised":3260,
+     "counts":{"apparatus":7,"moves":8,"applications":7,"fragments":13,"siblings":9,
+               "registers":1},
      "words":101043,"words_firsthand":630298,
-     "floor_triggered":false,"recut_flagged":false},
+     "verdict":"OK"},
+    {"cluster_id":"c06","supply":4995,"budget":4995,"realised":5010,
+     "counts":{"apparatus":13,"moves":9,"applications":6,"fragments":19,"siblings":9,
+               "registers":2},
+     "words":74110,"words_firsthand":630298,
+     "verdict":"SPLIT_IN_MODULE",
+     "verdict_note":"two registers, one topic domain; internal A/B split with no-pooling header"},
     {"cluster_id":"c12","supply":1635,"budget":1800,
-     "counts":{"apparatus":3,"moves":2,"applications":2,"fragments":4,"siblings":9},
+     "counts":{"apparatus":3,"moves":2,"applications":2,"fragments":4,"siblings":9,
+               "registers":1},
      "words":25212,"words_firsthand":630298,
-     "floor_triggered":true,"recut_flagged":false,
+     "verdict":"FLOOR",
      "floor_resolution":"folded into c11's module as a subsection; shares register and period"}
   ],
+  "coefficients_source": "defaults (cluster_budget.py --emit-coefficients recorded in provenance)",
   "decisions": [
-    {"id":"e017","type":"cost_refusal",
+    {"id":"CR1","type":"cost_refusal",
      "scores":{"projectibility":0.9,"cost_refusal":1.0,"expressive_match":0.4,
                "interactional":0.8,"preoccupation":0.7},
      "composite":0.80,"decision":"core","rank":2,
      "reason":"incentive-vs-characteristic divergence attested in 3 clusters; predicts well"},
-    {"id":"e041","type":"expression",
+    {"id":"PROC1","type":"procedure","order":1,
+     "scores":{"projectibility":0.9,"cost_refusal":0.3,"expressive_match":0.2,
+               "interactional":0.0,"preoccupation":0.4},
+     "composite":0.51,"decision":"core","rank":1,
+     "reason":"the opening guard; interactional 0.0 is expected for a pre-exchange check, and class priority carries it despite the composite"},
+    {"id":"VD3","type":"verdict","object":"<named object>","corpus_hits":11,
+     "scores":{"projectibility":1.0,"cost_refusal":0.7,"expressive_match":0.3,
+               "interactional":0.2,"preoccupation":0.5},
+     "composite":0.68,"decision":"frameworks",
+     "reason":"stable across 4 clusters; beyond the core's roll-up, so §4 holds the judgment"},
+    {"id":"MOD7","type":"expression",
      "scores":{"projectibility":0.1,"cost_refusal":0.0,"expressive_match":0.5,
                "interactional":0.0,"preoccupation":0.0},
      "composite":0.10,"decision":"cut",

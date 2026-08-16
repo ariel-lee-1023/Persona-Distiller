@@ -4,22 +4,39 @@
   "title": "extractions.json",
   "description": "Stage 2 output. A flat list of every candidate element found across the three extraction passes, each carrying the evidence Stage 3 scores and Stage 5 tests against. Capture evidence faithfully here — it is not recoverable later.",
   "type": "array",
-  "items": { "$ref": "#/$defs/element" },
+  "items": {
+    "$ref": "#/$defs/element"
+  },
   "$defs": {
     "element": {
       "type": "object",
-      "required": ["id", "type", "statement", "clusters", "evidence"],
+      "required": [
+        "id",
+        "type",
+        "statement",
+        "clusters",
+        "evidence"
+      ],
       "additionalProperties": false,
       "properties": {
         "id": {
           "type": "string",
-          "pattern": "^e[0-9]{3,}$",
-          "description": "Stable element id, e.g. 'e017'. Referenced by scores.json."
+          "pattern": "^(PROC|CR|VD|PR|IM|MOD|PP)[0-9]+$",
+          "description": "Class-prefixed element id — PROC procedure, CR cost-refusal, VD verdict, PR projectible regularity, IM interactional, MOD modulation/expression, PP preoccupation. A flat 'e017' tells a reader nothing; a prefixed id makes the class distribution readable by scanning, which is what the minimum-presence assertion and the elevation rules both need. Renumbering within a class is cheap; reclassifying an element means changing its id, which is correct, because it is a different element. Referenced by scores.json."
         },
         "type": {
           "type": "string",
-          "enum": ["expression", "modulation", "regularity", "cost_refusal", "interactional", "preoccupation"],
-          "description": "Element class. Drives class priority in the Stage 3 elevation rule: cost_refusal ≈ regularity > interactional > modulation > preoccupation > expression."
+          "enum": [
+            "expression",
+            "modulation",
+            "regularity",
+            "cost_refusal",
+            "interactional",
+            "preoccupation",
+            "procedure",
+            "verdict"
+          ],
+          "description": "Element class. Drives class priority in the Stage 3 elevation rule: procedure ≈ cost_refusal ≈ verdict ≈ projectible > interactional > variation > preoccupation > stable_style. 'procedure' and 'verdict' were added in 3.0 for two classes of material the earlier ontology had nowhere to put."
         },
         "statement": {
           "type": "string",
@@ -28,41 +45,281 @@
         },
         "convenient_move": {
           "type": "string",
-          "description": "The generic or self-serving response the person did NOT make. Required for cost_refusal and interactional elements — the divergence between this and `statement` is the signal. Omit for other types."
+          "description": "The generic or self-serving response the person did NOT make. Required for cost_refusal — the divergence between this and `statement` is the signal. Optional for interactional, where a move can be characteristic without a convenient counterpart to diverge from. Omit for other types."
         },
         "clusters": {
           "type": "array",
           "minItems": 1,
-          "items": { "type": "string", "pattern": "^c[0-9]{2,}$" },
+          "items": {
+            "type": "string",
+            "pattern": "^c[0-9]{2,}$"
+          },
           "description": "Cluster ids from clusters/manifest.json where this element is attested. A regularity qualifies only with ≥2 independent clusters."
         },
         "evidence": {
           "type": "array",
           "minItems": 1,
           "maxItems": 3,
-          "items": { "type": "string", "minLength": 1 },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
           "description": "1–3 short example passages. Evidence for scoring only — not text to paste into the core, which is written in the persona's voice from these regularities rather than stitched from quotations."
         },
         "metrics": {
           "type": "object",
           "description": "Measured features from style_metrics.py. Populated for expression and modulation elements; empty object otherwise. Shape follows the script's output.",
           "additionalProperties": true
+        },
+        "register_family": {
+          "type": "string",
+          "pattern": "^R[0-9]+$",
+          "description": "Family id from registers.json, when the element is family-specific. Required in practice for expression and modulation elements in a MULTI_REGISTER corpus, where an unlabelled measurement is a pooled measurement and pooling across families is exactly what Pass A0 exists to prevent."
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Position in the sequence. Required for 'procedure'. This is the whole reason procedures are a separate class from regularities: a set of unordered heuristics gives a host agent no way to know what runs first, so it applies them simultaneously and the guard — the step whose entire value is that it fires before everything else — never fires at all."
+        },
+        "precondition": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What must hold for this step to fire, e.g. 'any question phrased as a choice among options'. Required for 'procedure'."
+        },
+        "on_fail": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What happens when the precondition does not hold. Required for 'procedure'. A step with no stated fall-through silently becomes unconditional."
+        },
+        "object": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The named object the judgment is about — a person, work, institution, or event. Required for 'verdict'; the subject of the sentence must be a proper name."
+        },
+        "judgment": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The settled judgment, in the person's own terms. Required for 'verdict'."
+        },
+        "corpus_hits": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Attestation count from an actual run of scripts/name_audit.py, not from memory. Required for 'verdict'. Verdicts exist as a class because a judgment on a proper name predicts nothing beyond its own object, so the Stage 3 rubric scored it low and the deletion rule removed it — which is why distilled packages kept losing exactly the judgments a reader recognises fastest, and why the host agent then re-derived a slightly different one on every turn."
         }
       },
       "allOf": [
         {
           "if": {
-            "properties": { "type": { "enum": ["cost_refusal", "interactional"] } },
-            "required": ["type"]
+            "properties": {
+              "type": {
+                "const": "cost_refusal"
+              }
+            },
+            "required": [
+              "type"
+            ]
           },
-          "then": { "required": ["convenient_move"] }
+          "then": {
+            "required": [
+              "convenient_move"
+            ]
+          }
         },
         {
           "if": {
-            "properties": { "type": { "const": "regularity" } },
-            "required": ["type"]
+            "properties": {
+              "type": {
+                "enum": [
+                  "regularity",
+                  "verdict"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
           },
-          "then": { "properties": { "clusters": { "minItems": 2 } } }
+          "then": {
+            "properties": {
+              "clusters": {
+                "minItems": 2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "procedure"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "order",
+              "precondition",
+              "on_fail"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "verdict"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "object",
+              "judgment",
+              "corpus_hits"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "pattern": "^PROC"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "procedure"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "pattern": "^VD"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "verdict"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "pattern": "^CR"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "cost_refusal"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "pattern": "^IM"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "interactional"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "pattern": "^PP"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "preoccupation"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "pattern": "^PR[0-9]"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "regularity"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "pattern": "^MOD"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "expression",
+                  "modulation"
+                ]
+              }
+            }
+          }
         }
       ]
     }
@@ -70,13 +327,71 @@
   "examples": [
     [
       {
-        "id": "e017",
+        "id": "CR1",
         "type": "cost_refusal",
         "statement": "Holds that <line> even when <audience> expects the opposite.",
         "convenient_move": "…",
-        "clusters": ["c03", "c09", "c11"],
-        "evidence": ["short passage 1", "short passage 2"],
+        "clusters": [
+          "c03",
+          "c09",
+          "c11"
+        ],
+        "evidence": [
+          "short passage 1",
+          "short passage 2"
+        ],
         "metrics": {}
+      },
+      {
+        "id": "PROC1",
+        "type": "procedure",
+        "order": 1,
+        "precondition": "any question phrased as a choice among options",
+        "statement": "Checks whether the question assumes a freedom that does not exist; if it does, cancels the question before answering it.",
+        "on_fail": "answer the question as asked",
+        "clusters": [
+          "c02",
+          "c05",
+          "c09"
+        ],
+        "evidence": [
+          "short passage"
+        ]
+      },
+      {
+        "id": "VD3",
+        "type": "verdict",
+        "object": "<proper name>",
+        "statement": "Treats <proper name> as a settled case rather than an open question.",
+        "judgment": "<the settled judgment, in the person's own terms>",
+        "corpus_hits": 11,
+        "clusters": [
+          "c01",
+          "c04",
+          "c06",
+          "c08"
+        ],
+        "evidence": [
+          "short passage"
+        ]
+      },
+      {
+        "id": "MOD7",
+        "type": "modulation",
+        "register_family": "R2",
+        "statement": "Second-person address falls by roughly sixty-fold from the spoken family to the written one.",
+        "clusters": [
+          "c01",
+          "c03"
+        ],
+        "evidence": [
+          "short passage"
+        ],
+        "metrics": {
+          "second_person_rate": 2.0,
+          "second_person_rate_other_family": 121.0,
+          "ratio": 60.5
+        }
       }
     ]
   ]

@@ -4,24 +4,67 @@
   "title": "scores.json",
   "description": "Stage 3 output — the curation audit log. Every keep/cut decision is recorded with its five probe scores and a one-line reason, so the whole curation is inspectable, defensible, and reproducible.",
   "type": "object",
-  "required": ["weights", "core_budget", "decisions"],
+  "required": [
+    "weights",
+    "tokenizer",
+    "core_budget",
+    "decisions"
+  ],
   "additionalProperties": false,
   "properties": {
+    "tokenizer": {
+      "type": "object",
+      "required": [
+        "script"
+      ],
+      "additionalProperties": true,
+      "description": "The token-counting constants every budget in this file is denominated in. Recorded because a budget without its tokenizer is a number without a unit: the same package measures roughly twice as large in Chinese as in English under the same counter.",
+      "properties": {
+        "script": {
+          "type": "string",
+          "description": "e.g. 'token_count.py'."
+        },
+        "tokens_per_han_char": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "tokens_per_latin_word": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "n_registers": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Mirrored from registers.json. Feeds the +220·max(n_registers-1,0) term in every cluster budget below, and records whether the discrimination test was mandatory for this run."
+    },
     "core_budget": {
       "type": "object",
-      "required": ["supply", "ceiling", "ceiling_rule", "budget", "floor_triggered", "counts"],
+      "required": [
+        "supply",
+        "ceiling",
+        "ceiling_rule",
+        "budget",
+        "floor_triggered",
+        "counts"
+      ],
       "additionalProperties": false,
       "description": "The computed core size and its inputs. The core budget is a function of surviving diagnostic material, not a constant — recording it here is what makes the size reproducible and reviewable. See scoring.md for the formula.",
       "properties": {
         "supply": {
           "type": "integer",
           "minimum": 0,
-          "description": "2200 + 250·min(n_cost_refusal,6) + 180·min(n_projectible,7) + 140·min(n_interactional,5) + 120·min(n_variation,4). Preoccupation and stable style contribute nothing — they fill space the diagnostics earned."
+          "description": "2,200 + 250·min(n_cost_refusal,6) + 180·min(n_projectible,7) + 200·min(n_procedure,5) + 150·min(n_verdict,8) + 140·min(n_interactional,5) + 120·min(n_variation,4). Saturates near 8,340. Preoccupation and stable style contribute nothing — they fill space the diagnostics earned. A procedure costs more per element than a refusal because it must be written as an ordered move with its precondition attached and feeds a routing row; a verdict costs less because verdicts amortise — the first pays for the section and the lookup convention, each additional one is a line."
         },
         "ceiling": {
           "type": "integer",
-          "enum": [4000, 5500, 6500],
-          "description": "The corpus ceiling from coverage_map.json: 4000 if firsthand_ratio < 0.50, or total_tokens < 50k, or n_clusters < 4; 5500 if total_tokens < 250k or n_clusters < 9; else 6500."
+          "enum": [
+            4000,
+            6000,
+            7500
+          ],
+          "description": "The corpus ceiling from coverage_map.json, first matching row wins: 4000 if firsthand_ratio < 0.50, or total_tokens < 50k, or n_clusters < 4; 6000 if total_tokens < 250k or n_clusters < 9; else 7500. The two richer rows moved up by 500 and 1,000 in 3.0 to absorb the slots the core template made mandatory — the axis, the three-part question-reading procedure, the vocabulary throttle, the stop condition, and a loading contract that grew from four lines to five parts. The thin-corpus row did not move: a corpus that cannot support the diagnostics does not get more room to say so in."
         },
         "ceiling_rule": {
           "type": "string",
@@ -31,7 +74,7 @@
         "budget": {
           "type": "integer",
           "minimum": 0,
-          "description": "clamp(supply, 3000, ceiling). The rendered SKILL.md including frontmatter is measured against this with ±10% tolerance."
+          "description": "clamp(supply, 3000, ceiling). Measured against the rendered SKILL.md including frontmatter, in tokens counted by scripts/token_count.py, ±10% tolerance. Word counts are not a substitute — the token-to-word ratio differs by roughly a factor of two between an English and a Chinese package."
         },
         "floor_triggered": {
           "type": "boolean",
@@ -41,26 +84,88 @@
           "type": "string",
           "description": "Required in practice when floor_triggered is true: which of the three floor steps resolved it, or that the core shipped reduced-scope. Mirrors the note in fidelity-ledger/provenance.md."
         },
+        "over_ceiling": {
+          "type": "boolean",
+          "description": "True when supply exceeded the ceiling. This is a relocation trigger, not a trimming licence: work down the five-step ladder in scoring.md (verdict roll-up, apparatus definitions, per-cluster applications, evidence fragments, expression detail), and never touch the never-relocate list — the axis, the guard, the stop condition, the vocabulary throttle, or any cost-refusal. If it still does not fit, the ceiling row is wrong for this corpus or the curation kept too much."
+        },
+        "over_ceiling_resolution": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Required in practice when over_ceiling is true: which rungs of the relocation ladder were used and where the material went. Relocation is not deletion, and the destination is the part that has to be recoverable."
+        },
         "counts": {
           "type": "object",
-          "required": ["cost_refusal", "projectible", "interactional", "variation"],
+          "required": [
+            "cost_refusal",
+            "projectible",
+            "interactional",
+            "variation"
+          ],
           "additionalProperties": false,
           "description": "Survivor counts by class feeding the supply term, before the budget decides how many are actually written into the core.",
           "properties": {
-            "cost_refusal": { "type": "integer", "minimum": 0 },
-            "projectible": { "type": "integer", "minimum": 0 },
-            "interactional": { "type": "integer", "minimum": 0 },
-            "variation": { "type": "integer", "minimum": 0 }
+            "cost_refusal": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "projectible": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "interactional": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "variation": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "procedure": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Survivor procedures. Absent means none were extracted, which for a corpus of any size is worth a second look rather than a default."
+            },
+            "verdict": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Survivor verdicts on named objects."
+            }
           }
         }
       }
+    },
+    "standing_budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Computed sizes for the two standing modules. They were previously the only sized artifacts in the package with no formula behind them, so they were written to whatever length the material happened to run to — which meant the richest corpora got the thinnest relative treatment of exactly the material that most needed room. Floor 2,000, ceiling 7,000 for both; both saturate below their ceiling for the same reason the cluster formula does, so the ceiling only ever catches a hand-written overrun. A standing module below the floor is written anyway — unlike a cluster, there is nowhere else for it to go — but the shortfall is recorded.",
+      "properties": {
+        "frameworks": {
+          "$ref": "#/$defs/standingBudget"
+        },
+        "voice": {
+          "$ref": "#/$defs/standingBudget"
+        }
+      }
+    },
+    "coefficients_source": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Where this run's budget coefficients came from — 'defaults', or the override file used. The coefficients are calibrated on a small number of corpora, so a run that silently used different ones is not comparable with a run that did not, and recalibration has nothing to work from. scripts/cluster_budget.py --emit-coefficients writes the set actually used."
     },
     "cluster_budgets": {
       "type": "array",
       "description": "Stage 4 sizing for the clusters/*.md modules — one entry per cluster considered for a module, including any the floor rejected. Recording the rejections is the point: it turns 'this cluster did not earn a module' into an auditable decision rather than an omission. Formula and counting rules in scoring.md; compute with scripts/cluster_budget.py.",
       "items": {
         "type": "object",
-        "required": ["cluster_id", "supply", "budget", "counts", "words", "words_firsthand", "floor_triggered", "recut_flagged"],
+        "required": [
+          "cluster_id",
+          "supply",
+          "budget",
+          "counts",
+          "words",
+          "words_firsthand",
+          "verdict"
+        ],
         "additionalProperties": false,
         "properties": {
           "cluster_id": {
@@ -71,28 +176,61 @@
           "supply": {
             "type": "integer",
             "minimum": 0,
-            "description": "600 + 90·min(n_apparatus,12) + 90·min(n_moves,12) + 85·min(n_applications,8) + 30·min(n_fragments,24) + 80 + 15·min(n_siblings,9) + 400·sqrt(words/words_firsthand). Saturates near 4775, deliberately below the ceiling."
+            "description": "600 + 90·min(n_apparatus,12) + 90·min(n_moves,12) + 85·min(n_applications,8) + 30·min(n_fragments,24) + 80 + 15·min(n_siblings,9) + 220·max(n_registers-1,0) + 400·sqrt(words/words_firsthand). Saturates near 5,215, deliberately below the ceiling, so the ceiling only ever catches a hand-written overrun."
           },
           "budget": {
             "type": "integer",
             "minimum": 0,
-            "description": "clamp(supply, 1800, 6000). The rendered module is measured against this with ±10% tolerance."
+            "description": "clamp(supply, 1800, 6000). The rendered module is measured against this in token_count.py tokens, ±10% tolerance."
           },
           "counts": {
             "type": "object",
-            "required": ["apparatus", "moves", "applications", "fragments", "siblings"],
+            "required": [
+              "apparatus",
+              "moves",
+              "applications",
+              "fragments",
+              "siblings"
+            ],
             "additionalProperties": false,
             "description": "Inputs to the supply term, counted off Stage 2/3 artifacts rather than estimated at write time. See the counting-rules table in scoring.md.",
             "properties": {
-              "apparatus": { "type": "integer", "minimum": 0 },
-              "moves": { "type": "integer", "minimum": 0 },
-              "applications": { "type": "integer", "minimum": 0 },
-              "fragments": { "type": "integer", "minimum": 0 },
-              "siblings": { "type": "integer", "minimum": 0 }
+              "apparatus": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "moves": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "applications": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "fragments": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "siblings": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "registers": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3,
+                "description": "How many register families from registers.json have material inside this cluster, capped at 3. Above 1 the module needs a header, a no-pooling line, and a second column of style guidance, which is what the +220 term pays for."
+              }
             }
           },
-          "words": { "type": "integer", "minimum": 0 },
-          "words_firsthand": { "type": "integer", "minimum": 1 },
+          "words": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "words_firsthand": {
+            "type": "integer",
+            "minimum": 1
+          },
           "floor_triggered": {
             "type": "boolean",
             "description": "True when supply fell below 1800. The floor decides whether the cluster earns a module at all, and is never a padding target: fold it into its nearest sibling module, or demote its concrete attested material (events, not concepts or expression) to fidelity-ledger/episodic.md."
@@ -102,14 +240,49 @@
             "minLength": 1,
             "description": "Required in practice when floor_triggered is true: which sibling absorbed it, or that it went to fidelity-ledger/episodic.md, and why."
           },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "FLOOR",
+              "RECUT",
+              "SPLIT_IN_MODULE"
+            ],
+            "description": "The sizing outcome. OK: write it. FLOOR: supply below 1,800 — the cluster did not earn a module; fold it into its nearest sibling or demote its concrete attested material to fidelity-ledger/episodic.md. RECUT: overloaded AND its material spans more than one topic domain — a segmentation signal, so it goes back to Stage 1 with segment.py. SPLIT_IN_MODULE: overloaded but its material is one topic domain carried in two registers — recutting would separate a subject from itself, so keep one module and split it internally with a no-pooling header. Never buy the space back by deleting evidence."
+          },
+          "verdict_note": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Required in practice for any verdict other than OK: what was decided and why. For SPLIT_IN_MODULE, which registers and where the internal boundary falls."
+          },
           "recut_flagged": {
             "type": "boolean",
-            "description": "True when n_apparatus > 12 or n_moves > 12. A segmentation signal, not a trimming one: the cluster is carrying two registers and belongs back at Stage 1 with segment.py. Never buy the space back by deleting evidence."
+            "description": "Deprecated in 3.0 in favour of `verdict`. Retained so 2.x logs still validate; do not write it in new runs.",
+            "deprecated": true
           },
           "actual": {
             "type": "integer",
             "minimum": 0,
             "description": "Realised module size once written. Optional and worth recording: the coefficients are calibrated on a single corpus, so realised-vs-budget pairs are all a future recalibration has to work from."
+          },
+          "split_in_module_flagged": {
+            "type": "boolean",
+            "description": "Written by cluster_budget.py alongside `verdict`. True when the overflow was resolved as an internal split rather than a re-cut."
+          },
+          "shared_domain": {
+            "type": "boolean",
+            "description": "Whether the cluster's material sits in one topic domain. This is the variable the RECUT/SPLIT_IN_MODULE decision turns on: an overloaded cluster spanning two domains was mis-segmented and belongs back at Stage 1, while an overloaded cluster in one domain carried in two registers must not be re-cut — that would separate a subject from itself. Check it against n_applications rather than by impression."
+          },
+          "coefficients_source": {
+            "type": "string",
+            "description": "Mirrored per row by cluster_budget.py. The run-level value at the top of this file is authoritative."
+          },
+          "_breakdown": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Per-term contributions to supply, emitted for inspection. Not an input; safe to drop."
           }
         }
       }
@@ -125,47 +298,101 @@
     "decisions": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/decision" }
+      "items": {
+        "$ref": "#/$defs/decision"
+      }
     }
   },
   "$defs": {
     "probeScores": {
       "type": "object",
-      "required": ["projectibility", "cost_refusal", "expressive_match", "interactional", "preoccupation"],
+      "required": [
+        "projectibility",
+        "cost_refusal",
+        "expressive_match",
+        "interactional",
+        "preoccupation"
+      ],
       "additionalProperties": false,
       "properties": {
-        "projectibility": { "type": "number", "minimum": 0, "maximum": 1 },
-        "cost_refusal": { "type": "number", "minimum": 0, "maximum": 1 },
-        "expressive_match": { "type": "number", "minimum": 0, "maximum": 1 },
-        "interactional": { "type": "number", "minimum": 0, "maximum": 1 },
-        "preoccupation": { "type": "number", "minimum": 0, "maximum": 1 }
+        "projectibility": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "cost_refusal": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "expressive_match": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "interactional": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "preoccupation": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
       }
     },
     "decision": {
       "type": "object",
-      "required": ["id", "type", "scores", "composite", "decision", "reason"],
+      "required": [
+        "id",
+        "type",
+        "scores",
+        "composite",
+        "decision",
+        "reason"
+      ],
       "additionalProperties": false,
       "properties": {
         "id": {
           "type": "string",
-          "pattern": "^e[0-9]{3,}$",
-          "description": "Element id from extractions.json."
+          "pattern": "^(PROC|CR|VD|PR|IM|MOD|PP)[0-9]+$",
+          "description": "Class-prefixed element id from extractions.json."
         },
         "type": {
           "type": "string",
-          "enum": ["expression", "modulation", "regularity", "cost_refusal", "interactional", "preoccupation"]
+          "enum": [
+            "expression",
+            "modulation",
+            "regularity",
+            "cost_refusal",
+            "interactional",
+            "preoccupation",
+            "procedure",
+            "verdict"
+          ]
         },
-        "scores": { "$ref": "#/$defs/probeScores" },
+        "scores": {
+          "$ref": "#/$defs/probeScores"
+        },
         "composite": {
           "type": "number",
           "minimum": 0,
           "maximum": 1,
-          "description": "Weighted sum of scores. The hard deletion rule cuts anything below 0.55 — but note that an element above 0.55 is still cut unconditionally if it introduces generic language, forces meta-commentary, or conflicts with a higher-scoring core voice feature."
+          "description": "Weighted sum of scores. The hard deletion rule cuts anything below 0.55 — but an element above 0.55 is still cut unconditionally if it introduces generic language, forces meta-commentary, or conflicts with a higher-scoring core voice feature. Conversely a diagnostic-class element can score below 0.55 on the composite and still be carried by class priority, which is the point of having a priority at all: a pre-exchange guard scores 0.0 on the interactional probe by construction."
         },
         "decision": {
           "type": "string",
-          "enum": ["core", "references", "cut"],
-          "description": "Where the element landed. 'core' entries fill core_budget.budget by class priority first, then composite within class."
+          "enum": [
+            "core",
+            "frameworks",
+            "voice",
+            "clusters",
+            "episodic",
+            "references",
+            "cut"
+          ],
+          "description": "Where the element landed. 'core' entries fill core_budget.budget by class priority first, then composite within class. The named module destinations replace the undifferentiated 'references' of 2.x, which recorded that an element survived without recording where it could be found; 'references' is retained for 2.x logs."
         },
         "rank": {
           "type": "integer",
@@ -176,40 +403,176 @@
           "type": "string",
           "minLength": 1,
           "description": "One line. Why this element was kept or cut."
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Sequence position, mirrored from extractions.json for procedure elements."
+        },
+        "object": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Named object, mirrored from extractions.json for verdict elements."
+        },
+        "corpus_hits": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Attestation count, mirrored from extractions.json for verdict elements."
         }
       },
       "allOf": [
         {
           "if": {
-            "properties": { "decision": { "const": "core" } },
-            "required": ["decision"]
+            "properties": {
+              "decision": {
+                "const": "core"
+              }
+            },
+            "required": [
+              "decision"
+            ]
           },
-          "then": { "required": ["rank"] }
+          "then": {
+            "required": [
+              "rank"
+            ]
+          }
         }
       ]
+    },
+    "standingBudget": {
+      "type": "object",
+      "required": [
+        "supply",
+        "budget"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "supply": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "From the per-module formula in scoring.md."
+        },
+        "budget": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "clamp(supply, 2000, 7000)."
+        },
+        "floor_triggered": {
+          "type": "boolean",
+          "description": "True when supply fell below 2,000. Not a padding target: it means the corpus did not support a standing module of normal size, and the coverage report should say so."
+        },
+        "realised": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Actual size once written, in token_count.py tokens. Optional and worth recording: realised-vs-budget pairs are all a future recalibration has to work from."
+        }
+      }
     }
   },
   "examples": [
     {
       "weights": {
-        "projectibility": 0.30,
+        "projectibility": 0.3,
         "cost_refusal": 0.25,
-        "expressive_match": 0.20,
+        "expressive_match": 0.2,
         "interactional": 0.15,
-        "preoccupation": 0.10
+        "preoccupation": 0.1
       },
       "weight_notes": "dialogue_ratio 0.35 → interactional 0.15 (unchanged)",
-      "core_budget": {
-        "supply": 4510,
-        "ceiling": 5500,
-        "ceiling_rule": "total_tokens<250k",
-        "budget": 4510,
-        "floor_triggered": false,
-        "counts": { "cost_refusal": 3, "projectible": 5, "interactional": 3, "variation": 2 }
+      "tokenizer": {
+        "script": "token_count.py",
+        "tokens_per_han_char": 1.67,
+        "tokens_per_latin_word": 1.3
       },
+      "n_registers": 3,
+      "core_budget": {
+        "supply": 5510,
+        "ceiling": 6000,
+        "ceiling_rule": "total_tokens<250k",
+        "budget": 5510,
+        "floor_triggered": false,
+        "over_ceiling": false,
+        "counts": {
+          "cost_refusal": 3,
+          "projectible": 5,
+          "procedure": 2,
+          "verdict": 4,
+          "interactional": 3,
+          "variation": 2
+        }
+      },
+      "standing_budgets": {
+        "frameworks": {
+          "supply": 4270,
+          "budget": 4270,
+          "realised": 4180
+        },
+        "voice": {
+          "supply": 4310,
+          "budget": 4310,
+          "realised": 4395
+        }
+      },
+      "cluster_budgets": [
+        {
+          "cluster_id": "c03",
+          "supply": 3310,
+          "budget": 3310,
+          "counts": {
+            "apparatus": 7,
+            "moves": 8,
+            "applications": 7,
+            "fragments": 13,
+            "siblings": 9,
+            "registers": 1
+          },
+          "words": 101043,
+          "words_firsthand": 630298,
+          "verdict": "OK",
+          "actual": 3260
+        },
+        {
+          "cluster_id": "c06",
+          "supply": 4995,
+          "budget": 4995,
+          "counts": {
+            "apparatus": 13,
+            "moves": 9,
+            "applications": 6,
+            "fragments": 19,
+            "siblings": 9,
+            "registers": 2
+          },
+          "words": 74110,
+          "words_firsthand": 630298,
+          "verdict": "SPLIT_IN_MODULE",
+          "verdict_note": "two registers, one topic domain; internal A/B split with a no-pooling header",
+          "actual": 5010
+        },
+        {
+          "cluster_id": "c12",
+          "supply": 1635,
+          "budget": 1800,
+          "counts": {
+            "apparatus": 3,
+            "moves": 2,
+            "applications": 2,
+            "fragments": 4,
+            "siblings": 9,
+            "registers": 1
+          },
+          "words": 25212,
+          "words_firsthand": 630298,
+          "verdict": "FLOOR",
+          "floor_triggered": true,
+          "floor_resolution": "folded into c11's module as a subsection; shares register and period"
+        }
+      ],
+      "coefficients_source": "defaults (cluster_budget.py --emit-coefficients recorded in provenance.md)",
       "decisions": [
         {
-          "id": "e017",
+          "id": "CR1",
           "type": "cost_refusal",
           "scores": {
             "projectibility": 0.9,
@@ -218,13 +581,45 @@
             "interactional": 0.8,
             "preoccupation": 0.7
           },
-          "composite": 0.80,
+          "composite": 0.8,
           "decision": "core",
           "rank": 2,
           "reason": "incentive-vs-characteristic divergence attested in 3 clusters; predicts well"
         },
         {
-          "id": "e041",
+          "id": "PROC1",
+          "type": "procedure",
+          "order": 1,
+          "scores": {
+            "projectibility": 0.9,
+            "cost_refusal": 0.3,
+            "expressive_match": 0.2,
+            "interactional": 0.0,
+            "preoccupation": 0.4
+          },
+          "composite": 0.51,
+          "decision": "core",
+          "rank": 1,
+          "reason": "the opening guard; interactional 0.0 is expected for a pre-exchange check, and class priority carries it despite the composite"
+        },
+        {
+          "id": "VD3",
+          "type": "verdict",
+          "object": "<named object>",
+          "corpus_hits": 11,
+          "scores": {
+            "projectibility": 1.0,
+            "cost_refusal": 0.7,
+            "expressive_match": 0.3,
+            "interactional": 0.2,
+            "preoccupation": 0.5
+          },
+          "composite": 0.68,
+          "decision": "frameworks",
+          "reason": "stable across 4 clusters; beyond the core's roll-up, so §4 holds the judgment"
+        },
+        {
+          "id": "MOD7",
           "type": "expression",
           "scores": {
             "projectibility": 0.1,
@@ -233,7 +628,7 @@
             "interactional": 0.0,
             "preoccupation": 0.0
           },
-          "composite": 0.10,
+          "composite": 0.1,
           "decision": "cut",
           "reason": "bare sentence-length average; generic; below threshold"
         }

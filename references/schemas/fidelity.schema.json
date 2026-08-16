@@ -4,21 +4,64 @@
   "title": "fidelity.json",
   "description": "Results of the pre-assembly gates (run before Stage 4) and the final Stage 5 verification. Both phases are recorded so the curation loop is auditable. Mirror the same facts into the persona's fidelity-ledger/provenance.md in prose/table form.",
   "type": "object",
-  "required": ["projection", "cost", "style"],
+  "required": [
+    "projection",
+    "cost",
+    "style"
+  ],
   "additionalProperties": false,
   "properties": {
+    "content_hash": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Hash over the package files these results were computed against, e.g. 'sha256:9f2c…'. Curation is a loop, not a pass: a gate sends the set backwards, clusters get merged, an element is demoted two batches after the score that justified keeping it. Nothing previously said what happens to a score when the thing it measured changes underneath it, so the default was that nothing happened — the number stayed here, still labelled as this package's score, now describing a package that no longer exists. A result whose hash does not match the current package is stale whether or not anyone marked it, and that is mechanically checkable."
+    },
+    "stale": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "projection.gate",
+          "projection.final",
+          "cost",
+          "style",
+          "discrimination"
+        ]
+      },
+      "description": "Results invalidated by a later change and not yet re-run. Mark them at the moment of the change, not at the end, when it will be forgotten. Nothing that gated assembly may ship stale: a stale style-match result may ship if the staleness is stated in the coverage report, a stale projection or cost gate may not. An empty array asserts that every result matches the current package."
+    },
+    "register_families": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^R[0-9]+$"
+      },
+      "description": "Family ids from registers.json, so per-family results below are readable without opening that file. Absent or single-element for a SINGLE_REGISTER corpus."
+    },
     "projection": {
       "type": "object",
       "description": "Held-out projection test. The gate phase runs on top-ranked projectible regularities before assembly; the final phase re-checks the assembled core.",
-      "required": ["gate", "final", "seed", "n_masked"],
+      "required": [
+        "gate",
+        "final",
+        "seed",
+        "n_masked"
+      ],
       "additionalProperties": false,
       "properties": {
         "gate": {
           "type": "object",
-          "required": ["overall", "passed"],
+          "required": [
+            "overall",
+            "passed"
+          ],
           "additionalProperties": false,
           "properties": {
-            "overall": { "type": "number", "minimum": 0, "maximum": 1 },
+            "overall": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
             "passed": {
               "type": "boolean",
               "description": "False here means re-curate. Assembly is always downstream of passing; a failed gate sends you back to Stage 3, never forward to the template."
@@ -28,19 +71,44 @@
               "minimum": 0,
               "description": "How many re-curation loops the gate forced."
             },
-            "note": { "type": "string", "description": "What changed between passes." }
+            "note": {
+              "type": "string",
+              "description": "What changed between passes."
+            }
           }
         },
         "final": {
           "type": "object",
-          "required": ["overall"],
+          "required": [
+            "overall"
+          ],
           "additionalProperties": false,
           "properties": {
-            "overall": { "type": "number", "minimum": 0, "maximum": 1 },
+            "overall": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
             "by_domain": {
               "type": "object",
               "description": "Per-domain projection scores. Low scorers become explicit 'trust this less' caveats in the coverage report.",
-              "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 }
+              "additionalProperties": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "hit_2": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Share of masked items scored 2 — correct stance reached by the person's own mechanism. Reported separately because the aggregate collapses two different things: reaching the right conclusion the person's way, and reaching it by a mechanism the person would reject. Both look like partial credit, but only the first generalises; the second is a persona that agrees with its subject about the cases in the corpus and diverges on the first case outside it. A respectable aggregate with a low hit_2 is a specific, actionable diagnosis — the positions were extracted and the reasoning was not."
+            },
+            "hit_1": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Share scored 1 — right direction, wrong reasoning."
             }
           }
         },
@@ -52,13 +120,27 @@
           "type": "integer",
           "minimum": 1,
           "description": "Number of masked passages. Must match n_masked in the split holdout_split.py produced."
+        },
+        "stratified": {
+          "type": "boolean",
+          "description": "Whether holdout_split.py --stratify distributed the mask across topic domains. Random masking over an uneven corpus concentrates the mask in the largest domain, and the resulting score is then read as though it described the persona."
+        },
+        "sampling_note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "How the mask was distributed, and which domains it did not reach. A score whose sampling is not described is a number without a denominator. Required in practice when stratified is false or absent."
         }
       }
     },
     "cost": {
       "type": "object",
       "description": "Cost/presence assertion. The hard minimum: if the corpus contains any high-signal cost-bearing refusal or interactional move, the core must contain at least one. Failing this blocks delivery.",
-      "required": ["total_divergences", "slated_for_core", "in_core_final", "presence_assertion"],
+      "required": [
+        "total_divergences",
+        "slated_for_core",
+        "in_core_final",
+        "presence_assertion"
+      ],
       "additionalProperties": false,
       "properties": {
         "total_divergences": {
@@ -66,8 +148,16 @@
           "minimum": 0,
           "description": "Every attested incentive-vs-characteristic divergence inventoried at Stage 2."
         },
-        "slated_for_core": { "type": "integer", "minimum": 0, "description": "Confirmed by the cost gate before assembly." },
-        "in_core_final": { "type": "integer", "minimum": 0, "description": "Actually present in the assembled core." },
+        "slated_for_core": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Confirmed by the cost gate before assembly."
+        },
+        "in_core_final": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Actually present in the assembled core."
+        },
         "logged_out": {
           "type": "integer",
           "minimum": 0,
@@ -80,7 +170,10 @@
         },
         "presence_assertion": {
           "type": "string",
-          "enum": ["pass", "fail"],
+          "enum": [
+            "pass",
+            "fail"
+          ],
           "description": "'fail' blocks delivery. This is the most common way a core ends up articulate but generic."
         }
       }
@@ -88,11 +181,21 @@
     "style": {
       "type": "object",
       "description": "Style-match test. Sample passages generated under the core's expression rules PLUS references/voice.md — that pair is the sustained-prose configuration, so that is what gets tested — re-measured with style_metrics.py and compared against held-out originals. At least one sample must be long enough to drift (400+ words); a voice that is right for three sentences and generic by the twelfth is the failure this test exists to catch.",
-      "required": ["modulation_reproduced", "avoid_list_violations"],
+      "required": [
+        "modulation_reproduced",
+        "avoid_list_violations"
+      ],
       "additionalProperties": false,
       "properties": {
-        "sentence_len_delta": { "type": "number", "minimum": 0, "description": "Normalised absolute difference from the held-out originals." },
-        "hedge_rate_delta": { "type": "number", "minimum": 0 },
+        "sentence_len_delta": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Normalised absolute difference from the held-out originals."
+        },
+        "hedge_rate_delta": {
+          "type": "number",
+          "minimum": 0
+        },
         "avoid_list_violations": {
           "type": "integer",
           "minimum": 0,
@@ -102,13 +205,29 @@
           "type": "boolean",
           "description": "Whether register shifts under pressure/audience/stakes are reproduced, not just the averages. False is a real failure even when the averages match — the modulation is the individuating part."
         },
-        "notes": { "type": "string" }
+        "notes": {
+          "type": "string"
+        },
+        "by_family": {
+          "type": "object",
+          "description": "Per-register-family deltas. In a MULTI_REGISTER corpus the pooled delta is the average of two comparisons and can look healthy while one family is badly off, which is the same averaging failure Pass A0 exists to prevent — one stage later.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        }
       }
     },
     "discrimination": {
       "type": "object",
-      "description": "Blind register-separation gate. Present only when the persona claims internal variation — per-work, per-period, or per-venue registers. Omit for a single-register persona, where it does not apply. Produced by scripts/discrimination_test.py.",
-      "required": ["score", "n", "seed"],
+      "description": "Blind register-separation gate, produced by scripts/discrimination_test.py. Mandatory whenever registers.json reports n_registers > 1, and re-triggered by any cluster merge — a merge is precisely the operation that can pool two registers into one module without anyone deciding to. Until 3.0 it ran only 'when the persona claims registers', which put the gate downstream of the distiller's own judgment: it fired only if someone had already noticed the thing it exists to detect. Omitted only for a SINGLE_REGISTER corpus, where the distance matrix in registers.json stands in its place. register_discover.py proposes and this test disposes: when they disagree, reduce the number of families rather than re-running discovery with a looser threshold until the numbers come out as expected.",
+      "required": [
+        "score",
+        "n",
+        "seed"
+      ],
       "additionalProperties": false,
       "properties": {
         "score": {
@@ -117,22 +236,46 @@
           "maximum": 1,
           "description": "Fraction of sampled passages correctly assigned to their register, classified blind. >=0.90 the registers are separable and per-register rules are load-bearing; 0.70-0.90 usable, but name the confusable pairs in the coverage report; <0.70 the registers are not distinct in this corpus — collapse them into one honest voice rather than shipping a distinction the persona cannot perform."
         },
-        "n": { "type": "integer", "minimum": 2, "description": "Passages classified." },
-        "seed": { "type": "integer", "description": "Sampling seed, so the split is reproducible." },
+        "n": {
+          "type": "integer",
+          "minimum": 2,
+          "description": "Passages classified."
+        },
+        "seed": {
+          "type": "integer",
+          "description": "Sampling seed, so the split is reproducible."
+        },
         "mask_names": {
           "type": "boolean",
           "description": "Whether capitalised mid-sentence tokens were masked. A score obtained with names visible may rest on recognising a cast rather than a register, and only the register survives into use."
         },
         "confusable_pairs": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Register pairs confused more than once, e.g. 'c03->c01'. A pair confused repeatedly is one register, not two, whatever the labels say."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "True when n_registers > 1 or a cluster merge triggered it. Recording the trigger is what makes an omission distinguishable from an oversight."
+        },
+        "merge_triggered": {
+          "type": "boolean",
+          "description": "True when this run was triggered by a cluster merge rather than by the initial family count."
         }
       }
     }
   },
   "examples": [
     {
+      "content_hash": "sha256:9f2c1ab7d4e5f60123456789abcdef0123456789abcdef0123456789abcdef01",
+      "stale": [],
+      "register_families": [
+        "R1",
+        "R2",
+        "R3"
+      ],
       "projection": {
         "gate": {
           "overall": 0.58,
@@ -142,10 +285,17 @@
         },
         "final": {
           "overall": 0.74,
-          "by_domain": { "political philosophy": 0.82, "economics": 0.55 }
+          "by_domain": {
+            "political philosophy": 0.82,
+            "economics": 0.55
+          },
+          "hit_2": 0.58,
+          "hit_1": 0.32
         },
         "seed": 42,
-        "n_masked": 12
+        "n_masked": 12,
+        "stratified": true,
+        "sampling_note": "mask distributed across 4 domains; 2 items each in the two thinnest"
       },
       "cost": {
         "total_divergences": 9,
@@ -160,14 +310,29 @@
         "hedge_rate_delta": 0.03,
         "modulation_reproduced": true,
         "avoid_list_violations": 0,
-        "notes": "clipping-under-contest present; 600-word sample held voice to the end (core + voice.md)"
+        "notes": "clipping-under-contest present; 600-word sample held voice to the end (core + voice.md)",
+        "by_family": {
+          "R1": {
+            "sentence_len_delta": 0.06
+          },
+          "R2": {
+            "sentence_len_delta": 0.11
+          },
+          "R3": {
+            "sentence_len_delta": 0.09
+          }
+        }
       },
       "discrimination": {
         "score": 0.85,
         "n": 20,
         "seed": 42,
         "mask_names": true,
-        "confusable_pairs": ["c07->c01", "c11->c01"]
+        "confusable_pairs": [
+          "c07->c01",
+          "c11->c01"
+        ],
+        "required": true
       }
     }
   ]

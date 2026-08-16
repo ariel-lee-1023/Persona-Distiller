@@ -36,6 +36,14 @@ top-ranked projectible regularities, then again on the assembled core in Stage 5
 3. Compare each prediction to the masked truth. Score alignment per item
    (2 = correct stance and reasoning, 1 = right direction/wrong reasoning, 0 = miss) and aggregate
    to a 0–1 score.
+4. **Report the two hit levels separately, not only the aggregate.** `hit_2` is the share of items
+   scored 2; `hit_1` is the share scored 1. The aggregate collapses two different things: a persona
+   that reaches the right conclusion by the person's own mechanism, and one that reaches the right
+   conclusion by a mechanism the person would reject. Both look like partial credit, but only the
+   first generalises — the second is a persona that agrees with its subject about the cases in the
+   corpus and will diverge on the first case outside it. A run with a respectable aggregate and a
+   low `hit_2` is a specific, actionable diagnosis: the positions were extracted and the reasoning
+   was not.
 
 - **≥ 0.70** — solid; the regularities generalize. Proceed.
 - **0.50–0.70** — usable but flag the weak domains in the coverage report.
@@ -44,9 +52,17 @@ top-ranked projectible regularities, then again on the assembled core in Stage 5
   ones), or narrow the persona's claimed scope, then re-score and re-run. Do not proceed to assembly,
   and never ship a confident persona over a failed projection test.
 
-Record the score (overall and per-domain) in `fidelity-ledger/provenance.md`, plus any re-curation
-or weight change it triggered. Report per-domain where you can — a persona can project well on its
-home turf and poorly elsewhere, and the user needs to know which is which.
+Record the score (overall, `hit_2`/`hit_1`, and per-domain) in `fidelity-ledger/provenance.md`,
+plus any re-curation or weight change it triggered. Report per-domain where you can — a persona can
+project well on its home turf and poorly elsewhere, and the user needs to know which is which.
+
+**Describe the sampling, always.** A score whose sampling is not described is a number without a
+denominator. State how many items were masked, how the mask was distributed across topic domains,
+and — when the mask fell mostly inside the corpus's strongest domain, which is the default outcome
+of random masking over an uneven corpus — say so, and give an honest expectation for the domains it
+did not reach. `scripts/holdout_split.py --stratify` distributes the mask across domains instead;
+prefer it, and when you cannot (too few items in a domain to stratify), record that reason rather
+than reporting the unstratified score as though it covered everything.
 
 ## 2. Cost test  (tests refusals / decisions)
 
@@ -98,11 +114,24 @@ the averages match, because the modulation is the individuating part. `voice.md`
 baseline block should be the same numbers this test compares against; if they disagree, the module
 was written from estimates rather than from a run — fix that before reading anything into the gap.
 
-## 4. Discrimination test  (tests *claimed internal variation* — conditional)
+## 4. Discrimination test  (tests register separability — mandatory whenever `n_registers > 1`)
 
-Run this **only when the persona claims registers**: "in interviews I do X, in essays Y", "before
-2015 I held Z", "each work has its own vocabulary". For a single-register persona it does not apply
-and is omitted from `fidelity.json`.
+**The trigger changed in 3.0.** This test used to run "only when the persona claims registers",
+which put the gate downstream of the distiller's own judgment: the check fired only if someone had
+already noticed the thing the check exists to detect. It now runs whenever
+`registers.json` reports `n_registers > 1` — a fact produced by measurement in Stage 2 Pass A0, not
+a claim. It is also **triggered by any cluster merge**, because a merge is precisely the operation
+that can pool two registers into one module without anyone deciding to.
+
+For a corpus that `register_discover.py` returns as `SINGLE_REGISTER`, this test is omitted from
+`fidelity.json` and the distance matrix stands in its place as the evidence.
+
+The two tools are a pair and the order matters: **`register_discover.py` proposes, the
+discrimination test disposes.** The first says "these units look like k families by their
+measurements"; the second says "a reader given an unlabelled passage can actually tell them apart".
+When the second disagrees with the first, **reduce the number of families** — merge the confused
+pair and re-run. Do not re-run the discovery step with a different threshold until the numbers come
+out the way you expected; that is fitting the instrument to the answer.
 
 Tests 1–3 all ask one question from three angles: does this read like the person? None asks whether
 the person's registers can be **told apart** — and that is prior. A generated passage can match the
@@ -133,23 +162,58 @@ accuracy.
 
 ---
 
+## 5. Re-test obligation (applies to every test above)
+
+Curation is a loop, not a pass. A gate sends the set backwards; clusters get merged; an element is
+demoted two batches after the score that justified keeping it. Nothing in the skill previously said
+what happens to a score when the thing it measured changes underneath it, so the default was that
+nothing happened: the number stayed in `fidelity.json`, still labelled as this package's score,
+now describing a package that no longer exists. Two rounds of un-re-tested edits stacked on top of
+each other is the commonest way a package's reported fidelity quietly stops being true, and it
+leaves no trace at all in a static results table.
+
+The rule:
+
+1. **Any change to the curated set or the assembled package invalidates the tests it touched.** Mark
+   them stale immediately, in `fidelity.json`'s `stale` array, at the moment of the change — not at
+   the end, when it will be forgotten.
+2. **`fidelity.json` carries a `content_hash`** over the package files each result was computed
+   against. A result whose hash does not match the current package is stale whether or not anyone
+   marked it, and this is mechanically checkable.
+3. **A reduced-scope decision must be re-tested, not merely recorded.** Narrowing what the persona
+   claims is a legitimate response to a failed gate, but it only works if the narrowed persona then
+   *passes* — otherwise the narrowing is an assertion, not a fix. Re-run the failed gate against the
+   reduced scope and record the passing score.
+4. **What can ship stale:** nothing that gated assembly. A stale style-match result may ship if the
+   staleness is stated in the coverage report; a stale projection or cost gate may not.
+5. **The batch log in `provenance.md` carries a mandatory `Not re-tested` field** for exactly this
+   reason. "None" is a valid entry only when the gates were actually re-run.
+
+---
+
 ## `fidelity.json`
 
 Record both phases — the gate result and the final result — so the loop is auditable:
 
 ```json
 {
+  "content_hash": "sha256:9f2c…",
+  "register_families": ["R1", "R2", "R3"],
+  "stale": [],
   "projection": {
     "gate": {"overall": 0.58, "passed": true, "recurations": 1,
              "note": "1st pass 0.44 (economics over-fit) → re-curated → 0.58"},
-    "final": {"overall": 0.74, "by_domain": {"political philosophy":0.82,"economics":0.55}},
-    "seed": 42, "n_masked": 12
+    "final": {"overall": 0.74, "hit_2": 0.58, "hit_1": 0.32,
+              "by_domain": {"political philosophy":0.82,"economics":0.55}},
+    "seed": 42, "n_masked": 12, "stratified": true,
+    "sampling_note": "mask distributed across 4 domains; 2 items each in the two thinnest"
   },
   "cost": {"total_divergences": 9, "slated_for_core": 9, "in_core_final": 8,
            "logged_out": 1, "missing_unlogged": 0, "presence_assertion": "pass"},
   "style": {"sentence_len_delta": 0.08, "hedge_rate_delta": 0.03,
-            "modulation_reproduced": true, "notes": "clipping-under-contest present"},
-  "discrimination": {"score": 0.85, "n": 20, "seed": 42, "mask_names": true,
+            "modulation_reproduced": true, "notes": "clipping-under-contest present",
+            "by_family": {"R1": {"sentence_len_delta": 0.06}, "R2": {"sentence_len_delta": 0.11}}},
+  "discrimination": {"required": true, "score": 0.85, "n": 20, "seed": 42, "mask_names": true,
                      "confusable_pairs": ["c07->c01"]}
 }
 ```
@@ -166,7 +230,11 @@ A short, honest wrap-up (kept out of the core):
 - the fidelity scores in plain terms — the final projection score (and that it cleared the gate),
   whether every high-signal cost-refusal is present, and the style-match result — and where the
   persona should be trusted less;
-- if a gate forced re-curation or a **reduced-scope** decision, say so plainly;
+- if a gate forced re-curation or a **reduced-scope** decision, say so plainly — and give the
+  post-narrowing score, since a reduced scope that was never re-tested is a claim rather than a fix;
+- any result currently marked stale, and what changed underneath it;
+- the register finding: how many families the corpus contains, or, for a single-family package,
+  that the distance matrix was computed and supports pooling;
 - how to improve the persona: which kind of additional material would most raise the weak scores
   (e.g. "more live dialogue would sharpen the interactional moves"; "the 2011–2014 gap makes that
   period unreliable").

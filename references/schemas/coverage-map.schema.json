@@ -4,7 +4,13 @@
   "title": "coverage_map.json",
   "description": "Stage 1 output. The backbone of the honest coverage report and of several auto-weighting defaults. Computed after segmentation; consumed by Stage 2 (pass weighting), Stage 3 (probe weighting), and the user-facing coverage report.",
   "type": "object",
-  "required": ["total_tokens", "n_clusters", "domains", "dialogue_ratio", "decision_density"],
+  "required": [
+    "total_tokens",
+    "n_clusters",
+    "domains",
+    "dialogue_ratio",
+    "decision_density"
+  ],
   "additionalProperties": false,
   "properties": {
     "total_tokens": {
@@ -20,7 +26,10 @@
     "domains": {
       "type": "array",
       "minItems": 1,
-      "items": { "type": "string", "minLength": 1 },
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
       "description": "Subject areas the corpus actually covers. A single narrow slice means a reduced-scope core."
     },
     "dialogue_ratio": {
@@ -39,23 +48,41 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "earliest": { "type": "string", "description": "Year of the earliest dated cluster, e.g. '2006'." },
-        "latest": { "type": "string", "description": "Year of the latest dated cluster, e.g. '2024'." },
+        "earliest": {
+          "type": "string",
+          "description": "Year of the earliest dated cluster, e.g. '2006'."
+        },
+        "latest": {
+          "type": "string",
+          "description": "Year of the latest dated cluster, e.g. '2024'."
+        },
         "gaps": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Unattested spans, e.g. '2011-2014'. These become explicit caveats in the coverage report."
         }
       }
     },
     "thin_domains": {
       "type": "array",
-      "items": { "type": "string", "minLength": 1 },
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
       "description": "Domains present but under-attested. Must be surfaced in the coverage report — never inside the persona."
+    },
+    "n_registers": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Register families found by Stage 2 Pass A0 (scripts/register_discover.py), mirrored from registers.json. 1 means the distance matrix was computed and supports pooling — a finding, not a default. Read by the Stage 4 cluster-budget formula as +220·max(n_registers-1,0), capped at 3, so a multi-register corpus is granted the room its extra voice work needs instead of being squeezed into a single-voice allowance."
     },
     "sources": {
       "type": "array",
-      "items": { "$ref": "#/$defs/source" },
+      "items": {
+        "$ref": "#/$defs/source"
+      },
       "description": "One acquisition record per source the corpus was built from. Omit for a purely local corpus; required in practice for anything remote, since it is the only place the retrieval is recorded."
     },
     "firsthand_ratio": {
@@ -72,12 +99,20 @@
   "$defs": {
     "source": {
       "type": "object",
-      "required": ["type", "location"],
+      "required": [
+        "type",
+        "location"
+      ],
       "additionalProperties": false,
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["local", "git", "file_url", "site"],
+          "enum": [
+            "local",
+            "git",
+            "file_url",
+            "site"
+          ],
           "description": "How it was acquired. See acquisition.md for what each one means and how to fetch it."
         },
         "location": {
@@ -107,13 +142,28 @@
     {
       "total_tokens": 128000,
       "n_clusters": 14,
-      "domains": ["political philosophy", "religion", "economics"],
+      "domains": [
+        "political philosophy",
+        "religion",
+        "economics"
+      ],
       "dialogue_ratio": 0.35,
       "decision_density": 0.12,
-      "temporal_spread": { "earliest": "2006", "latest": "2024", "gaps": ["2011-2014"] },
-      "thin_domains": ["foreign policy"],
+      "temporal_spread": {
+        "earliest": "2006",
+        "latest": "2024",
+        "gaps": [
+          "2011-2014"
+        ]
+      },
+      "thin_domains": [
+        "foreign policy"
+      ],
       "sources": [
-        { "type": "local", "location": "uploads/book.pdf" },
+        {
+          "type": "local",
+          "location": "uploads/book.pdf"
+        },
         {
           "type": "git",
           "location": "https://github.com/example/notes.git",
@@ -121,10 +171,15 @@
           "revision": "9f2c1ab7d4e5f60123456789abcdef0123456789",
           "licence": "CC BY-SA 4.0"
         },
-        { "type": "site", "location": "https://example.org/kb/notes/", "retrieved": "2026-07-27" }
+        {
+          "type": "site",
+          "location": "https://example.org/kb/notes/",
+          "retrieved": "2026-07-27"
+        }
       ],
       "firsthand_ratio": 0.62,
-      "notes": "Heavy on monologic prose; little live dialogue. Roughly a third is secondhand reading notes — corroborating only."
+      "notes": "Heavy on monologic prose; little live dialogue. Roughly a third is secondhand reading notes — corroborating only. Three register families; the spoken/written gap is the largest.",
+      "n_registers": 3
     }
   ]
 }

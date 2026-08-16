@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/persona-distiller/main/references/schemas/registers.schema.json",
+  "title": "registers.json",
+  "description": "Stage 2 Pass A0 output, written by scripts/register_discover.py before any expression metric is pooled. It answers a question the pipeline previously left to the distiller's discretion: does this corpus contain one voice or several? Whole-corpus averaging over a multi-register corpus produces a profile that is the mean of two voices and the likeness of neither, and leaves no artifact anywhere recording the loss. This file is that artifact. Its verdict governs per-family measurement in Pass A1, the section structure of voice.md, the n_registers term in the Stage 4 cluster budget, and whether the discrimination test is mandatory. Fields marked 'hand-added' are not emitted by the script; the distiller adds them while reading the report, and they are what turn a measurement dump into a decision record.",
+  "type": "object",
+  "required": ["verdict", "n_registers", "n_units", "thresholds", "units", "distance_matrix", "families"],
+  "additionalProperties": false,
+  "properties": {
+    "generated": { "type": "string", "description": "ISO 8601 timestamp of the run." },
+    "lang": { "type": "string", "enum": ["zh", "en"], "description": "Resolved language mode. Rates are per 10k 汉字 for zh and per 10k words for en, so a matrix mixing modes is meaningless." },
+    "verdict": {
+      "type": "string",
+      "enum": ["MULTI_REGISTER", "SINGLE_REGISTER"],
+      "description": "MULTI_REGISTER: families become the organising unit for the rest of Pass A, for voice.md, and for the cluster budgets, and the discrimination test becomes mandatory rather than conditional. SINGLE_REGISTER is a finding, not a default — the distance matrix must be copied into fidelity-ledger/provenance.md as the evidence for it."
+    },
+    "n_registers": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of families. Mirrored into coverage_map.json, where the Stage 4 cluster-budget formula reads it as +220·max(n_registers-1,0), capped at 3."
+    },
+    "n_units": { "type": "integer", "minimum": 2, "description": "Units measured. Fewer than 2 makes no comparison possible." },
+    "thresholds": {
+      "type": "object",
+      "required": ["ratio", "dims"],
+      "additionalProperties": false,
+      "description": "The constants this run used. Recorded because the verdict is not reproducible without them — and because re-running discovery with a looser threshold until the answer comes out as expected is fitting the instrument to the answer.",
+      "properties": {
+        "ratio": { "type": "number", "exclusiveMinimum": 1, "description": "Per-dimension ratio above which a pair counts as exceeding on that dimension." },
+        "dims": { "type": "integer", "minimum": 1, "description": "How many exceeded dimensions make a pair incommensurable — i.e. barred from ever sharing a family, whatever their aggregate distance." }
+      }
+    },
+    "units": {
+      "type": "array",
+      "minItems": 2,
+      "description": "One entry per measured unit — a work, a genre, or a collection. Units are not clusters: a cluster can straddle two units, and detecting that is one of this pass's purposes.",
+      "items": {
+        "type": "object",
+        "required": ["unit_id", "features"],
+        "additionalProperties": false,
+        "properties": {
+          "unit_id": { "type": "string", "minLength": 1 },
+          "label": { "type": ["string", "null"], "description": "Source filename or human-readable name." },
+          "chars": { "type": "integer", "minimum": 0, "description": "Unit size. A unit too small to measure produces a feature vector that is noise wearing a number." },
+          "features": {
+            "type": "object",
+            "description": "The unit's 13-dimension raw vector, before standardisation. Keys are stable across units so the matrix is comparable.",
+            "additionalProperties": { "type": "number" }
+          },
+          "clusters": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Hand-added. Cluster ids drawn from this unit. Where a family boundary cuts across a cluster listed here, that cluster carries two registers and Stage 4 must choose between RECUT and SPLIT_IN_MODULE."
+          },
+          "family": { "type": "string", "description": "Hand-added convenience mirror of the families[].members assignment." },
+          "artefacts": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Hand-added. Known measurement artefacts for this unit — e.g. a person-reference rate computed from a pronoun list that does not fit an archaic register. Record the artefact next to the number rather than dropping the cell: a written-down artefact is a correction for the next reader, a silently removed one is a hole, and an unremarked one is a trap."
+          }
+        }
+      }
+    },
+    "distance_matrix": {
+      "type": "object",
+      "required": ["units", "z_distance"],
+      "additionalProperties": false,
+      "description": "Pairwise standardised distances. Required under both verdicts: for SINGLE_REGISTER it is the whole of the evidence, and a single-family package that cannot show the matrix has not established anything — it has merely not looked.",
+      "properties": {
+        "units": { "type": "array", "minItems": 2, "items": { "type": "string" }, "description": "Row and column order." },
+        "z_distance": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "number", "minimum": 0 } },
+          "description": "Square, symmetric, zero on the diagonal. Euclidean distance in standardised feature space."
+        },
+        "ratio_exceedances": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+          "description": "How many of the 13 dimensions each pair exceeds the ratio threshold on. This, not z_distance, drives the hard split constraint: standardised distance shrinks as units are added, so a pair can look close in aggregate while being incompatible on every dimension that matters."
+        }
+      }
+    },
+    "families": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The register families. A family whose members line up monotonically along one axis is a spectrum inside one family, not several — do not split it; record the ordering in `gradient` instead.",
+      "items": {
+        "type": "object",
+        "required": ["family_id", "members"],
+        "additionalProperties": false,
+        "properties": {
+          "family_id": { "type": "string", "pattern": "^R[0-9]+$" },
+          "label": { "type": ["string", "null"], "description": "Hand-added: what distinguishes this family, in plain terms. The script leaves it null — naming a register is a reading, not a measurement." },
+          "members": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "centroid": { "type": "object", "additionalProperties": { "type": "number" }, "description": "Mean raw feature vector across members." },
+          "is_default": {
+            "type": "boolean",
+            "description": "Hand-added. The family a host agent uses absent a switch trigger. Exactly one family should carry this; a package with several registers and no default leaves the choice to the host, which is the same as averaging them."
+          },
+          "gradient": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Hand-added. Member ids ordered along the family's internal axis, when one exists. Directly useful in voice.md §1, and often counter-intuitive — which makes it exactly the kind of regularity a host agent gets wrong unaided."
+          },
+          "gradient_axis": { "type": "string", "description": "Hand-added. What the ordering runs along, e.g. 'increasing sentence length'." }
+        }
+      }
+    },
+    "gap_table": {
+      "type": "array",
+      "description": "Per-dimension cross-family comparison. This is the identification: within a family the means are largely generic and describe the genre as much as the person, while the size and direction of the shift between families is what no other writer reproduces by accident. Each large gap should be emitted as its own candidate element in extractions.json, with both endpoints and the ratio.",
+      "items": {
+        "type": "object",
+        "required": ["dimension", "by_family"],
+        "additionalProperties": false,
+        "properties": {
+          "dimension": { "type": "string" },
+          "by_family": { "type": "object", "additionalProperties": { "type": ["number", "null"] } },
+          "max_ratio": { "type": ["number", "null"], "description": "Largest ratio between any two families on this dimension." }
+        }
+      }
+    },
+    "forced_splits": {
+      "type": "array",
+      "description": "Unit pairs the hard constraint barred from sharing a family, with the dimensions that did it. Read these before accepting the family count: they are the evidence that the split is structural rather than an artefact of where the clustering cut.",
+      "items": {
+        "type": "object",
+        "required": ["a", "b", "dimensions"],
+        "additionalProperties": false,
+        "properties": {
+          "a": { "type": "string" },
+          "b": { "type": "string" },
+          "dimensions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "ratios": { "type": "object", "additionalProperties": { "type": "number" } }
+        }
+      }
+    },
+    "cluster_conflicts": {
+      "type": "array",
+      "description": "Hand-added. Clusters carrying material from more than one family. Each is a Stage 4 RECUT-vs-SPLIT_IN_MODULE decision; note them here, while the evidence is still in front of you, rather than rediscovering them at assembly.",
+      "items": {
+        "type": "object",
+        "required": ["cluster_id", "families"],
+        "additionalProperties": false,
+        "properties": {
+          "cluster_id": { "type": "string" },
+          "families": { "type": "array", "minItems": 2, "items": { "type": "string" } },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "notes": { "type": "string", "description": "Hand-added. What the numbers mean and what the distiller decided." }
+  },
+  "examples": [
+    {
+      "generated": "2026-08-16T08:15:35+00:00",
+      "lang": "zh",
+      "verdict": "MULTI_REGISTER",
+      "n_registers": 2,
+      "n_units": 2,
+      "thresholds": { "ratio": 3.0, "dims": 3 },
+      "units": [
+        {
+          "unit_id": "u1", "label": "<spoken collection>", "chars": 412000, "clusters": ["c01", "c02"], "family": "R1",
+          "features": { "mean_sentence_len": 24.1, "second_person_rate": 121.0, "hedge_rate": 93.0, "connective_rate": 310.0 }
+        },
+        {
+          "unit_id": "u2", "label": "<written monograph>", "chars": 138000, "clusters": ["c03"], "family": "R2",
+          "features": { "mean_sentence_len": 47.6, "second_person_rate": 2.0, "hedge_rate": 31.0, "connective_rate": 0.0 },
+          "artefacts": ["person-reference rate understated: the pronoun list omits archaic forms"]
+        }
+      ],
+      "distance_matrix": {
+        "units": ["u1", "u2"],
+        "z_distance": [[0.0, 3.42], [3.42, 0.0]],
+        "ratio_exceedances": [[0, 5], [5, 0]]
+      },
+      "families": [
+        { "family_id": "R1", "label": "spoken, addressed to a present interlocutor", "members": ["u1"], "is_default": true },
+        { "family_id": "R2", "label": "written, no addressee", "members": ["u2"] }
+      ],
+      "gap_table": [
+        { "dimension": "second_person_rate", "by_family": { "R1": 121.0, "R2": 2.0 }, "max_ratio": 60.5 },
+        { "dimension": "connective_rate", "by_family": { "R1": 310.0, "R2": 0.0 }, "max_ratio": null }
+      ],
+      "forced_splits": [
+        { "a": "u1", "b": "u2", "dimensions": ["second_person_rate", "connective_rate", "mean_sentence_len"],
+          "ratios": { "second_person_rate": 60.5, "mean_sentence_len": 1.98 } }
+      ],
+      "cluster_conflicts": [],
+      "notes": "The gap, not either mean, is the identification: neither family's sentence length is unusual on its own."
+    }
+  ]
+}

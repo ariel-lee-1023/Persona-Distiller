@@ -5,9 +5,208 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.0.0] — 2026-08-16
+
+3.0 is a major release. It changes the shape of three intermediate artifacts, adds required fields
+to two of them, introduces a stage that runs before all previously-existing Stage 2 work, and
+promotes one conditional test to mandatory. Packages produced under 2.x remain valid artifacts, but
+their logs will not validate against the 3.0 schemas without a pass. See [MIGRATION.md](MIGRATION.md).
+
+The release has one governing theme. Every change below closes a gap where the specification's
+correctness depended on the distiller *noticing* something — and a distiller that had noticed would
+not have needed the rule. A gate that fires only when someone already suspects the failure it
+detects is not a gate; a field that is filled in when remembered is not a record; a formula whose
+unit is implied is not a measurement. So the work is mostly relocation of judgment: from the
+distiller's attention into the corpus's own numbers, into required fields, into scripts, and into
+verdicts that name the remedy instead of merely flagging the problem.
+
+### Added
+
+- **Pass A0 — register discovery, and `scripts/register_discover.py`.** The single most consequential
+  change in 3.0. Through 2.x, style features were measured over the corpus as a whole and the
+  question of whether the corpus contained *one* voice was never asked; it was answered implicitly,
+  in the affirmative, by the act of pooling. When a body of work spans career phases, genres, or
+  audiences, that pooled baseline is not a measurement of the person but an average of two of them —
+  a mean sentence length halfway between two habits the person never had — and the failure is
+  invisible in the output, because an average of two registers looks exactly like an ordinary set of
+  numbers. Everything downstream then inherits the fiction: the avoid-list forbids constructions one
+  register uses freely, the modulation rules describe drift between two things rather than movement
+  within one, and the style-match test at Stage 5 passes, because it compares generated prose against
+  the same fiction it was generated from.
+
+  Pass A0 now runs before any feature is measured. `register_discover.py` measures every unit on one
+  feature vector, builds the pairwise distance matrix, and proposes a family assignment with the
+  separation statistics behind it, writing `registers.json` (new schema:
+  `references/schemas/registers.schema.json`). Downstream measurement is then per-family first and
+  pooled second. `n_registers = 1` is a legitimate and common result — what is not legitimate is
+  never asking.
+
+  The division of labour is deliberate and is stated in the spec because it is the part that will be
+  got wrong under pressure: **the script measures; the reader decides.** Naming a family, nominating
+  a default, ordering a within-family gradient, and recording where a family boundary cuts across a
+  cluster are readings, not measurements, and `registers.json` is marked unfinished until those
+  hand-added fields are filled. And when discovery and the discrimination gate disagree, the rule is
+  to *reduce* the number of families — not to re-run discovery at a looser threshold until the
+  numbers come out as hoped.
+
+- **Two new element classes: `procedure` and `verdict`.** Both were previously buried inside
+  `regularity`, and both were lost for the same structural reason: the Stage 3 rubric scored them
+  low, and the deletion rule then removed exactly the material a reader recognises fastest.
+
+  A **`procedure`** is an *ordered* method step, and it now requires `order`, `precondition`, and
+  `on_fail`. The ordering is the whole reason it needs its own class. An unordered pile of heuristics
+  gives a host agent no way to know what runs first, so it applies them simultaneously — and the
+  guard whose entire value was firing before everything else never fires at all. A method the persona
+  cannot execute in sequence is not a method; it is a list of things the person believed.
+
+  A **`verdict`** is a standing judgment about a named object, and it requires `object`, `judgment`,
+  and `corpus_hits`, plus the usual ≥2 independent clusters so that a judgment made once in an aside
+  stays an aside. Verdicts scored badly under the old rubric because a judgment on a proper name
+  predicts nothing beyond its own object — which is exactly why they kept getting cut, and exactly
+  why the host agent then re-derived a slightly different verdict on every turn, on a question the
+  corpus had already settled.
+
+- **Class-prefixed element ids** — `PROC CR VD PR IM MOD PP` — enforced in the schema against the
+  element's `type`. A flat `e017` makes the class distribution unreadable, and the class distribution
+  is precisely what the elevation rule and the Stage 5 presence assertion both have to read. The
+  prefix/type agreement is structural rather than advisory because a prefix that has drifted from its
+  type is worse than no prefix at all: it is a label a reader will trust.
+
+- **`scripts/token_count.py`** — one explicit token estimator for every budget in the skill, and
+  `tokenizer` is now a **required** field in `scores.json`. Every budget here is denominated in
+  tokens, and a budget without its unit is not a number: the same package measures roughly twice as
+  large in Chinese as in English under a word-based count, so "4,000" silently meant two different
+  sizes in two runs of the same skill. Counts Han and kana characters separately from Latin words;
+  `--calibrate` adjusts the rates against a real tokenizer where one is available.
+
+- **`scripts/validate_package.py`** — mechanical check of a produced package, for the one defect
+  class that survives careful reading. Ledger material sitting inside a runtime reference, a core
+  load-list pointing at a cluster module nobody wrote, a near-empty file that does not say why,
+  implementation language leaking into the core's own description: none of these look wrong on the
+  page, because there is nothing on the page to notice. Judgment calls are returned as warnings
+  rather than as false certainty, and `--strict` promotes them. `--headings` is required for the
+  core-heading check and deliberately empty by default — a core may be written in the subject's own
+  language, and a validator that imposes English headings would fail the most faithful packages.
+
+- **`scripts/name_audit.py`** — back-checks every name the package uses against **literal corpus
+  hits**, separating heading-like appearances from ordinary prose. The failure it catches has a
+  precise mechanism: a tidy diagnostic label invented during distillation, or lifted from an editor's
+  chapter heading, quietly acquires the authority of the person's own coinage — after which the
+  persona uses, with total confidence, a term its subject never used. An editor's heading is not
+  attestation. Its output is what `corpus_hits` on a `verdict` element is now required to come from.
+
+- **`--stratify` for `scripts/holdout_split.py`**, with largest-remainder allocation across domain
+  labels, plus a required sampling description in `fidelity.json` when stratification is off. A
+  random mask over an uneven corpus lands mostly in the largest domain, and the resulting score is
+  then read as though it described the persona rather than its biggest topic. A score whose sampling
+  is not described is a number without a denominator.
+
+- **`hit_2` and `hit_1` reported separately** in the projection results. The aggregate collapsed two
+  different things: reaching the right conclusion by the person's own mechanism, and reaching it by a
+  mechanism the person would reject. Both look like partial credit, but only the first generalises —
+  the second is a persona that agrees with its subject about every case in the corpus and diverges on
+  the first case outside it. A respectable aggregate with a low `hit_2` is now a specific, actionable
+  diagnosis rather than a comfortable number.
+
+- **`content_hash` and `stale` on `fidelity.json`, both required.** Curation is a loop: a gate sends
+  the set backwards, clusters get merged, an element is demoted two batches after the score that
+  justified keeping it. Nothing previously said what happens to a result when the thing it measured
+  changes underneath it, so the default was that nothing happened — the number stayed, still labelled
+  as this package's score, now describing a package that no longer existed. A result whose hash does
+  not match the current package is stale whether or not anyone marked it, and that is mechanically
+  checkable. Staleness is marked at the moment of the change, not at the end, when it will be
+  forgotten. A stale style-match may ship if the coverage report says so; a stale projection or cost
+  gate may not.
+
+- **Computed budgets for `frameworks.md` and `voice.md`**, replacing the flat soft ~4,000. Both are
+  now sized from the constructs, verdicts, moves and register families actually routed to them, on
+  the same supply→clamp shape as the core and cluster budgets, clamped to 2,000–7,000. A flat band on
+  the two standing modules had the same defect it had on cluster modules: a rich corpus quietly
+  outgrew it and a thin one was invited to pad up to it.
+
+- **`MIGRATION.md`** — what to do with 2.x artifacts, field by field.
 
 ### Changed
+
+- **The discrimination test is now mandatory whenever `n_registers > 1`, and is re-triggered by any
+  cluster merge.** Through 2.x it ran "only if the core claims registers", which put the gate
+  downstream of the distiller's own judgment — it fired only when someone had already noticed the
+  very thing it exists to detect. Now the corpus decides. The merge trigger closes the other half of
+  the hole: a merge is precisely the operation that can pool two registers into one module without
+  anyone deciding to.
+
+- **`cluster_budget.py` returns a verdict instead of a boolean**, and the distinction it now draws is
+  the substantive fix. 2.x had a single `recut_flagged`, which could say that a cluster was overloaded
+  but not what to do about it — and the two remedies are opposite, so a single flag gave the wrong
+  answer roughly half the time. An overloaded cluster spanning **two topic domains** was
+  mis-segmented and goes back to `segment.py`: **RECUT**. An overloaded cluster in **one domain**,
+  overloaded because its material arrives in two registers, must *not* be re-cut — that would
+  separate a subject from itself — so the answer is **SPLIT_IN_MODULE**: keep one module, declare an
+  internal A/B register split with a no-pooling header, and give separate style guidance for each.
+  The verdict enum is `OK | FLOOR | RECUT | SPLIT_IN_MODULE`; `recut_flagged` is retained as
+  deprecated so 2.x logs still validate. A per-register price and a `--coefficients` override were
+  added at the same time, the latter so a future recalibration does not require editing the script.
+
+- **Core budget: two new supply terms and raised ceilings.** `supply` now includes
+  `200·min(n_procedure,5) + 150·min(n_verdict,8)`, and the ceiling rows move from 4,000 / 5,500 /
+  6,500 to **4,000 / 6,000 / 7,500**. Procedures and verdicts are priced high because they are the
+  two classes a host agent can actually *execute*; the old ceilings were set before either existed,
+  so a corpus rich in both saturated a supply term it had no room to spend.
+
+- **Class priority now reads `procedure ≈ cost_refusal ≈ verdict ≈ projectible > interactional >
+  variation > preoccupation > stable_style`**, placing the two new classes in the top band rather
+  than letting them compete on composite score against abundant style metrics.
+
+- **`frameworks.md` and `voice.md` are now layered templates asked of every subject** — `§0–§7` and
+  `§0–§11` respectively — rather than free-form modules with a topic list. Two properties follow, and
+  both were the point. First, the structure is **universal**: it is asked of every corpus, and a
+  section the corpus cannot fill is *marked absent* rather than deleted, because an absence a reader
+  can see is information and a missing heading is not. Second, the ordering inside `frameworks.md` is
+  a substantive claim rather than a filing convention — **§1 Method** and **§2 Epistemology** come
+  before **§3 Ontology** and **§4 standing verdicts**, because a persona handed only conclusions can
+  restate them and cannot extend them. Get the method and the epistemology in place and the verdicts
+  become derivable; ship the verdicts alone and you have built a quote database with opinions.
+  `voice.md` opens with the register structure for the same reason: a host agent must choose a family
+  before writing a sentence, rather than discovering afterwards that it wrote in the average of two.
+
+- **`references/output-template.md` rewritten** around the two layered templates, the Fidelity Ledger
+  layout, and the negative-space rule for legitimately near-empty sections. All examples in the
+  specification are now **fictional or schematic** — no real distilled package appears as an
+  illustration anywhere in the repository. A concrete example teaches the example: a reader shown how
+  one particular corpus was handled starts matching their own corpus against that shape instead of
+  against the rule, and the specification quietly narrows to the case it was demonstrated on. If a
+  rule can only be explained by pointing at a package that already exists, it is not yet a rule.
+
+- **The acquisition batch is now a named, forbidden boundary.** `pipeline.md` states it directly: the
+  batches in which a corpus happened to be acquired are an artifact of how it was obtained and carry
+  no information about the person, yet they are the most tempting available segmentation because they
+  are already there. Segmenting on them produces clusters that are internally incoherent in exactly
+  the way `segment.py` exists to prevent, and the resulting manifest looks entirely normal. The
+  section gives the five-step correct move and a diagnostic for detecting the failure after the fact.
+
+- **Schemas updated throughout**: `registers.schema.json` added; `n_registers` on the coverage map;
+  the eight-value type enum, class-prefix patterns, and eleven conditional rules on
+  `extractions.schema.json`; `tokenizer` (required), `standing_budgets`, `coefficients_source`, the
+  new ceiling enum, and the cluster verdict on `scores.schema.json`; `content_hash`, `stale`,
+  per-family style deltas, and the discrimination trigger on `fidelity.schema.json`; the two
+  domain-labelled input forms on `passages.schema.json`. `register_discover.py --json` and
+  `cluster_budget.py --json` both write shapes that validate as-is, so a validation failure there
+  means the script and the schema have diverged.
+
+### Deferred
+
+Four register-handling refinements and three fidelity extensions were scoped for this release and
+deliberately held for **3.1.0**, rather than shipped partially specified. 3.0 establishes the
+register structure as a first-class artifact; the follow-on work builds on it and is not worth
+rushing to fit a version number.
+
+### Earlier in the 3.0 cycle
+
+The entries below were made against `[Unreleased]` over the course of the 3.0 cycle and ship in this
+release. They are kept in their original form, in the order they were written, because a couple of
+them supersede each other and the sequence is part of the record.
+
+#### Changed
 
 - **`provenance.md` moved out of `references/` into a new top-level `fidelity-ledger/` package, and
   `episodic.md`'s scope clarified to a positive definition.** Two related fixes to the honesty
@@ -67,7 +266,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   skipped. Documented in `output-template.md` (exact wording and placement) and `SKILL.md` (Stage 4
   requirement, Stage 5 verification item).
 
-### Added
+#### Added
 
 - **`provenance.md` phrasing rule: audit ledger for the human reader, never a runtime instruction.**
   A real distillation shipped a `provenance.md` line telling the persona what to *say* when a
@@ -139,7 +338,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   jargon, so tracked terms are passed in with `--terms` (inline or a file) and reported as
   per-10k rates alongside everything else.
 
-### Changed
+#### Changed
 
 - **The four new tools are wired into the steps they belong to, not merely listed.** Stage 1 in
   `SKILL.md` and `pipeline.md` now open with the damage census and route segmentation through
@@ -399,7 +598,8 @@ Initial public release.
 - **Scope statement** — perspective and thinking-style work only; explicit refusal of deceptive
   impersonation and forged attribution.
 
-[Unreleased]: https://github.com/ariel-lee-1023/persona-distiller/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/ariel-lee-1023/persona-distiller/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/ariel-lee-1023/persona-distiller/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/ariel-lee-1023/persona-distiller/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/ariel-lee-1023/persona-distiller/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ariel-lee-1023/persona-distiller/compare/v1.0.0...v1.1.0

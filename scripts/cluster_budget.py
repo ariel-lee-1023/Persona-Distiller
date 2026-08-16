@@ -26,9 +26,17 @@ Two flags matter more than the number:
 
   FLOOR  supply < 1800 -- the cluster has not earned a module. Fold it into its
          nearest sibling, or demote its material to episodic.md. Do not pad.
-  RECUT  n_apparatus > 12 or n_moves > 12 -- the cluster is carrying two
-         registers. Re-cut it at Stage 1 with segment.py. Do not buy the space
-         back by deleting evidence.
+  RECUT  n_apparatus > 12 or n_moves > 12 -- the cluster needs a new cut.
+         Re-cut it at Stage 1 with segment.py. Do not buy the space back by
+         deleting evidence.
+  SPLIT_IN_MODULE  the same overflow, but registers > 1 and shared_domain is true.
+         Keep one module, declare an internal A/B register split and a no-pooling
+         header, then give style guidance separately for each register.
+
+Registers cost 220 tokens for each register after the first, capped at three. The
+cost pays for the declared split, no-pooling fence, and duplicated style guidance.
+Coefficients can be loaded from a JSON file and emitted as JSON so a run's exact
+calibration can be recorded in its provenance ledger.
 
 Stdlib only. Reads a JSON spec (see --example), or takes one cluster on the
 command line. Writes a `cluster_budgets` array shaped for scores.json with
@@ -60,6 +68,8 @@ TERMS = {
 }
 SIBLING_CAP = 9
 RECUT_TERMS = ("apparatus", "moves")
+REGISTER_PRICE = 220
+REGISTER_CAP = 3
 
 EXAMPLE = {
     "words_firsthand": 630298,
@@ -92,8 +102,60 @@ EXAMPLE = {
 }
 
 
-def compute(counts, words, words_firsthand, n_siblings):
-    """Return (supply, budget, breakdown, floor_triggered, recut_flagged)."""
+def coefficient_set():
+    """Return the active, JSON-shaped calibration constants."""
+    return {
+        "FIXED_FRAME": FIXED_FRAME, "PROHIB_BASE": PROHIB_BASE,
+        "PER_SIBLING": PER_SIBLING, "MASS_COEF": MASS_COEF,
+        "FLOOR": FLOOR, "CEILING": CEILING, "SIBLING_CAP": SIBLING_CAP,
+        "REGISTER_PRICE": REGISTER_PRICE, "REGISTER_CAP": REGISTER_CAP,
+        "TERMS": {name: {"price": price, "cap": cap} for name, (price, cap) in TERMS.items()},
+    }
+
+
+def apply_coefficients(path):
+    """Override recognised module constants and return the source label."""
+    global FIXED_FRAME, PROHIB_BASE, PER_SIBLING, MASS_COEF, FLOOR, CEILING, SIBLING_CAP
+    global REGISTER_PRICE, REGISTER_CAP, TERMS
+    with open(path, encoding="utf-8") as fh:
+        values = json.load(fh)
+    if not isinstance(values, dict):
+        raise ValueError("coefficient file must contain a JSON object")
+    scalar_names = ("FIXED_FRAME", "PROHIB_BASE", "PER_SIBLING", "MASS_COEF", "FLOOR", "CEILING",
+                    "SIBLING_CAP", "REGISTER_PRICE", "REGISTER_CAP")
+    overridden = []
+    for name in scalar_names:
+        if name in values:
+            value = values[name]
+            if not isinstance(value, (int, float)):
+                raise ValueError("%s must be numeric" % name)
+            globals()[name] = value
+            overridden.append(name)
+    if "TERMS" in values:
+        raw_terms = values["TERMS"]
+        if not isinstance(raw_terms, dict):
+            raise ValueError("TERMS must be an object")
+        updated = dict(TERMS)
+        for name, value in raw_terms.items():
+            if name not in updated:
+                raise ValueError("unknown TERMS entry: %s" % name)
+            if isinstance(value, dict):
+                price, cap = value.get("price"), value.get("cap")
+            elif isinstance(value, (list, tuple)) and len(value) == 2:
+                price, cap = value
+            else:
+                raise ValueError("TERMS.%s must be {price, cap} or [price, cap]" % name)
+            if not isinstance(price, (int, float)) or not isinstance(cap, (int, float)):
+                raise ValueError("TERMS.%s price and cap must be numeric" % name)
+            updated[name] = (price, int(cap))
+            overridden.append("TERMS.%s" % name)
+        TERMS = updated
+    return path, overridden
+
+
+def compute(counts, words, words_firsthand, n_siblings, registers=1):
+    """Return supply, budget, breakdown, floor and overflow flags for one module."""
+    registers = min(max(int(registers), 1), int(REGISTER_CAP))
     breakdown = {"fixed_frame": FIXED_FRAME}
     supply = FIXED_FRAME
 
@@ -116,11 +178,15 @@ def compute(counts, words, words_firsthand, n_siblings):
     breakdown["mass"] = mass
     supply += mass
 
+    register_cost = REGISTER_PRICE * max(registers - 1, 0)
+    breakdown["registers"] = register_cost
+    supply += register_cost
+
     supply = round(supply)
     budget = max(FLOOR, min(supply, CEILING))
     floor_triggered = supply < FLOOR
     recut = any(int(counts.get(t, 0)) > TERMS[t][1] for t in RECUT_TERMS)
-    return supply, budget, breakdown, floor_triggered, recut
+    return supply, budget, breakdown, floor_triggered, recut, registers
 
 
 def load_spec(path):
@@ -153,9 +219,25 @@ def main():
     ap.add_argument("--siblings", type=int, default=0, help="other clusters that also get a module")
     ap.add_argument("--words", type=int, default=0, help="this cluster's words")
     ap.add_argument("--words-firsthand", type=int, default=0, help="total firsthand words")
+    ap.add_argument("--registers", type=int, default=None, help="incommensurable registers in this module (default 1; capped at 3)")
+    ap.add_argument("--shared-domain", action="store_true", help="topic domain is shared, allowing SPLIT_IN_MODULE on overflow")
+    ap.add_argument("--coefficients", help="JSON file overriding calibration constants")
+    ap.add_argument("--emit-coefficients", action="store_true", help="print the active calibration constants as JSON")
     ap.add_argument("--json", metavar="OUT", help="write a scores.json 'cluster_budgets' array here")
     ap.add_argument("--example", action="store_true", help="print an example spec and exit")
     args = ap.parse_args()
+
+    coefficients_source = "defaults"
+    coefficient_overrides = []
+    if args.coefficients:
+        try:
+            coefficients_source, coefficient_overrides = apply_coefficients(args.coefficients)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            ap.error(str(exc))
+    if args.emit_coefficients:
+        print(json.dumps(coefficient_set(), indent=2, sort_keys=True))
+        if not args.example and not args.single and not args.spec:
+            return 0
 
     if args.example:
         print(json.dumps(EXAMPLE, indent=2))
@@ -173,6 +255,8 @@ def main():
                 "applications": args.applications,
                 "fragments": args.fragments,
                 "siblings": args.siblings,
+                "registers": args.registers if args.registers is not None else 1,
+                "shared_domain": args.shared_domain,
             }
         ]
         total = args.words_firsthand
@@ -186,7 +270,15 @@ def main():
         cid = c.get("cluster_id") or c.get("id") or "?"
         # default: every other cluster in the spec is a sibling
         n_sib = c.get("siblings", len(clusters) - 1)
-        supply, budget, breakdown, floored, recut = compute(c, c.get("words", 0), total, n_sib)
+        requested_registers = args.registers if args.registers is not None else c.get("registers", 1)
+        try:
+            supply, budget, breakdown, floored, recut, registers = compute(
+                c, c.get("words", 0), total, n_sib, requested_registers)
+        except (TypeError, ValueError) as exc:
+            ap.error("%s: %s" % (cid, exc))
+        shared_domain = args.shared_domain or bool(c.get("shared_domain", False))
+        split_in_module = recut and registers > 1 and shared_domain
+        verdict = "SPLIT_IN_MODULE" if split_in_module else ("RECUT" if recut else ("FLOOR" if floored else "OK"))
         rows.append(
             {
                 "cluster_id": cid,
@@ -198,29 +290,38 @@ def main():
                     "applications": int(c.get("applications", 0)),
                     "fragments": int(c.get("fragments", 0)),
                     "siblings": int(n_sib),
+                    "registers": registers,
                 },
                 "words": int(c.get("words", 0)),
                 "words_firsthand": int(total),
                 "floor_triggered": floored,
                 "recut_flagged": recut,
+                "split_in_module_flagged": split_in_module,
+                "shared_domain": shared_domain,
+                "verdict": verdict,
+                "coefficients_source": coefficients_source,
                 "_breakdown": breakdown,
             }
         )
 
     width = max(len(r["cluster_id"]) for r in rows)
     width = max(width, 7)
-    print("%-*s %8s %8s   %s" % (width, "cluster", "supply", "budget", "breakdown"))
+    print("%-*s %8s %8s %16s   %s" % (width, "cluster", "supply", "budget", "verdict", "breakdown"))
+    print("coefficients source: %s" % coefficients_source)
+    if coefficient_overrides:
+        print("constants from file: %s" % ", ".join(coefficient_overrides))
     for r in rows:
         b = r["_breakdown"]
-        parts = "frame %d + app %d + mov %d + apl %d + frg %d + prh %d + mass %d" % (
+        parts = "frame %d + app %d + mov %d + apl %d + frg %d + prh %d + mass %d + reg %d" % (
             b["fixed_frame"], b["apparatus"], b["moves"], b["applications"],
-            b["fragments"], b["prohibitions"], b["mass"],
+            b["fragments"], b["prohibitions"], b["mass"], b["registers"],
         )
-        print("%-*s %8d %8d   %s" % (width, r["cluster_id"], r["supply"], r["budget"], parts))
+        print("%-*s %8d %8d %16s   %s" % (width, r["cluster_id"], r["supply"], r["budget"], r["verdict"], parts))
 
     floored = [r for r in rows if r["floor_triggered"]]
-    recut = [r for r in rows if r["recut_flagged"]]
-    if floored or recut:
+    recut = [r for r in rows if r["recut_flagged"] and not r["split_in_module_flagged"]]
+    split_in_module = [r for r in rows if r["split_in_module_flagged"]]
+    if floored or recut or split_in_module:
         print()
     for r in floored:
         print(
@@ -228,6 +329,17 @@ def main():
             "       Fold it into its nearest sibling module, or demote its material to\n"
             "       episodic.md. Do not pad it up to the floor."
             % (r["cluster_id"], r["supply"], FLOOR)
+        )
+    for r in split_in_module:
+        over = [
+            "%s=%d (cap %d)" % (t, r["counts"][t], TERMS[t][1])
+            for t in RECUT_TERMS if r["counts"][t] > TERMS[t][1]
+        ]
+        print(
+            "SPLIT_IN_MODULE  %s: %s. The shared topic has %d registers.\n"
+            "                 Keep one module, declare an internal A/B register split with a\n"
+            "                 no-pooling header, and give separate style guidance for each."
+            % (r["cluster_id"], "; ".join(over), r["counts"]["registers"])
         )
     for r in recut:
         over = [

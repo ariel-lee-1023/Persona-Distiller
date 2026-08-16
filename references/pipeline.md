@@ -14,6 +14,7 @@ later stage reads and writes here, so resolve the path once and reuse it.
 ├── raw/                   # extracted plain text, one file per source
 ├── clusters/              # segmented clusters, one file per cluster, with a manifest
 ├── coverage_map.json      # domains, dialogue ratio, decision density, temporal spread
+├── registers.json         # Pass A0 output: register families, distance matrix, verdict
 ├── extractions.json       # Stage 2 output: every candidate element with evidence
 ├── scores.json            # Stage 3 output: composite scores + keep/cut + reason
 └── fidelity.json          # gate results + Stage 5 results
@@ -101,6 +102,41 @@ independent clusters**. If everything is one blob, nothing can be corroborated, 
 over-trust one-off remarks. Err toward more clusters, but keep each large enough to be meaningful
 (a two-sentence "cluster" corroborates nothing).
 
+### The one boundary that is never allowed: the acquisition batch
+
+**Hard rule: never cut clusters along the boundary of the batch in which the material arrived.**
+Not as a default, not as a temporary measure, not "for now, to be merged later".
+
+The pressure to do it is real, which is why the rule has to be explicit. Corpora arrive in
+instalments — a second tranche of sources, a later download, a follow-up upload. Cutting the new
+instalment into its own clusters is the path of least resistance: it needs no reading, it never
+conflicts with the existing manifest, and the numbers all still add up. And it destroys the one
+thing clusters exist for. The projectibility probe asks whether a regularity appears in ≥2
+**independent** clusters. Two clusters cut from the same delivery are not independent evidence of a
+regularity; they are one body of text with a line drawn through it for the distiller's filing
+convenience. Worse, the failure inflates rather than deflates: a regularity attested only in the new
+batch now clears the corroboration bar and is promoted, so batch-cut clusters manufacture
+projectibility instead of testing it.
+
+The correct move when a batch arrives:
+
+1. **Read what topics the new material covers**, before deciding any boundary.
+2. **Check each topic against the existing clusters.** `scripts/kwic.py` over `clusters/` with the
+   topic's key terms is enough: it shows in one pass whether the topic is already attested and
+   where.
+3. **Where a topic already exists**, the new material either extends an existing cluster or forms a
+   cluster whose boundary is drawn by *work, session, period, or register* — the same four criteria
+   as any other cluster, applied to the merged corpus, ignoring which delivery each file came from.
+4. **Where a topic is genuinely new**, a new cluster is correct — because the boundary is topical,
+   not chronological-by-delivery. It coincides with the batch; it is not defined by it.
+5. **Record the check.** The batch log in `fidelity-ledger/provenance.md` states which existing
+   clusters the new material was tested against and what the overlap was. An unrecorded check is
+   indistinguishable from no check.
+
+The diagnostic, if you want one number: for every pair of clusters that share a topic domain, ask
+whether they also share a delivery. If the answer is yes for most pairs, the manifest is a delivery
+ledger wearing cluster labels, and every corroboration count computed from it is suspect.
+
 Write a `clusters/manifest.json`:
 
 ```json
@@ -149,6 +185,7 @@ report and of several auto-weighting defaults.
   "decision_density": 0.12,          // decision-record tokens / total
   "temporal_spread": {"earliest": "2006", "latest": "2024", "gaps": ["2011-2014"]},
   "thin_domains": ["foreign policy"],   // present but under-attested
+  "n_registers": 3,                     // from registers.json (Pass A0); 1 = SINGLE_REGISTER
   "notes": "Heavy on monologic prose; little live dialogue."
 }
 ```
@@ -163,12 +200,16 @@ Use it to:
 - **Set the core's ceiling** — `total_tokens`, `n_clusters`, `firsthand_ratio`, and the number of
   periods in `temporal_spread` pick the ceiling row in the Stage 3 core-budget computation
   (`scoring.md`). Get these right here; Stage 3 does not recompute them.
+- **Size the cluster-module budget** — `n_registers` enters the Stage 4 cluster formula, so a
+  multi-register corpus is granted the room its extra voice work needs instead of being squeezed
+  into a single-voice allowance. It is written by Pass A0, not guessed here.
 
 ## Handoff to Stage 2
 
-Stage 2 reads `clusters/` + `coverage_map.json` and writes `extractions.json`. Every candidate
-element carries: a stable `id`, its `type` (expression feature / projectible regularity /
-cost-refusal / interactional move / preoccupation), the `clusters` it appears in, 1–3 short
-**example passages** (for evidence, not for verbatim reproduction in the core), and any measured
-metrics from `style_metrics.py`. That evidence is what Stage 3 scores and what Stage 5 tests
-against, so capture it faithfully now.
+Stage 2 reads `clusters/` + `coverage_map.json`, runs **Pass A0 register discovery first** (writing
+`registers.json` and `n_registers`), and writes `extractions.json`. Every candidate element carries:
+a class-prefixed `id`, its `type` (expression / modulation / projectible regularity / cost-refusal /
+interactional move / preoccupation / **procedure** / **verdict**), the `clusters` it appears in, its
+`register_family` where the element is family-specific, 1–3 short **example passages** (for evidence,
+not for verbatim reproduction in the core), and any measured metrics from `style_metrics.py`. That
+evidence is what Stage 3 scores and what Stage 5 tests against, so capture it faithfully now.

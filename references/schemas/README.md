@@ -23,6 +23,7 @@ schema is authoritative.
 |---|---|---|---|
 | `clusters/manifest.json` | 1 — segment | [`clusters-manifest.schema.json`](clusters-manifest.schema.json) | [pipeline.md](../pipeline.md), [acquisition.md](../acquisition.md) |
 | `coverage_map.json` | 1 — coverage map | [`coverage-map.schema.json`](coverage-map.schema.json) | [pipeline.md](../pipeline.md), [acquisition.md](../acquisition.md) |
+| `registers.json` | 2 — Pass A0 register discovery | [`registers.schema.json`](registers.schema.json) | [extraction.md](../extraction.md) |
 | `extractions.json` | 2 — extraction | [`extractions.schema.json`](extractions.schema.json) | [extraction.md](../extraction.md) |
 | `scores.json` | 3 — curation audit log | [`scores.schema.json`](scores.schema.json) | [scoring.md](../scoring.md) |
 | `fidelity.json` | gate + 5 — verification | [`fidelity.schema.json`](fidelity.schema.json) | [fidelity-tests.md](../fidelity-tests.md) |
@@ -31,6 +32,12 @@ schema is authoritative.
 `passages.json` is the one artifact you hand *to* a script rather than receive from the pipeline —
 `scripts/holdout_split.py` reads it. The script's own output (`split.json`) has no schema here; the
 script is its source of truth.
+
+`registers.json` is written by `scripts/register_discover.py`. A handful of its fields are marked
+**hand-added** in the schema: the script measures, but naming a register, nominating a default,
+ordering a gradient, and noting where a family boundary cuts across a cluster are readings, not
+measurements. Those fields are what turn a measurement dump into a decision record, and the file is
+not finished until they are filled in.
 
 The two Stage 1 schemas also carry the results of **corpus acquisition**, which runs before Stage 1
 when the source is remote: `attribution` plus the optional `source_url` / `retrieved` / `revision`
@@ -48,23 +55,50 @@ Beyond field types, a few of the skill's hard rules are expressed structurally:
   cannot satisfy the Stage 5 presence assertion), and an absent label defaults in practice to the
   optimistic reading. Making it required means a manifest cannot stay silent about whose words these
   are.
-- A `regularity` element requires **≥2 clusters** — the corroboration rule from Stage 2.
-- A `cost_refusal` or `interactional` element requires `convenient_move`, since the divergence
-  between the convenient response and the attested one *is* the signal.
+- A `regularity` **or `verdict`** element requires **≥2 clusters** — the corroboration rule from
+  Stage 2. A judgment attested once, in an aside, is an aside; it goes to `episodic.md`.
+- Element **ids carry a class prefix** — `PROC CR VD PR IM MOD PP` — and the prefix must agree with
+  the `type`. A flat `e017` tells a reader nothing, whereas a prefixed id makes the class
+  distribution readable by scanning, which is what the minimum-presence assertion and the elevation
+  rules both need. The agreement is enforced structurally because a prefix that has drifted from its
+  type is worse than no prefix: it is a label a reader will trust.
+- A `procedure` element requires `order`, `precondition`, and `on_fail`. The ordering is the whole
+  reason procedures are a class of their own — unordered heuristics give a host agent no way to know
+  what runs first, so it applies them simultaneously and the guard, whose entire value is firing
+  before everything else, never fires at all.
+- A `verdict` element requires `object`, `judgment`, and `corpus_hits`.
+- A `cost_refusal` element requires `convenient_move`, since the divergence between the convenient
+  response and the attested one *is* the signal. It is optional for `interactional`, where a move
+  can be characteristic without a convenient counterpart to diverge from.
 - A `core` decision requires a `rank`, because core entries are ordered by class priority before
   composite and the ordering has to be recoverable.
 - `scores.json` requires **`core_budget`** with its supply term, ceiling row, clamp result, and the
   class counts that produced it. The core's size is computed per run rather than fixed, so an
-  unlogged size is an unreproducible one; the ceiling is enumerated to `4000 | 5500 | 6500` so a
+  unlogged size is an unreproducible one; the ceiling is enumerated to `4000 | 6000 | 7500` so a
   budget cannot quietly exceed what the corpus supports.
+- `scores.json` requires **`tokenizer`**. Every budget in the file is denominated in tokens, and a
+  budget without its tokenizer is a number without a unit — the same package measures roughly twice
+  as large in Chinese as in English under the same counter. `coefficients_source` is the companion
+  fact: coefficients calibrated on a small number of corpora make two runs incomparable if one
+  silently used a different set.
+- Each `cluster_budgets` entry carries a **`verdict`** — `OK | FLOOR | RECUT | SPLIT_IN_MODULE` —
+  rather than the bare `recut_flagged` boolean of 2.x, which could only say that a cluster was
+  overloaded and not what to do about it. The distinction matters in one direction only: an
+  overloaded cluster spanning two topic domains was mis-segmented and goes back to Stage 1, while an
+  overloaded cluster in one domain carried in two registers must *not* be re-cut, because that
+  separates a subject from itself. `recut_flagged` is retained, deprecated, so 2.x logs still
+  validate.
 - `scores.json` also carries **`cluster_budgets`** — one entry per cluster *considered* for a
   `clusters/*.md` module, including any the 1,800 floor rejected. Recording the rejections is the
   point: it turns "this cluster did not earn a module" into an auditable decision rather than an
   omission. Each entry keeps its input counts and an optional realised size, which is the only data
   a future recalibration of the formula's coefficients has to work from.
+- `fidelity.json` requires **`content_hash`** and **`stale`**. Curation is a loop, and a result whose
+  package has changed underneath it is stale whether or not anyone marked it — the hash makes that
+  mechanically checkable rather than a matter of memory.
 - All probe scores and composites are bounded to 0–1.
 
-Two rules are deliberately **not** encoded, because valid records violate them:
+Some rules are deliberately **not** encoded, because valid records violate them:
 
 - The **0.55 deletion threshold** — cut entries legitimately score below it, and entries above it
   are still cut when they read generic or conflict with a higher-scoring voice feature.
@@ -85,3 +119,9 @@ Optional, and no dependency is added to this repo:
 pip install check-jsonschema
 check-jsonschema --schemafile references/schemas/scores.schema.json path/to/scores.json
 ```
+
+The scripts that produce these artifacts write shapes that validate as-is:
+`register_discover.py --json` against `registers.schema.json`, and `cluster_budget.py --json`
+against the `cluster_budgets` item shape in `scores.schema.json`. If one of them stops validating,
+the script and the schema have diverged — fix the pair, and do not paste output that does not
+validate into a log that claims to.

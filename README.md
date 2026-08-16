@@ -14,16 +14,26 @@ Most voice-cloning prompts reach for what is easy to count — sentence length, 
 
 | Signal | Why it individuates |
 |---|---|
+| **Ordered procedures** | What they do *first* with a problem, and what they do when that fails |
 | **Cost-bearing refusals** | Positions the person held *against* their own incentive |
+| **Standing verdicts** | The judgments they reach repeatedly, by name, about specific objects |
 | **Patterns of variation** | How their register shifts under pressure, audience, or stakes |
 | **Interactional moves** | How they concede, reframe, dig in, or shift footing in exchange |
 | **Projectible regularities** | Thought-moves that actually predict stance on held-out material |
 
-Two design commitments follow from that:
+Three design commitments follow from that:
 
 1. **Recognition is a family resemblance.** Identity shows up redundantly, at different grains, through overlapping probes. The skill does *not* partition a person into tidy mutually-exclusive buckets, and does *not* dedupe a trait away just because it surfaced in three passes. Redundant corroboration across probes is strength.
 
 2. **Delete without mercy.** A tight ~4k-token core that nails the fingerprints beats a comprehensive 15k-token one that reads like everyone. Anything scoring below threshold, reading as generic, or conflicting with a higher-scoring voice feature gets cut — not softened, not averaged in.
+
+3. **One person is not automatically one voice.** A body of work written across a career, or across
+   genres, or for different audiences, often contains two or three sharply distinct registers.
+   Pooling them produces a baseline that describes nobody — a mean sentence length halfway between
+   two habits the person never had — and every later measurement quietly inherits that fiction. So
+   the register structure is *discovered first*, before any feature is measured, and a blind
+   separation test has to confirm the families can actually be told apart before the persona is
+   allowed to promise them.
 
 Spending the budget elsewhere is not the same as throwing style away. Measured expression that survives the deletion rule but loses the competition for core space is *relocated*, not discarded: it goes to `references/voice.md`, a standing module the host loads before writing sustained prose in the voice. The core stays a fingerprint; the voice stays complete.
 
@@ -61,7 +71,8 @@ cd persona-distiller && zip -r persona-distiller.zip SKILL.md references scripts
 
 ### Requirements
 
-Python 3.8+ for the two helper scripts. **No third-party dependencies** — both are standard library only.
+Python 3.8+ for the helper scripts. **No third-party dependencies** — every one of them is standard
+library only, and none of them touches the network.
 
 ---
 
@@ -133,7 +144,22 @@ Five stages, run in order — with a **loop**, not a straight line, at its centr
 
 **Stage 1 — Ingest & segment.** Extract text with structure preserved (headings, speaker turns, timestamps). Segment into coherent clusters and build a coverage map: domains, dialogue-vs-monologue ratio, decision density, temporal spread.
 
-**Stage 2 — Multi-granularity extraction.** Three passes: fine-grained expression (measured by `style_metrics.py`, not guessed), coarse-grained projectible regularities, and the interactional / cost-bearing pass. Every point where the *convenient* response diverges from the person's *attested* response gets flagged. Those flags are gold.
+**Stage 2 — Multi-granularity extraction.** A discovery pass first: **Pass A0** measures every
+cluster on one feature vector, clusters the clusters, and lets the corpus say how many voices it
+contains, writing `registers.json`. Then three measurement passes — fine-grained expression
+(measured by `style_metrics.py` **per register family**, then pooled, never the other way round),
+coarse-grained projectible regularities, and the interactional / cost-bearing pass. Every point where
+the *convenient* response diverges from the person's *attested* response gets flagged. Those flags
+are gold.
+
+Elements are typed into eight classes, and their ids carry the class — `PROC CR VD PR IM MOD PP`.
+Two of the eight are new in 3.0 and were previously buried inside "regularity": **`procedure`**, an
+*ordered* method step that must declare its `order`, `precondition`, and `on_fail`, because an
+unordered pile of heuristics gives a host agent no way to know what runs first — so it applies them
+simultaneously and the guard whose whole value was firing first never fires; and **`verdict`**, a
+standing judgment about a named object, which must name the `object`, the `judgment`, and its
+`corpus_hits`, and which needs two independent clusters so that a judgment made once in an aside
+stays an aside.
 
 **Stage 3 — Multi-probe curation & deletion.** Every element scored 0–1 on a weighted composite:
 
@@ -147,11 +173,40 @@ Five stages, run in order — with a **loop**, not a straight line, at its centr
 
 Hard deletion rule below 0.55 composite. Hard elevation rule ranks survivors by *class priority first* — because style metrics are abundant and cost-refusals are sparse, raw ranking would let volume crowd the fingerprints out. Pure style averages may fill at most ~20% of the core.
 
-**Gate before Stage 4.** Assembly is downstream of passing two gates: a **projection gate** (held-out prediction) and a **cost gate** (every high-signal divergence accounted for). Gate results are *control signals*, not reports — failing one sends you back to re-curate, never forward to the template.
+**Gate before Stage 4.** Assembly is downstream of passing a **projection gate** (held-out
+prediction), a **cost gate** (every high-signal divergence accounted for), and — whenever the corpus
+carries more than one register family — a **discrimination gate** (the families can be told apart
+blind). Gate results are *control signals*, not reports — failing one sends you back to re-curate,
+never forward to the template. Through 2.x the discrimination test ran "if the core claims
+registers", which put the gate downstream of the distiller's own judgment: it fired only when someone
+had already noticed the very thing it exists to detect. Now the corpus decides, and results carry the
+`content_hash` of the package they were computed against, so a score invalidated by a later merge is
+mechanically identifiable as stale rather than a matter of anyone's memory.
 
-**Stage 4 — Assemble.** Core `SKILL.md` plus the `references/` package, following a fixed template, obeying the no-meta rule absolutely. Module sizes are computed here too, by `scripts/cluster_budget.py`, and the reasoning is worth stating because a flat band is the obvious thing to write and the wrong thing to write. What a cluster module has to deliver is a working part of someone's thinking, so its terms are the things that constitute one — the apparatus the cluster uses, the moves it makes, the applications it commits to, the fragments kept as evidence — and each is capped, because the fifth instance of a move documents what the first three already established and the twelfth only confirms that the person had a habit. One term is not about the cluster in isolation at all: the more sibling modules a package carries, the more each one must spend marking off what it is *not*, so the fencing cost rises with sibling count and the package gets more expensive per module precisely as it gets better. Corpus mass enters last, under a square root, deliberately damped, because it is the strongest available proxy for the wrong quantity — across the calibration set module length correlated +0.82 with retained fragments and +0.70 with the cluster's own constructs, but only +0.30 with word count, so a rule leaning on mass would size a module by how much the person published rather than by how much of them is in it. The coefficients were not picked in advance either; they were recovered by fitting modules already written by hand and already judged faithful, which is the only calibration target available when the quantity you are trying to predict is "enough to carry the person". Floor and ceiling are then applied to that estimate rather than built into it, because how much material a cluster holds and how much a host will load are unrelated facts, and folding them into one expression lets each hide the other. Keeping them apart is what makes both limits informative: a supply under the floor is not a small module but a failed one — fold the cluster into a sibling, or demote it to `episodic.md` — and a cluster that saturates the input caps is carrying two registers and goes back to `segment.py`, since buying the space back by deleting evidence would fix the number and lose the person. Calibration: ten modules against one 630k-word corpus, mean error 3.8%, max 6.0% — structure settled, coefficients provisional.
+**Stage 4 — Assemble.** Core `SKILL.md` plus the `references/` package, following a fixed template, obeying the no-meta rule absolutely. Module sizes are computed here too, by `scripts/cluster_budget.py`, and the reasoning is worth stating because a flat band is the obvious thing to write and the wrong thing to write. What a cluster module has to deliver is a working part of someone's thinking, so its terms are the things that constitute one — the apparatus the cluster uses, the moves it makes, the applications it commits to, the fragments kept as evidence — and each is capped, because the fifth instance of a move documents what the first three already established and the twelfth only confirms that the person had a habit. One term is not about the cluster in isolation at all: the more sibling modules a package carries, the more each one must spend marking off what it is *not*, so the fencing cost rises with sibling count and the package gets more expensive per module precisely as it gets better. Corpus mass enters last, under a square root, deliberately damped, because it is the strongest available proxy for the wrong quantity — across the calibration set module length correlated +0.82 with retained fragments and +0.70 with the cluster's own constructs, but only +0.30 with word count, so a rule leaning on mass would size a module by how much the person published rather than by how much of them is in it. The coefficients were not picked in advance either; they were recovered by fitting modules already written by hand and already judged faithful, which is the only calibration target available when the quantity you are trying to predict is "enough to carry the person". Floor and ceiling are then applied to that estimate rather than built into it, because how much material a cluster holds and how much a host will load are unrelated facts, and folding them into one expression lets each hide the other. Keeping them apart is what makes both limits informative: a supply under the floor is not a small module but a failed one — fold the cluster into a sibling, or demote it to `episodic.md` — and a cluster that saturates the input caps is carrying two registers and goes back to `segment.py`, since buying the space back by deleting evidence would fix the number and lose the person.
 
-**Stage 5 — Final fidelity verification.** Projection re-check, cost/presence assertion, and style-match test. The hard minimum: *if the corpus contains any high-signal cost-bearing refusal, the core must contain at least one.* Failing this blocks delivery — it is the most common way a core ends up articulate but generic.
+One refinement in 3.0 turns out to matter more than its size suggests. Saturating the input caps has
+two opposite remedies, and 2.x had a single boolean for both, so it gave the wrong answer roughly half
+the time. If the overloaded cluster spans **two topic domains**, it was mis-segmented and belongs back
+at `segment.py` — that is the **RECUT** case. But if it sits in **one domain** and is overloaded
+because the material arrives in two registers, re-cutting would separate a subject from itself; the
+answer is **SPLIT_IN_MODULE** — keep one module, declare an internal A/B register split with a
+no-pooling header, and give separate style guidance for each. The variable the decision turns on is
+whether the topic is shared, which is checkable against the application count rather than by
+impression. Calibration: ten modules against one 630k-word corpus, mean error 3.8%, max 6.0% —
+structure settled, coefficients provisional, and `--coefficients` exists so a future recalibration
+does not require editing the script.
+
+**Stage 5 — Final fidelity verification.** Projection re-check, cost/presence assertion, style-match
+test, blind discrimination test, and three mechanical checks: `validate_package.py` (no ledger
+material inside a runtime reference, no load-list pointing at a module nobody wrote, no near-empty
+file that fails to say why, no implementation language in the core's description), `name_audit.py`
+(every name the package uses is attested *literally* in the corpus, and an editor's heading does not
+count as attestation), and `token_count.py` (realised size against budget, under a declared
+estimator). The hard minimum: *if the corpus contains any high-signal cost-bearing refusal, the
+core must contain at least one.* Failing this blocks delivery — it is the most common way a core ends
+up articulate but generic. The mechanical checks exist for the one defect class careful reading
+cannot catch: the section that is simply not there, because there is nothing on the page to notice.
 
 ---
 
@@ -159,8 +214,8 @@ Hard deletion rule below 0.55 composite. Hard elevation rule ranks survivors by 
 
 A directory named `<slug>-perspective` containing:
 
-- **`SKILL.md`** — the core embodiment artifact, front-loaded (compaction truncates from the end, so the highest-value fingerprints come first). Its size is **computed, not fixed**: a supply term over the diagnostic elements that survived curation — cost-bearing refusals, projectible regularities, interactional moves, modulation patterns; preoccupations and style contribute nothing — clamped between a **3,000-token floor** and a corpus-derived ceiling of 4,000 (thin or mostly-secondhand), 5,500 (mid), or 6,500 (large, multi-period). Typical cores land at 3,000–5,500.
-- **`references/`** — modular, **host-agent-facing** files sized for on-demand loading; loaded at runtime, so this package never contains provenance, scores, fidelity results, or episodic material. Two are **standing, cross-corpus modules of equal status** — `frameworks.md`, what the person thinks with, and `voice.md`, how the person sounds. The rest is per-source: one module per high-value source cluster. Sizes: cluster modules are **computed per cluster** by `scripts/cluster_budget.py` from the constructs, moves and evidence routed to each one, the number of sibling modules it must fence itself off from, and a damped corpus-mass term (floor 1,800, hard ceiling 6,000; typically 2,000–4,500). A cluster below the floor is folded into a sibling or demoted to `fidelity-ledger/episodic.md` rather than written thin, and a cluster that saturates the input caps is re-cut at Stage 1 rather than trimmed. `frameworks.md` / `voice.md` soft ~4,000.
+- **`SKILL.md`** — the core embodiment artifact, front-loaded (compaction truncates from the end, so the highest-value fingerprints come first). Its size is **computed, not fixed**: a supply term over the diagnostic elements that survived curation — cost-bearing refusals, projectible regularities, interactional moves, modulation patterns; preoccupations and style contribute nothing — clamped between a **3,000-token floor** and a corpus-derived ceiling of 4,000 (thin or mostly-secondhand), 6,000 (mid), or 7,500 (large, multi-period). Typical cores land at 3,000–6,000. Procedures and standing verdicts are priced highest in the supply term, because they are the classes a host agent can actually *execute*; the 2.x ceilings predated both, so a corpus rich in them saturated a supply it had no room to spend. Every figure here is in `token_count.py` tokens, and the tokenizer is a required field in the log — a budget without its unit means two different sizes in two runs, since the same package measures roughly twice as large in Chinese as in English under a word-based count.
+- **`references/`** — modular, **host-agent-facing** files sized for on-demand loading; loaded at runtime, so this package never contains provenance, scores, fidelity results, or episodic material. Two are **standing, cross-corpus modules of equal status** — `frameworks.md`, what the person thinks with, and `voice.md`, how the person sounds. Both are **layered templates asked of every subject**: `frameworks.md` runs §0–§7 and `voice.md` runs §0–§11, and a section the corpus cannot fill is marked absent rather than dropped, because an absence a reader can see is information and a missing heading is not. The ordering inside `frameworks.md` is the substantive claim — **method** and **epistemology** come before **ontology** and **standing verdicts**, because a persona handed only conclusions can restate them and cannot extend them. `voice.md` opens with the register structure for the same reason: a host agent has to choose a family before writing a sentence, rather than discovering afterwards that it wrote in the average of two. The rest is per-source: one module per high-value source cluster. Sizes: cluster modules are **computed per cluster** by `scripts/cluster_budget.py` from the constructs, moves and evidence routed to each one, the number of sibling modules it must fence itself off from, and a damped corpus-mass term (floor 1,800, hard ceiling 6,000; typically 2,000–4,500). A cluster below the floor is folded into a sibling or demoted to `fidelity-ledger/episodic.md` rather than written thin, and a cluster that saturates the input caps is either re-cut at Stage 1 or split internally by register, never trimmed. `frameworks.md` and `voice.md` are **computed too** as of 3.0 — from the constructs, verdicts, moves and register families actually routed to them, clamped to 2,000–7,000 — rather than a flat ~4,000 that a rich corpus quietly outgrew.
 - **`references/voice.md`** — the measured expressive system, and the reason the core's 20% style cap is safe. A fingerprint-sized "How I sound" is enough to *frame* an answer in someone's voice; it is not enough to *write* one at length. So the rest of the system lives here: favored constructions with attested fragments, the **avoid-list** (the words and openings conspicuously missing from the corpus — as diagnostic as the favored ones, and previously homeless), modulation rules as trigger → shift pairs, register range across settings and periods, lexical fingerprint, the `style_metrics.py` baseline the fidelity test measures against, and anti-drift pairs for long generations. Built from firsthand clusters only. The host loads it before any sustained prose in the voice.
 - **`fidelity-ledger/`** — **human-facing**, and never loaded by the host agent: `provenance.md`, the audit trail mapping each core element to its source, the computed budgets (core and cluster), and the gate/final fidelity results; and `episodic.md`, concrete attested one-off material — specific incidents, anecdotes, decision-record fragments — that did not clear a cluster module's own floor (soft ~4,000). Uncapped otherwise, because an audit package's completeness matters more than its size. It sits outside `references/` on purpose, so it is structurally impossible for the host agent to pull it into the embodiment context.
 
@@ -178,28 +233,35 @@ Output quality is strictly bounded by corpus coverage, diversity, and signal den
 ├── references/
 │   ├── acquisition.md              # before Stage 1: fetching remote corpora, attribution rules
 │   ├── pipeline.md                 # Stage 1 mechanics, extraction routing, coverage map schema
-│   ├── extraction.md               # Stage 2 taxonomy and cost-bearing catalogue
-│   ├── scoring.md                  # Stage 3 probes, worked examples, audit-log format
-│   ├── output-template.md          # Stage 4 core template, voice.md spec, package layout
-│   ├── fidelity-tests.md           # Stage 5 procedures, thresholds, reporting
+│   ├── extraction.md               # Stage 2 — Pass A0, the eight classes, cost-bearing catalogue
+│   ├── scoring.md                  # Stage 3 probes, the budget formulas, audit-log format
+│   ├── output-template.md          # Stage 4 core template, frameworks/voice specs, layout
+│   ├── fidelity-tests.md           # Stage 5 procedures, thresholds, re-test obligation
 │   └── schemas/                    # JSON Schema for every intermediate artifact
 │       ├── clusters-manifest.schema.json
 │       ├── coverage-map.schema.json
+│       ├── registers.schema.json
 │       ├── extractions.schema.json
 │       ├── scores.schema.json
 │       ├── fidelity.schema.json
 │       └── passages.schema.json
-├── scripts/                        # all stdlib-only, no install step
+├── scripts/                        # all stdlib-only, no install step, no network
 │   ├── corpus_clean.py             # Stage 1 — extraction-damage census and repair
 │   ├── segment.py                  # Stage 1 — cut clusters, write a schema-valid manifest
+│   ├── register_discover.py        # Stage 2 Pass A0 — how many voices does this corpus have?
 │   ├── style_metrics.py            # Stage 2 — countable expression features
 │   ├── zh_metrics.py               # Stage 2 — the same, for Chinese corpora
 │   ├── kwic.py                     # Stage 2 — keyword-in-context evidence retrieval
-│   ├── holdout_split.py            # Stage 5 — reproducible seeded keep/masked split
-│   └── discrimination_test.py      # Stage 5 — blind register-separation gate (conditional)
+│   ├── cluster_budget.py           # Stage 4 — per-module size, with an actionable verdict
+│   ├── token_count.py              # Stage 3 / 5 — one tokenizer for every budget
+│   ├── holdout_split.py            # Stage 5 — seeded keep/masked split, optionally stratified
+│   ├── discrimination_test.py      # Stage 5 — blind register-separation gate
+│   ├── validate_package.py         # Stage 5 — structural check of the produced package
+│   └── name_audit.py               # Stage 5 — named-construct consistency across the package
 ├── .gitignore
 ├── CHANGELOG.md
 ├── LICENSE
+├── MIGRATION.md
 ├── NOTICE.md
 └── README.md
 ```
@@ -213,7 +275,8 @@ generated layout.
 ### Host requirements
 
 The skill is written to run under **any** agent host, not a particular one. It needs a filesystem it
-can write to and Python 3 for the scripts; all three are standard-library-only, with no install step.
+can write to and Python 3 for the scripts; every one of them is standard-library-only, with no install
+step and no network access.
 
 Three locations are host-dependent and resolved once at the start of a run: where the corpus is read
 from, where the work directory is created (default `persona_work/`), and where the finished persona
@@ -237,7 +300,13 @@ python scripts/corpus_clean.py raw/ --fix --out clean/
 # Boundaries may be line numbers or regexes; prefer regexes, which survive re-extraction.
 python scripts/segment.py spec.json --out persona_work/ --dry-run
 
-# Measure expression features across a corpus (or a single file)
+# Stage 2, Pass A0 — how many voices does this corpus actually contain?
+# Run this BEFORE any style measurement. A pooled baseline over two registers is
+# an average of two people that reads like an ordinary set of numbers.
+python scripts/register_discover.py clusters/ --json registers.json
+
+# Measure expression features across a corpus (or a single file).
+# In a multi-register corpus, run it per family first and pool second.
 python scripts/style_metrics.py path/to/corpus/
 
 # For a Chinese corpus — same feature classes, measured in 汉字.
@@ -247,6 +316,10 @@ python scripts/zh_metrics.py path/to/corpus/ --per-file --terms 秩序,封建,�
 # Produce a reproducible seeded split for the held-out projection test.
 # Takes a JSON list of passage IDs — {"passages": ["p001", ...]} or a bare array — not a corpus path.
 python scripts/holdout_split.py passages.json --seed 42 --frac 0.12 --out split.json
+
+# …or, better, with domain labels, so the mask reaches every domain rather than
+# landing almost entirely in the largest one.
+python scripts/holdout_split.py passages.json --stratify --seed 42 --frac 0.12
 
 # …or pass the IDs inline
 python scripts/holdout_split.py --ids p001 p002 p003 p004 --seed 42
@@ -261,6 +334,26 @@ python scripts/kwic.py clusters/ "single individual" --count
 # Two steps, because the answers must be written before the key is seen.
 python scripts/discrimination_test.py sample clusters/ --seed 42 --mask-names --key key.json
 python scripts/discrimination_test.py score key.json --answers c09 c05 c02 c06
+
+# Stage 4 — size one module, or a whole package from a spec file.
+# --shared-domain is what separates "re-cut this cluster" from "split it internally".
+python scripts/cluster_budget.py --example > budget_spec.json
+python scripts/cluster_budget.py budget_spec.json --json cluster_budgets.json
+python scripts/cluster_budget.py --emit-coefficients   # the active calibration constants
+
+# Stage 3 / 5 — count tokens under one declared estimator, so every budget in the
+# run shares a unit. Record the realised size against the budget: that comparison is
+# the only calibration data the coefficients ever get.
+python scripts/token_count.py my-perspective/ --per-file --json tokens.json
+
+# Stage 5 — structural check of the produced package. Catches what reading cannot:
+# ledger material inside references/, a dead cluster load-list, a missing section.
+python scripts/validate_package.py my-perspective/ --json validation.json
+python scripts/validate_package.py my-perspective/ --headings core_headings.txt --strict
+
+# Stage 5 — back-check every name the package uses against literal corpus hits,
+# separating heading-like appearances from ordinary prose.
+python scripts/name_audit.py --package my-perspective/ --corpus clean/ --json audit.json
 ```
 
 `style_metrics.py` reports sentence-length distribution, hedge and booster rates, punctuation rhythm, lexical diversity, person-reference ratios, and top content terms and bigrams.
@@ -280,16 +373,46 @@ about is a tooling failure until proven otherwise.
 `discrimination_test.py` answers a question the other three fidelity checks structurally cannot.
 They ask whether generated prose reads like the person; this asks whether the person's *registers
 can be told apart* — and a passage can match the aggregate baseline perfectly while being
-indistinguishable from every other register the core promises. Below 0.70, collapse the registers
-into one honest voice rather than shipping a distinction the persona cannot perform.
+indistinguishable from every other register the core promises. Below 0.70, collapse the families
+into one honest voice rather than shipping a distinction the persona cannot perform. As of 3.0 it is
+**mandatory whenever the corpus has more than one register family**, and re-triggered by any cluster
+merge — a merge being precisely the operation that can pool two registers into one module without
+anyone deciding to.
+
+`register_discover.py` is the pass that makes that gate meaningful, and the division of labour between
+the two is deliberate: **discovery proposes, discrimination disposes.** When they disagree, reduce the
+number of families rather than re-running discovery at a looser threshold until the numbers come out
+as hoped. The script measures only — naming the families, nominating a default, ordering any
+within-family gradient, and flagging boundaries that cut across clusters are readings, not
+measurements, and `registers.json` is unfinished until they are filled in by hand.
+
+`validate_package.py` and `name_audit.py` exist for the two defect classes that survive careful
+reading.
+
+The first is structural, and it is invisible because there is nothing on the page to notice: ledger
+material sitting inside a runtime reference, a load-list in the core pointing at a cluster module that
+was never written, an `episodic.md` that is empty without saying why, implementation language leaking
+into the core's own description. `validate_package.py` checks that mechanical subset and leaves the
+judgment calls as warnings rather than pretending they are solved. Its `--headings` flag is deliberately
+unopinionated: a core may be written in the subject's own language, so the checker will not impose
+English headings unless you hand it the anchors to require.
+
+The second is a naming failure with a specific mechanism. A neat diagnostic label can be invented
+during distillation, or inherited from an editor's chapter heading, and then quietly acquire the
+authority of the person's own coinage — at which point the persona is confidently using a term its
+subject never used. `name_audit.py` looks for each package name **literally in the corpus**, separates
+heading-like appearances from ordinary prose (an editor's heading is not attestation), and makes thin
+support impossible to overlook. Without `--names` it harvests candidates from the package's own bold
+runs, quoted runs, title marks and headings, so it audits what you actually wrote rather than what you
+remember writing.
 
 `zh_metrics.py` reports the same classes for Chinese text — sentence length in 汉字, Chinese hedge and booster rates, punctuation rhythm (including 《》 and the interpunct that marks transliterated names), person-reference ratios, a character-n-gram fingerprint, and a discourse-scaffolding absence check that feeds the avoid-list in `voice.md`. `style_metrics.py` tokenises on `[A-Za-z]`, so on a CJK corpus it returns zeros for every feature that matters; reach for this one instead.
 
 ### Artifact schemas
 
-The pipeline writes five intermediate JSON artifacts to its work directory (default `persona_work/`) — `clusters/manifest.json`, `coverage_map.json`, `extractions.json`, `scores.json`, `fidelity.json` — plus the `passages.json` that `holdout_split.py` reads. These are **runtime outputs for a specific corpus, not files this repository ships**. There is no universal `extractions.json`; it is the extraction of one particular person's material. They are kept for the whole run rather than cleaned up between stages, because the gates can send curation backwards and because the audit log and coverage report are built from them. `.gitignore` keeps them out of version control.
+The pipeline writes six intermediate JSON artifacts to its work directory (default `persona_work/`) — `clusters/manifest.json`, `coverage_map.json`, `registers.json`, `extractions.json`, `scores.json`, `fidelity.json` — plus the `passages.json` that `holdout_split.py` reads. These are **runtime outputs for a specific corpus, not files this repository ships**. There is no universal `extractions.json`; it is the extraction of one particular person's material. They are kept for the whole run rather than cleaned up between stages, because the gates can send curation backwards and because the audit log and coverage report are built from them. `.gitignore` keeps them out of version control.
 
-What the repository does ship is their shape: [`references/schemas/`](references/schemas/) holds a JSON Schema (draft 2020-12) for each, with worked examples. The snippets embedded in the prose references are illustrative and some carry `//` comments, so they will not parse if copied verbatim — the schemas are the authoritative, validatable version. A few of the skill's hard rules are encoded structurally there too (the ≥2-cluster corroboration rule, the required `convenient_move` on cost-refusal elements, 0–1 score bounds). See [`references/schemas/README.md`](references/schemas/README.md) for the index and what is deliberately left unencoded.
+What the repository does ship is their shape: [`references/schemas/`](references/schemas/) holds a JSON Schema (draft 2020-12) for each, with worked examples. The snippets embedded in the prose references are illustrative and some carry `//` comments, so they will not parse if copied verbatim — the schemas are the authoritative, validatable version. A few of the skill's hard rules are encoded structurally there too (the ≥2-cluster corroboration rule, the required `convenient_move` on cost-refusal elements, the class-prefix/`type` agreement on element ids, the `order`/`precondition`/`on_fail` triple on procedures, 0–1 score bounds). Two of the scripts write shapes that validate as-is — `register_discover.py` against `registers.schema.json`, `cluster_budget.py` against the `cluster_budgets` item shape — so a validation failure there means the script and the schema have diverged and the pair needs fixing. See [`references/schemas/README.md`](references/schemas/README.md) for the index and what is deliberately left unencoded.
 
 ---
 
@@ -306,6 +429,17 @@ Distilling a living person's voice carries obvious dual-use weight. Use the cove
 ## Contributing
 
 Issues and pull requests welcome. The parts that carry the real value are Stage 3 (scoring, elevation, deletion) and the fidelity tests — improvements there are worth more than broader extraction coverage.
+
+One convention worth knowing before writing docs here. The specification files use **fictional or
+schematic examples only** — never a real distilled package, and never a real subject's material as an
+illustration. A concrete example teaches the example: a reader shown how one particular corpus was
+handled starts matching their own corpus against that shape instead of against the rule, and the
+specification quietly narrows to the case it was demonstrated on. The rules have to stand on their own
+logic, universally, for any subject; if a rule can only be explained by pointing at a package that
+already exists, it is not yet a rule.
+
+Upgrading from 2.x? See [MIGRATION.md](MIGRATION.md) — 3.0 changes artifact shapes and adds required
+fields, so existing logs need a pass.
 
 ---
 
