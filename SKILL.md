@@ -103,7 +103,7 @@ resolved paths throughout.
 |---|---|
 | **Corpus in** | Whatever the user points you at — and it may be **remote**, not a local path. Some hosts stage uploads in a fixed directory (on claude.ai, `/mnt/user-data/uploads/`); others expect a path or a working-tree location. If unstated, ask. Network access and `git` are host capabilities: **check them, never assume them**, and if either is missing say so and ask for the material locally (`references/acquisition.md`). |
 | **Work dir** | Create one. Default to `persona_work/` under the current working directory. Prefer a host-provided scratch or temp location when one exists. Create it before Stage 1 — nothing later works without it. |
-| **Persona out** | Wherever the host delivers artifacts to the user (on claude.ai, `/mnt/user-data/outputs/`); otherwise the current working directory, unless the user says otherwise. |
+| **Persona out** | Wherever the host delivers artifacts to the user (on claude.ai, `/mnt/user-data/outputs/`); otherwise the current working directory, unless the user says otherwise. The delivered project is `<slug>-perspective/`; its runnable skill root is `<slug>-perspective/.agents/skills/<slug>-perspective/`. |
 
 Two further portability rules:
 
@@ -256,9 +256,11 @@ stale style-match result may ship if the coverage report says so; a stale projec
 not. → `references/fidelity-tests.md`.
 
 ### Stage 4 — Assemble core + package references + Fidelity Ledger
-Write three things: the core `SKILL.md` (embodiment artifact), the `references/` package (depth,
-loaded by the host agent), and the `fidelity-ledger/` package (the human-facing audit trail —
-provenance, budgets, gate and test results). The core follows a fixed template and obeys the
+Create one self-contained project at `<persona-out>/<slug>-perspective/`. Write the runtime core to
+`.agents/skills/<slug>-perspective>/SKILL.md`, its host-facing depth modules to
+`.agents/skills/<slug>-perspective>/references/`, and the human-facing audit trail to the
+project-level `fidelity-ledger/` (provenance, budgets, gate and test results). The inner skill
+directory must exactly match the core frontmatter `name:`. The core follows a fixed template and obeys the
 no-meta rule absolutely. Concrete, attested episodes and decision-record fragments that did not
 make a cluster module live in `fidelity-ledger/episodic.md` — attested but not reasoning material,
 so it sits with the audit trail rather than the host-agent-facing package, and the host agent never
@@ -267,10 +269,11 @@ loads it. Provenance, scoring, fidelity records, and episodic material are never
 
 The core's "Loading depth (host-agent note)" block must also carry the mandatory fourth line: a
 real-world-retrieval instruction, stated as host-agent operational guidance rather than persona
-voice, distinguishing the two retrieval axes a produced skill actually has. `references/` and
-`fidelity-ledger/` answer questions about **the person's own analytical apparatus** — their
-frameworks, moves, and voice — by searching *this repository's own files*; that is the corpus's
-SOURCE OF TRUTH, and it is closed to the outside world by design. It is a categorically different
+voice, distinguishing the two retrieval axes a produced skill actually has. `references/` answers
+questions about **the person's own analytical apparatus** — their frameworks, moves, and voice —
+by searching the runtime skill's own files; that is the corpus's SOURCE OF TRUTH, and it is closed
+to the outside world by design. The project-level `fidelity-ledger/` is for human audit and is never
+runtime context. It is a categorically different
 question whether some **real-world fact the answer depends on** — an exact quotation, a current
 event, the present text of a law, a detail of the user's own situation, anything the corpus
 postdates or never covered — is true, and the corpus is not evidence about that; the host agent
@@ -353,7 +356,7 @@ The module formula, its counting rules, the standing-module budgets, and calibra
   perfectly while being indistinguishable from every other register the core promises. Below 0.70,
   collapse the families into one honest voice rather than shipping a distinction the persona cannot
   perform.
-- **Mechanical package validation** — run `scripts/validate_package.py` over the produced directory.
+- **Mechanical package validation** — run `scripts/validate_package.py` over the outer produced project directory.
   It checks what a reader will not: ledger material sitting inside a runtime reference, a load-list
   in the core pointing at a cluster module nobody wrote, an `episodic.md` that is empty without
   saying why, implementation language leaking into the core's own description. Judgment calls come
@@ -387,11 +390,30 @@ improvement — never paper over it. → Procedures, thresholds, and reporting:
 
 ## Output
 
-A directory containing:
-- **`SKILL.md`** — the core embodiment artifact, sized to the **computed budget** (typically
+A directly usable local Agent Skill project:
+
+```text
+<slug>-perspective/
+├── .agents/
+│   └── skills/
+│       └── <slug>-perspective/
+│           ├── SKILL.md
+│           └── references/
+│               ├── clusters/
+│               ├── frameworks.md
+│               └── voice.md
+└── fidelity-ledger/
+    ├── provenance.md
+    └── episodic.md
+```
+
+Opening the outer directory as a project makes the persona discoverable without copying or
+installing it. The inner skill-directory name must match `SKILL.md` frontmatter `name:` exactly.
+
+- **`.agents/skills/<slug>-perspective>/SKILL.md`** — the core embodiment artifact, sized to the **computed budget** (typically
   3,000–6,000 tokens; floor 3,000, ceiling 4,000 / 6,000 / 7,500 by corpus), front-loaded (compaction
   truncates from the end, so highest-value fingerprints come first).
-- **`references/`** — modular files sized for on-demand loading, **all host-agent-facing** (this is
+- **`.agents/skills/<slug>-perspective>/references/`** — modular files sized for on-demand loading, **all host-agent-facing** (this is
   what the persona loads at runtime; it never contains provenance, scores, fidelity results, or
   episodic material). Two are **standing, cross-corpus modules of equal status**: `frameworks.md`
   (§0–§7: how to use the file, method, epistemology, ontology, standing verdicts, argumentative
@@ -404,7 +426,7 @@ A directory containing:
   sibling or demoted to `fidelity-ledger/episodic.md` rather than written thin); `frameworks.md` and
   `voice.md` are **also computed** rather than a flat ~4,000, from the constructs, verdicts, moves
   and register families actually routed to them, clamped to 2,000–7,000.
-- **`fidelity-ledger/`** — **human-facing**, never loaded by the host agent: `provenance.md`
+- **`fidelity-ledger/`** — **human-facing and outside `.agents/`**, never loaded by the host agent: `provenance.md`
   mapping each core element to its source, the computed budgets, and the gate/final fidelity
   results; and `episodic.md`, concrete attested one-off material — specific incidents, anecdotes,
   decision-record fragments — that did not clear a cluster module's floor. Both are attested but not
@@ -539,7 +561,8 @@ patterns (lean front-loaded core, on-demand reference files, tight token budgets
   roughly half. `--calibrate` adjusts the per-character and per-word rates against a real tokenizer
   if you have one. Run it on the finished package and record realised size against budget — that
   comparison is the only calibration data the coefficients ever get.
-- `scripts/validate_package.py` — **Stage 5.** Mechanical check of the produced directory: ledger
+- `scripts/validate_package.py` — **Stage 5.** Mechanical check of the produced project, including
+  the `.agents/skills/<name>/SKILL.md` discovery layout: ledger
   material inside a runtime reference, a core load-list pointing at a module nobody wrote, a
   near-empty file that does not say why, implementation language in the core's description. Reports
   judgment calls as warnings instead of pretending they are settled; `--strict` promotes them.

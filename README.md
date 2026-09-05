@@ -2,7 +2,7 @@
 
 **Turn one person's public record into a persona another agent can *embody*.**
 
-`persona-distiller` is an [Agent Skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) that takes a corpus of one person's material — books, essays, transcripts, interviews, decision records — and distills it into a compact, embodiment-ready perspective skill: a lean core `SKILL.md` plus a modular `references/` package.
+`persona-distiller` is an [Agent Skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) that takes a corpus of one person's material — books, essays, transcripts, interviews, decision records — and distills it into a compact, embodiment-ready perspective skill. The delivered project already contains `.agents/skills/<slug>-perspective/`, so opening the project makes its lean core `SKILL.md` and modular `references/` package directly discoverable.
 
 Not a biography. Not a summary. Not a quote database. The output is optimized so that a reader familiar with the person's record cannot easily tell its output apart from the real thing, on public topics the corpus actually covers.
 
@@ -212,12 +212,28 @@ cannot catch: the section that is simply not there, because there is nothing on 
 
 ## Output
 
-A directory named `<slug>-perspective` containing:
+A directory named `<slug>-perspective` with a repository-local Agent Skill already installed:
 
-- **`SKILL.md`** — the core embodiment artifact, front-loaded (compaction truncates from the end, so the highest-value fingerprints come first). Its size is **computed, not fixed**: a supply term over the diagnostic elements that survived curation — cost-bearing refusals, projectible regularities, interactional moves, modulation patterns; preoccupations and style contribute nothing — clamped between a **3,000-token floor** and a corpus-derived ceiling of 4,000 (thin or mostly-secondhand), 6,000 (mid), or 7,500 (large, multi-period). Typical cores land at 3,000–6,000. Procedures and standing verdicts are priced highest in the supply term, because they are the classes a host agent can actually *execute*; the 2.x ceilings predated both, so a corpus rich in them saturated a supply it had no room to spend. Every figure here is in `token_count.py` tokens, and the tokenizer is a required field in the log — a budget without its unit means two different sizes in two runs, since the same package measures roughly twice as large in Chinese as in English under a word-based count.
-- **`references/`** — modular, **host-agent-facing** files sized for on-demand loading; loaded at runtime, so this package never contains provenance, scores, fidelity results, or episodic material. Two are **standing, cross-corpus modules of equal status** — `frameworks.md`, what the person thinks with, and `voice.md`, how the person sounds. Both are **layered templates asked of every subject**: `frameworks.md` runs §0–§7 and `voice.md` runs §0–§11, and a section the corpus cannot fill is marked absent rather than dropped, because an absence a reader can see is information and a missing heading is not. The ordering inside `frameworks.md` is the substantive claim — **method** and **epistemology** come before **ontology** and **standing verdicts**, because a persona handed only conclusions can restate them and cannot extend them. `voice.md` opens with the register structure for the same reason: a host agent has to choose a family before writing a sentence, rather than discovering afterwards that it wrote in the average of two. The rest is per-source: one module per high-value source cluster. Sizes: cluster modules are **computed per cluster** by `scripts/cluster_budget.py` from the constructs, moves and evidence routed to each one, the number of sibling modules it must fence itself off from, and a damped corpus-mass term (floor 1,800, hard ceiling 6,000; typically 2,000–4,500). A cluster below the floor is folded into a sibling or demoted to `fidelity-ledger/episodic.md` rather than written thin, and a cluster that saturates the input caps is either re-cut at Stage 1 or split internally by register, never trimmed. `frameworks.md` and `voice.md` are **computed too** as of 3.0 — from the constructs, verdicts, moves and register families actually routed to them, clamped to 2,000–7,000 — rather than a flat ~4,000 that a rich corpus quietly outgrew.
-- **`references/voice.md`** — the measured expressive system, and the reason the core's 20% style cap is safe. A fingerprint-sized "How I sound" is enough to *frame* an answer in someone's voice; it is not enough to *write* one at length. So the rest of the system lives here: favored constructions with attested fragments, the **avoid-list** (the words and openings conspicuously missing from the corpus — as diagnostic as the favored ones, and previously homeless), modulation rules as trigger → shift pairs, register range across settings and periods, lexical fingerprint, the `style_metrics.py` baseline the fidelity test measures against, and anti-drift pairs for long generations. Built from firsthand clusters only. The host loads it before any sustained prose in the voice.
-- **`fidelity-ledger/`** — **human-facing**, and never loaded by the host agent: `provenance.md`, the audit trail mapping each core element to its source, the computed budgets (core and cluster), and the gate/final fidelity results; and `episodic.md`, concrete attested one-off material — specific incidents, anecdotes, decision-record fragments — that did not clear a cluster module's own floor (soft ~4,000). Uncapped otherwise, because an audit package's completeness matters more than its size. It sits outside `references/` on purpose, so it is structurally impossible for the host agent to pull it into the embodiment context.
+```text
+<slug>-perspective/
+├── .agents/
+│   └── skills/
+│       └── <slug>-perspective/
+│           ├── SKILL.md
+│           └── references/
+│               ├── clusters/
+│               ├── frameworks.md
+│               └── voice.md
+└── fidelity-ledger/
+    ├── provenance.md
+    └── episodic.md
+```
+
+- **`.agents/skills/<slug>-perspective>/SKILL.md`** — the core embodiment artifact, front-loaded (compaction truncates from the end, so the highest-value fingerprints come first). Its size is **computed, not fixed**: a supply term over the diagnostic elements that survived curation — cost-bearing refusals, projectible regularities, interactional moves, modulation patterns; preoccupations and style contribute nothing — clamped between a **3,000-token floor** and a corpus-derived ceiling of 4,000 (thin or mostly-secondhand), 6,000 (mid), or 7,500 (large, multi-period). Typical cores land at 3,000–6,000. Procedures and standing verdicts are priced highest in the supply term, because they are the classes a host agent can actually *execute*; the 2.x ceilings predated both, so a corpus rich in them saturated a supply it had no room to spend. Every figure here is in `token_count.py` tokens, and the tokenizer is a required field in the log — a budget without its unit means two different sizes in two runs, since the same package measures roughly twice as large in Chinese as in English under a word-based count.
+
+- **`.agents/skills/<slug>-perspective>/references/`** — modular, **host-agent-facing** files sized for on-demand loading; loaded at runtime, so this package never contains provenance, scores, fidelity results, or episodic material. Two are **standing, cross-corpus modules of equal status** — `frameworks.md`, what the person thinks with, and `voice.md`, how the person sounds. Both are **layered templates asked of every subject**: `frameworks.md` runs §0–§7 and `voice.md` runs §0–§11, and a section the corpus cannot fill is marked absent rather than dropped, because an absence a reader can see is information and a missing heading is not. The ordering inside `frameworks.md` is the substantive claim — **method** and **epistemology** come before **ontology** and **standing verdicts**, because a persona handed only conclusions can restate them and cannot extend them. `voice.md` opens with the register structure for the same reason: a host agent has to choose a family before writing a sentence, rather than discovering afterwards that it wrote in the average of two. The rest is per-source: one module per high-value source cluster. Sizes: cluster modules are **computed per cluster** by `scripts/cluster_budget.py` from the constructs, moves and evidence routed to each one, the number of sibling modules it must fence itself off from, and a damped corpus-mass term (floor 1,800, hard ceiling 6,000; typically 2,000–4,500). A cluster below the floor is folded into a sibling or demoted to `fidelity-ledger/episodic.md` rather than written thin, and a cluster that saturates the input caps is either re-cut at Stage 1 or split internally by register, never trimmed. `frameworks.md` and `voice.md` are **computed too** as of 3.0 — from the constructs, verdicts, moves and register families actually routed to them, clamped to 2,000–7,000 — rather than a flat ~4,000 that a rich corpus quietly outgrew.
+- **`.agents/skills/<slug>-perspective>/references/voice.md`** — the measured expressive system, and the reason the core's 20% style cap is safe. A fingerprint-sized "How I sound" is enough to *frame* an answer in someone's voice; it is not enough to *write* one at length. So the rest of the system lives here: favored constructions with attested fragments, the **avoid-list** (the words and openings conspicuously missing from the corpus — as diagnostic as the favored ones, and previously homeless), modulation rules as trigger → shift pairs, register range across settings and periods, lexical fingerprint, the `style_metrics.py` baseline the fidelity test measures against, and anti-drift pairs for long generations. Built from firsthand clusters only. The host loads it before any sustained prose in the voice.
+- **`fidelity-ledger/`** — **human-facing and outside `.agents/`**, so it is never loaded by the host agent: `provenance.md`, the audit trail mapping each core element to its source, the computed budgets (core and cluster), and the gate/final fidelity results; and `episodic.md`, concrete attested one-off material — specific incidents, anecdotes, decision-record fragments — that did not clear a cluster module's own floor (soft ~4,000). Uncapped otherwise, because an audit package's completeness matters more than its size.
 
 Plus a short **coverage report** delivered in conversation: what the corpus covered well, where it was thin, the fidelity-test scores, and any domain where the persona should be trusted less.
 
@@ -266,11 +282,9 @@ Output quality is strictly bounded by corpus coverage, diversity, and signal den
 └── README.md
 ```
 
-This is the skill's own layout, not a generated persona's. A *generated* `<slug>-perspective/`
-directory additionally ships a `fidelity-ledger/` package — `provenance.md` (the human-facing audit
-trail) and `episodic.md` (concrete attested one-off material) — kept outside `references/` on
-purpose, since neither is meant to be loaded by the host agent — see "Output" above for the full
-generated layout.
+This is the metatool's own layout, not a generated persona's. A generated persona is an outer
+project containing its runnable package at `.agents/skills/<slug>-perspective/` and its human-facing
+`fidelity-ledger/` beside `.agents/`; see "Output" above for the full generated layout.
 
 ### Host requirements
 

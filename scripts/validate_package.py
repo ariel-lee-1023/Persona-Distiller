@@ -9,7 +9,7 @@ makes them easy to miss. This tool checks the mechanical subset consistently and
 leaves judgment calls visible as warnings rather than pretending they are solved.
 
 Usage:
-    python3 validate_package.py <package-dir> [--json validation.json] [--strict]
+    python3 validate_package.py <persona-project-dir> [--json validation.json] [--strict]
         [--headings FILE]
 
 Notes:
@@ -108,7 +108,7 @@ def resolve_module_ids(module_paths):
 
 def main():
     ap = argparse.ArgumentParser(description="Machine-check a distilled package's structural rules.")
-    ap.add_argument("package_dir", help="package root")
+    ap.add_argument("package_dir", help="persona project root containing .agents/skills/<name>/")
     ap.add_argument("--json", help="write check artifact here")
     ap.add_argument("--strict", action="store_true", help="treat warnings as errors")
     ap.add_argument("--headings", help="file of required core heading anchors, one per line")
@@ -117,31 +117,50 @@ def main():
     if not os.path.isdir(root):
         ap.error("package directory not found: %s" % args.package_dir)
 
-    skill = os.path.join(root, "SKILL.md")
-    references = os.path.join(root, "references")
+    skills_home = os.path.join(root, ".agents", "skills")
+    skill_roots = []
+    if os.path.isdir(skills_home):
+        for name in sorted(os.listdir(skills_home)):
+            candidate = os.path.join(skills_home, name)
+            if os.path.isdir(candidate) and os.path.isfile(os.path.join(candidate, "SKILL.md")):
+                skill_roots.append(candidate)
+
+    # Keep checking after a layout failure so one run reports all useful findings.
+    skill_root = skill_roots[0] if len(skill_roots) == 1 else os.path.join(skills_home, "<skill-name>")
+    skill = os.path.join(skill_root, "SKILL.md")
+    references = os.path.join(skill_root, "references")
     clusters_dir = os.path.join(references, "clusters")
     provenance = os.path.join(root, "fidelity-ledger", "provenance.md")
     episodic = os.path.join(root, "fidelity-ledger", "episodic.md")
     results = []
 
-    results.append(check("S1", "error", os.path.isfile(skill),
-                         "SKILL.md exists at package root" if os.path.isfile(skill) else "missing SKILL.md at package root"))
+    layout_ok = len(skill_roots) == 1
+    layout_detail = (
+        "one discoverable skill exists under .agents/skills/"
+        if layout_ok else
+        "expected exactly one .agents/skills/<name>/SKILL.md; found %d" % len(skill_roots)
+    )
+    results.append(check("S1", "error", layout_ok, layout_detail))
+    results.append(check("S2", "error", os.path.isfile(skill),
+                         "SKILL.md exists inside the discovered skill directory"
+                         if os.path.isfile(skill) else
+                         "missing .agents/skills/<name>/SKILL.md"))
     refs_ok = os.path.isdir(references) and os.path.isfile(os.path.join(references, "voice.md")) and os.path.isfile(os.path.join(references, "frameworks.md"))
-    results.append(check("S2", "error", refs_ok,
+    results.append(check("S3", "error", refs_ok,
                          "references/, voice.md, and frameworks.md present" if refs_ok else "need references/ with voice.md and frameworks.md"))
     prov_ok = os.path.isfile(provenance)
-    results.append(check("S3", "error", prov_ok, "fidelity-ledger/provenance.md present" if prov_ok else "missing fidelity-ledger/provenance.md"))
-    results.append(check("S3", "warn", os.path.isfile(episodic),
+    results.append(check("S4", "error", prov_ok, "fidelity-ledger/provenance.md present outside .agents/" if prov_ok else "missing project-level fidelity-ledger/provenance.md"))
+    results.append(check("S4", "warn", os.path.isfile(episodic),
                          "fidelity-ledger/episodic.md present" if os.path.isfile(episodic) else "episodic.md absent (permitted but expected when episodic material exists)"))
     misplaced = []
     if os.path.isdir(references):
         for path in markdown_files(references):
             if os.path.basename(path) in ("provenance.md", "episodic.md"):
                 misplaced.append(rel(path, root))
-    results.append(check("S4", "error", not misplaced,
+    results.append(check("S5", "error", not misplaced,
                          "no ledger files under references/" if not misplaced else "ledger file(s) wrongly under references/: " + ", ".join(misplaced)))
     modules = list(markdown_files(clusters_dir)) if os.path.isdir(clusters_dir) else []
-    results.append(check("S5", "error", os.path.isdir(clusters_dir),
+    results.append(check("S6", "error", os.path.isdir(clusters_dir),
                          "cluster modules directory is references/clusters/" if os.path.isdir(clusters_dir) else "missing references/clusters/"))
 
     core = read(skill) if os.path.isfile(skill) else ""
@@ -149,6 +168,12 @@ def main():
     c1_ok = fields is not None and bool(fields.get("name")) and bool(fields.get("description"))
     results.append(check("C1", "error", c1_ok,
                          "frontmatter has name and description" if c1_ok else "frontmatter needs non-empty name and description"))
+    path_name = os.path.basename(skill_root)
+    declared_name = fields.get("name", "") if fields else ""
+    results.append(check("C1b", "error", bool(declared_name) and declared_name == path_name,
+                         "frontmatter name matches .agents/skills directory"
+                         if declared_name == path_name else
+                         "frontmatter name '%s' must match skill directory '%s'" % (declared_name or "<missing>", path_name)))
     description = fields.get("description", "") if fields else ""
     found_audit = [word for word in AUDIT_WORDS if re.search(r"\b%s\b" % re.escape(word), description, re.I)]
     c2_ok = bool(description.strip()) and not found_audit
@@ -234,7 +259,7 @@ def main():
     effective = [{**item, "effective_level": "error" if args.strict and item["level"] == "warn" else item["level"]}
                  for item in results]
     failed = [item for item in effective if not item["ok"] and item["effective_level"] == "error"]
-    artifact = {"package": root, "strict": args.strict, "checks": effective,
+    artifact = {"package": root, "skill_root": skill_root, "strict": args.strict, "checks": effective,
                 "errors": len(failed), "warnings": sum(not x["ok"] and x["level"] == "warn" for x in effective),
                 "verdict": "FAIL" if failed else "PASS"}
     if args.json:

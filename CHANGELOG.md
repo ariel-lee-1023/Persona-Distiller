@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Generated personas are now delivered as directly discoverable local-agent projects: runtime
+  files live under `.agents/skills/<slug>-perspective/`, while the human-facing
+  `fidelity-ledger/` remains outside `.agents/`.
+- `scripts/validate_package.py` now requires exactly one nested Agent Skill, verifies that its
+  directory matches frontmatter `name:`, and validates runtime references from that skill root.
+
 ## [3.0.0] — 2026-08-16
 
 3.0 is a major release. It changes the shape of three intermediate artifacts, adds required fields

@@ -17,15 +17,16 @@ defined here by their **structure and admission test**; the illustrations are pl
 
 ```
 <slug>-perspective/
-├── SKILL.md                 # core embodiment artifact, sized to the computed budget, front-loaded
-├── references/              # host-agent-facing: loaded at runtime, never contains
-│   │                        #   provenance/scores/episodic material
-│   ├── clusters/            # one file per cluster clearing the 1,800 floor; size computed
-│   │   │                    #   per cluster by scripts/cluster_budget.py
-│   │   ├── c03-<label>.md
-│   │   └── …
-│   ├── frameworks.md        # what the person thinks with — layered, see the template below
-│   └── voice.md             # how the person sounds — register families, see the template below
+├── .agents/
+│   └── skills/
+│       └── <slug>-perspective/     # discoverable Agent Skill; folder matches frontmatter name
+│           ├── SKILL.md            # core embodiment artifact, computed budget, front-loaded
+│           └── references/         # host-agent-facing; never contains audit/episodic material
+│               ├── clusters/       # one file per cluster clearing the 1,800 floor
+│               │   ├── c03-<label>.md
+│               │   └── …
+│               ├── frameworks.md   # what the person thinks with
+│               └── voice.md        # how the person sounds
 └── fidelity-ledger/         # human-facing: the honesty/audit package, never loaded by the host agent
     ├── provenance.md        # an append-only batch log: weights, element table, budgets, gate and
     │                        #   final scores, and one dated entry per curation batch
@@ -33,11 +34,16 @@ defined here by their **structure and admission test**; the illustrations are pl
                              #   fragments that did not clear a cluster module's floor
 ```
 
+The outer `<slug>-perspective/` directory is the deliverable project. Opening it as a local
+project makes the persona discoverable immediately because the runtime package already sits at
+`.agents/skills/<slug>-perspective/`; no installation, copying, or symlink step is required. The
+inner skill-directory name and the generated `SKILL.md` frontmatter `name:` must match exactly.
+
 `frameworks.md` and `voice.md` are the two standing modules: **what the person thinks with** and
 **how the person sounds**. Both are cross-corpus and always produced (when the corpus supports
 them); `clusters/` is per-source and residual, still under `references/` because the host agent
 loads it on demand. `fidelity-ledger/provenance.md` and `fidelity-ledger/episodic.md` are the two
-human-facing files: both live outside `references/` entirely because they are written for the human
+human-facing files: both live outside `.agents/` entirely because they are written for the human
 who reads the distillation, not for the agent running it — provenance because it is the audit
 trail, episodic because it is attested-but-unranked source material rather than reasoning the host
 agent should load — and neither must ever enter the embodiment context.
@@ -197,9 +203,10 @@ about anything outside its own corpus — which is every persona; skip it only i
 corpus is closed to all outside reference, and say so explicitly if you skip it. State it in the
 same register as the other parts — not as a persona trait, not in voice:
 
-`references/` and `fidelity-ledger/` are retrieval scope for **this person's own analytical
-apparatus** — their frameworks, named constructs, and characteristic moves — never for facts about
-the world the person did not personally generate. Any question turning on a real-world fact
+`references/` is retrieval scope for **this person's own analytical apparatus** — their
+frameworks, named constructs, and characteristic moves — never for facts about the world the
+person did not personally generate. The project-level `fidelity-ledger/` is human-facing audit
+material and must not be loaded as persona context. Any question turning on a real-world fact
 outside the corpus's own frozen record — a quotation's exact wording, a current event, a law's
 present text, the state of a field today, a detail of the user's own situation — requires the host
 agent to retrieve that fact from the live world (web search, a live document, the user) *before*
@@ -241,7 +248,8 @@ no-pooling warning on its row.>
 
 ### Voice check before you ship the core — hard gates
 
-Run `python3 scripts/validate_package.py <package-dir>` first; it enforces the mechanical subset
+Run `python3 scripts/validate_package.py <persona-project-dir>` first; it enforces the `.agents/`
+discovery layout and the mechanical subset
 (structure, ban-list, dead load-list links, ledger/reference separation). These are the gates it
 cannot check:
 
