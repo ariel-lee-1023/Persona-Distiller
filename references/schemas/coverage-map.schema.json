@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/persona-distiller/main/references/schemas/coverage-map.schema.json",
+  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/Persona-Distiller/main/references/schemas/coverage-map.schema.json",
   "title": "coverage_map.json",
   "description": "Stage 1 output. The backbone of the honest coverage report and of several auto-weighting defaults. Computed after segmentation; consumed by Stage 2 (pass weighting), Stage 3 (probe weighting), and the user-facing coverage report.",
   "type": "object",

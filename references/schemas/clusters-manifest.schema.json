@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/persona-distiller/main/references/schemas/clusters-manifest.schema.json",
+  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/Persona-Distiller/main/references/schemas/clusters-manifest.schema.json",
   "title": "clusters/manifest.json",
   "description": "Stage 1 output. Index of the segmented corpus. One entry per cluster — a coherent unit that can carry independent evidence. The projectibility probe requires a regularity to appear in at least two independent clusters, so cluster identity is load-bearing, not cosmetic.",
   "type": "object",

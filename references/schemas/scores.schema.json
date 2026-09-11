@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/persona-distiller/main/references/schemas/scores.schema.json",
+  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/Persona-Distiller/main/references/schemas/scores.schema.json",
   "title": "scores.json",
   "description": "Stage 3 output — the curation audit log. Every keep/cut decision is recorded with its five probe scores and a one-line reason, so the whole curation is inspectable, defensible, and reproducible.",
   "type": "object",

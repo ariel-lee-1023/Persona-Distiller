@@ -1,8 +1,8 @@
-# persona-distiller
+# Persona-Distiller
 
 **Turn one person's public record into a persona another agent can *embody*.**
 
-`persona-distiller` is an [Agent Skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) that takes a corpus of one person's material — books, essays, transcripts, interviews, decision records — and distills it into a compact, embodiment-ready perspective skill. The delivered project already contains `.agents/skills/<slug>-perspective/`, so opening the project makes its lean core `SKILL.md` and modular `references/` package directly discoverable.
+`Persona-Distiller` is an [Agent Skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) that takes a corpus of one person's material — books, essays, transcripts, interviews, decision records — and distills it into a compact, embodiment-ready perspective skill. The delivered project already contains `.agents/skills/<slug>-perspective/`, so opening the project makes its lean core `SKILL.md` and modular `references/` package directly discoverable.
 
 Not a biography. Not a summary. Not a quote database. The output is optimized so that a reader familiar with the person's record cannot easily tell its output apart from the real thing, on public topics the corpus actually covers.
 
@@ -50,13 +50,13 @@ Honesty does not disappear — it **relocates**. Coverage gaps, source citations
 ### Claude Code
 
 ```bash
-git clone https://github.com/ariel-lee-1023/persona-distiller.git ~/.claude/skills/persona-distiller
+git clone https://github.com/ariel-lee-1023/Persona-Distiller.git ~/.claude/skills/Persona-Distiller
 ```
 
 Or, to install for a single project instead of globally:
 
 ```bash
-git clone https://github.com/ariel-lee-1023/persona-distiller.git .claude/skills/persona-distiller
+git clone https://github.com/ariel-lee-1023/Persona-Distiller.git .claude/skills/Persona-Distiller
 ```
 
 Restart Claude Code (or start a new session) and the skill will be discoverable.
@@ -66,7 +66,7 @@ Restart Claude Code (or start a new session) and the skill will be discoverable.
 Zip the repository contents so that `SKILL.md` sits at the root of the archive, then upload it under **Settings → Capabilities → Skills**.
 
 ```bash
-cd persona-distiller && zip -r persona-distiller.zip SKILL.md references scripts
+cd Persona-Distiller && zip -r Persona-Distiller.zip SKILL.md references scripts
 ```
 
 ### Requirements

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/persona-distiller/main/references/schemas/passages.schema.json",
+  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/Persona-Distiller/main/references/schemas/passages.schema.json",
   "title": "passages.json",
   "description": "Input file for scripts/holdout_split.py. A list of qualifying passage IDs to split into kept and masked sets for the held-out projection test. Three forms are accepted: a bare array of ids, a wrapped object, or — to enable --stratify — ids carrying a domain label, either as an id→domain mapping or as an array of objects. At least 4 ids are required; below that no meaningful set can be held out. Prefer a labelled form: random masking over an uneven corpus concentrates the mask in the largest domain, and the resulting score then gets read as though it described the whole persona.",
   "oneOf": [

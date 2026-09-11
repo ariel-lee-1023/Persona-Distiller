@@ -1,5 +1,5 @@
 ---
-name: persona-distiller
+name: Persona-Distiller
 description: >-
   Distills one person's uploaded public record (books, essays, transcripts, interviews,
   decision records) into a compact, embodiment-ready persona skill — a core SKILL.md tuned

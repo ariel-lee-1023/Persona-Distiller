@@ -608,9 +608,9 @@ Initial public release.
 - **Scope statement** — perspective and thinking-style work only; explicit refusal of deceptive
   impersonation and forged attribution.
 
-[Unreleased]: https://github.com/ariel-lee-1023/persona-distiller/compare/v3.0.0...HEAD
-[3.0.0]: https://github.com/ariel-lee-1023/persona-distiller/compare/v2.0.0...v3.0.0
-[2.0.0]: https://github.com/ariel-lee-1023/persona-distiller/compare/v1.2.0...v2.0.0
-[1.2.0]: https://github.com/ariel-lee-1023/persona-distiller/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/ariel-lee-1023/persona-distiller/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/ariel-lee-1023/persona-distiller/releases/tag/v1.0.0
+[Unreleased]: https://github.com/ariel-lee-1023/Persona-Distiller/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/ariel-lee-1023/Persona-Distiller/compare/v2.0.0...v3.0.0
+[2.0.0]: https://github.com/ariel-lee-1023/Persona-Distiller/compare/v1.2.0...v2.0.0
+[1.2.0]: https://github.com/ariel-lee-1023/Persona-Distiller/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/ariel-lee-1023/Persona-Distiller/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/ariel-lee-1023/Persona-Distiller/releases/tag/v1.0.0

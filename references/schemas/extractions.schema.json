@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/persona-distiller/main/references/schemas/extractions.schema.json",
+  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/Persona-Distiller/main/references/schemas/extractions.schema.json",
   "title": "extractions.json",
   "description": "Stage 2 output. A flat list of every candidate element found across the three extraction passes, each carrying the evidence Stage 3 scores and Stage 5 tests against. Capture evidence faithfully here — it is not recoverable later.",
   "type": "array",

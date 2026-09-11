@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/persona-distiller/main/references/schemas/registers.schema.json",
+  "$id": "https://raw.githubusercontent.com/ariel-lee-1023/Persona-Distiller/main/references/schemas/registers.schema.json",
   "title": "registers.json",
   "description": "Stage 2 Pass A0 output, written by scripts/register_discover.py before any expression metric is pooled. It answers a question the pipeline previously left to the distiller's discretion: does this corpus contain one voice or several? Whole-corpus averaging over a multi-register corpus produces a profile that is the mean of two voices and the likeness of neither, and leaves no artifact anywhere recording the loss. This file is that artifact. Its verdict governs per-family measurement in Pass A1, the section structure of voice.md, the n_registers term in the Stage 4 cluster budget, and whether the discrimination test is mandatory. Fields marked 'hand-added' are not emitted by the script; the distiller adds them while reading the report, and they are what turn a measurement dump into a decision record.",
   "type": "object",
