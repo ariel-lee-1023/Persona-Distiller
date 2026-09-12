@@ -4,9 +4,8 @@ description: >-
   Distill one person's provided public record (books, essays, transcripts, interviews,
   decision records) into a reusable persona or perspective skill with a compact core,
   references and an operational scope contract. Extract characteristic reasoning,
-  cost-bearing refusals, interactional moves and register variation, then verify with
-  independent projection and baseline comparisons, cost and style checks, and register
-  tests. Use when the user wants to distill, channel, think like, write as, or build a
+  cost-bearing refusals, interactional moves and register variation. Ordinary builds and
+  upgrades use bounded content checks; comprehensive research evaluation is opt-in. Use when the user wants to distill, channel, think like, write as, or build a
   persona, voice skill or system prompt embodying a specific person, even without saying
   "skill". Work from the provided corpus without inventing documented positions.
 ---
@@ -17,6 +16,33 @@ Turn a corpus of one person's public material into a persona another agent can *
 not a biography, not a summary, not a quote database. The output is a lean core `SKILL.md`
 optimized so that a reader familiar with the person's record cannot easily tell its output
 apart from the real thing on public topics the corpus covers.
+
+## Default workflow and completion
+
+Ordinary builds and upgrades use **standard** mode. Read
+[references/standard-workflow.md](references/standard-workflow.md) first: record mode, requested
+scope, affected modules, reusable evidence and the persistent evaluation budget before editing.
+Requests to improve, upgrade, publish or meet the latest version do not commission comprehensive
+research evaluation. Enter **research** only on an explicit request with a fixed call budget.
+
+Standard allows up to four short candidate responses for a new build or two for an upgrade,
+one review and at most one bounded repair pass, within eight total evaluation calls including
+continuations, graders, retries and delegated work. No default baseline or neighbor comparisons.
+The shared `scripts/workflow.py` ledger reserves calls before dispatch and reuses completed outputs
+with unchanged relevant inputs across interruptions. Stop new dispatch when asked to finish or
+when the allowance is exhausted. Source recovery and OCR are separate from this evaluation budget.
+
+Preserve extraction quality, existing class admission rules/formulas and useful runtime content.
+An upgrade changes affected modules incrementally; it does not restart the whole pipeline.
+Missing admission evidence leaves new elements pending outside the operative core; never invent
+metrics. Inconclusive research narrows the evidence claim, not automatically the source-supported
+reasoning or the amount of useful content. Do not acquire new sources just to replenish tests.
+
+Deliver **usable working version** or **incomplete draft**, independently of **lightweight checks
+completed**, **research evaluation incomplete**, or **research evaluation passed**. Use
+`scripts/completion_report.py` for standard completion. Structural PASS alone establishes no
+persona fidelity. Existing `validate_package.py --release` retains its strict research meaning;
+failed or partial research results remain visible and need not prevent a supported working delivery.
 
 ## Governing idea: recognition is a family resemblance
 
@@ -46,8 +72,8 @@ Two consequences shape everything below:
    or three sharply distinct registers. Averaging them produces a style baseline that describes
    nobody — a mean sentence length halfway between two habits the person never actually had — and
    every downstream measurement then inherits that fiction. So the register structure is
-   discovered *first*, in Stage 2 Pass A0, before any feature is measured. Do not treat one author
-   as one voice until the numbers say so.
+   investigated before claiming measured families. Reuse applicable discovery on upgrades;
+   unresolved family evidence does not require another corpus-wide run in standard mode.
 
 2. **Delete without mercy.** The core is an embodiment artifact, and every low-value line
    dilutes voice and adds distance. Anything that scores below threshold, reads as generic,
@@ -108,15 +134,16 @@ Two further portability rules:
 
 - **Tools are optional, never assumed.** Where a stage suggests a document-reading tool, a
   converter, or a companion skill, treat it as a preference. If the host does not have it, fall
-  back to the stdlib route named alongside it. Every script in `scripts/` is standard-library-only
-  and runs under any Python 3 — no install step, no network.
+  back to the stdlib route named alongside it. Source-processing helpers and standard workflow accounting use the standard library.
+  The optional runner needs an authorized endpoint; strict release schema checks need
+  `requirements-release.txt`. Check the selected command’s requirements before executing it.
 - **If the work dir lands inside a git repository**, ensure it is ignored before writing to it.
   It fills with extracted full text of the source corpus, which must not be committed. This
   repository's own `.gitignore` covers the default name.
 
 ---
 
-## Pipeline (five stages, run in order)
+## Pipeline (new builds follow the stages; upgrades revisit affected work only)
 
 Each stage has a detailed reference file. Read the reference before executing that stage the
 first time; the summaries below are orientation, not the full procedure.
@@ -127,12 +154,11 @@ from the container's scaffolding with the user's confirmation, and label every u
 
 ### Stage 1 — Ingest & segment
 
-Before trait extraction, freeze a metadata-only inventory grouped by underlying work or episode,
-including related excerpts/retellings in the same group. Run `scripts/holdout_split.py` to make
-train, development and final-test partitions. Construction, including register discovery, uses
-train only. Development drives curation; final evidence stays sealed until a fresh-context final
-assessment. Read [references/release-evidence.md](references/release-evidence.md) now for isolation,
-baseline comparisons, split format and executable release requirements.
+In research mode, freeze grouped train/development/final partitions before extraction and keep
+final evidence sealed, following [references/release-evidence.md](references/release-evidence.md).
+Standard mode does not require independent final qualification or replenishment of held-out sets.
+Keep any already reserved final evidence hidden; record coverage and source provenance honestly.
+On upgrades, reuse the corpus map and inspect additional passages only for actual content gaps.
 Read the corpus. Extract text with structure preserved (headings, speaker turns, timestamps).
 Segment into coherent **clusters** — per work/chapter, per interview, per decision record, per
 time period. Build an internal **coverage map**: domains covered, dialogue-vs-monologue ratio,
@@ -147,10 +173,11 @@ budget's ceiling. → See `references/pipeline.md` (Stage 1) for extraction rout
 ### Stage 2 — Multi-granularity extraction
 
 Register discovery now requires sufficient observations, a meaningful absolute difference and
-stable equal-length subsamples before assigning families. `INSUFFICIENT_EVIDENCE` means gather
-more comparable material or narrow the analysis; it does not authorize a one-family claim.
+stable equal-length subsamples before assigning families. `INSUFFICIENT_EVIDENCE` preserves an unresolved finding; it does not authorize a one-family claim
+or automatically trigger more collection, subset searches or another round. Retain supported reasoning.
 Undefined zero-denominator ratios are JSON null. See `references/register-evidence.md`.
-Run a discovery pass, then three measurement passes:
+For new extraction, use discovery and the measurement passes below. On incremental upgrades,
+reuse unaffected results and leave broader unresolved claims incomplete:
 
 - **Pass A0 — register discovery** *(new in 3.0; runs before everything else in Stage 2)*. Measure
   every cluster on the same feature vector, cluster the clusters, and let the corpus tell you how
@@ -213,8 +240,8 @@ bounded by what the corpus supports — `supply = 2,200 + 250·min(n_cost_refusa
 verdicts are the classes a host agent can actually *execute*, and the 2.x ceilings were set before
 they existed — a corpus rich in both saturated a supply term it had no room to spend. Preoccupation
 and style still contribute nothing to supply. Landing under the floor means the pool is too thin,
-not that the core needs filler: collect missing admission evidence for diagnostic classes and re-run the scorer, then
-ship reduced-scope and say so.
+not that the core needs filler. Preserve the admission rules; leave unsupported new candidates
+pending and use existing evidence within the bounded workflow. Do not start unbudgeted evaluation.
 
 **Every budget in this skill is denominated in tokens, so count them with one counter.** Run
 `scripts/token_count.py` and record the tokenizer with the budget artifacts. A budget without its tokenizer is a number without a unit: the same package measures roughly
@@ -222,14 +249,14 @@ twice as large in Chinese as in English under a word-based count, and "4,000" th
 two different sizes in two runs of the same skill. → The formula, the floor procedure, the standing
 module budgets, class-specific admission examples, and the log format: `references/scoring.md`.
 
-### Gate before Stage 4 — mandatory, and it feeds back *(do not skip)*
-Assembly is downstream of passing two gates, plus a third whenever the corpus carries more than one
+### Research gates before Stage 4 (research mode only)
+Strict research qualification is downstream of passing two gates, plus a third whenever the corpus carries more than one
 register family. Their results are logged to the persona's `fidelity-ledger/provenance.md` and are
-**used to adjust inclusion and weighting** — they are control signals, not just reports:
+**used to adjust inclusion within the existing admission rules** — they are control signals, not just reports:
 - **Projection gate** — run the development projection test (procedure in `fidelity-tests.md`) on the
   top-ranked projectible regularities *now, before assembly*. If it misses threshold, re-curate:
-  down-weight the over-fit elements, promote better-generalizing ones, or narrow the persona's
-  claimed scope — then re-score. Loop until the revised or narrowed candidate passes on development evidence.
+  reconsider the over-fit elements, promote better-generalizing ones, or narrow the persona's
+  claimed scope — then re-score. Revise only within the authorized evaluation budget; otherwise retain the failed or incomplete gate.
 - **Cost gate** — inventory every attested incentive-vs-characteristic divergence from Stage 2 and
   confirm the high-signal ones survived curation and are slated for the core. Any missing one is
   re-included or elevated *before* assembly, not after.
@@ -248,8 +275,8 @@ gate sends the set backwards, clusters get merged, an element is demoted two bat
 that justified keeping it. Every result in `fidelity.json` therefore carries the `content_hash` of
 the package it was computed against, plus a `stale` array naming results invalidated and not yet
 re-run. Mark staleness at the moment of the change, not at the end, when it will be forgotten. A
-stale style-match result may ship if the coverage report says so; a stale projection or cost gate may
-not. → `references/fidelity-tests.md`.
+stale style-match result may ship if the coverage report says so; a stale projection or cost gate cannot qualify for strict research release. Standard working
+delivery instead records affected evidence and limitations, preserving unrelated valid evidence. → `references/fidelity-tests.md`.
 
 ### Stage 4 — Assemble core + package references + Fidelity Ledger
 Create one self-contained project at `<persona-out>/<slug>-perspective/`. Write the runtime core to
@@ -336,7 +363,20 @@ had only the single `recut_flagged` boolean and so gave the wrong answer half th
 The module formula, its counting rules, the standing-module budgets, and calibration status:
 `references/scoring.md`.
 
-### Stage 5 — Final fidelity verification *(the gates already ran at 3.5; this confirms the assembled core)*
+### Stage 5 — Standard completion or explicit research qualification
+
+**Standard:** validate structure, discovery and references; review changed claims against actual
+source passages and an important condition or exception; inspect a few representative saved
+responses for unsupported claims, lost qualifications and the intended method. Reuse current
+answers. Formatting-only work needs no new model evaluation. Preserve the cost/presence content
+requirement, source/name attribution and token accounting without launching full research tests.
+Write a concise completion report with changes, completed checks, pending elements and unresolved
+limitations. The reporting command stops dispatch and checkpoints the artifact and remaining work.
+If no usable source-supported artifact exists, deliver an explicitly incomplete draft.
+
+**Research only:** the checks below retain their existing thresholds and semantics. Budget
+exhaustion or an inconclusive result stops dispatch with research evaluation incomplete.
+
 - **Independent final projection**: after confirming the development gate on the final bytes,
   run the reserved final test once in fresh prediction contexts, paired with a minimal persona
   baseline on the same model/settings. Save prompts, both answers and item grades. A failure
@@ -344,8 +384,7 @@ The module formula, its counting rules, the standing-module budgets, and calibra
   The final test is never the repeatedly optimized development set.
 - **Cost / presence assertion** — re-confirm every high-signal divergence landed in the core, and
   assert the hard minimum: **if the corpus contains any high-signal cost-bearing refusal or
-  interactional move, the core must contain at least one.** Failing this blocks delivery — go
-  re-curate; it is the most common way a core ends up articulate but generic.
+  interactional move, the core must contain at least one.** Failing this blocks research qualification and identifies a content gap to correct within scope; it is the most common way a core ends up articulate but generic.
 - **Style-match test** — generate sample passages under the core's expression rules **plus
   `voice.md`** (that pair is the sustained-prose configuration, so that is what gets tested),
   including one contested prompt and one long enough to drift; re-run `style_metrics.py`; compare
@@ -358,7 +397,7 @@ The module formula, its counting rules, the standing-module budgets, and calibra
   perfectly while being indistinguishable from every other register the core promises. Below 0.70,
   collapse the families into one honest voice rather than shipping a distinction the persona cannot
   perform.
-- **Mechanical package validation** — run `scripts/validate_package.py <project> --release --fidelity <ledger>/fidelity.json` over the outer produced project directory. This enforces result hashes, split integrity, baseline comparisons and required gates as well as structure. See `references/release-evidence.md`; draft structure checks omit `--release`.
+- **Mechanical package validation** — run `scripts/validate_package.py <project> --release --fidelity <ledger>/fidelity.json` over the outer produced project directory. This enforces result hashes, split integrity, baseline comparisons and required gates as well as structure. See `references/release-evidence.md`; standard structure checks omit `--release` and use a separate content completion report.
   It checks what a reader will not: ledger material sitting inside a runtime reference, a load-list
   in the core pointing at a cluster module nobody wrote, an `episodic.md` that is empty without
   saying why, implementation language leaking into the core's own description. Judgment calls come
@@ -391,8 +430,8 @@ The module formula, its counting rules, the standing-module budgets, and calibra
   fabricating material, just aimed at the world instead of the person.
 
 Log all results to `fidelity-ledger/provenance.md` and the coverage report. If a check falls below
-threshold, revise or narrow the core and re-test under the independent evaluation rules, or surface it to the user for corpus
-improvement — never paper over it. → Procedures, thresholds, and reporting:
+threshold, preserve the finding. Revise and re-test only within explicitly authorized research scope
+and remaining budget; do not expand ordinary work or paper over a failed result. → Procedures, thresholds, and reporting:
 `references/fidelity-tests.md`.
 
 ---
@@ -459,17 +498,17 @@ should be trusted less. Keep this report *out* of the core `SKILL.md`.
 
 - **Small or low-diversity corpus** → smaller core + explicit coverage report. Never hallucinate
   missing probes to hit a size target.
-- **Heavily dialogue vs. heavily monologic corpus** → auto-raise the interactional pass weight for
-  dialogue-rich corpora; lean harder on projectible-regularity extraction for monologic ones.
+- **Heavily dialogue vs. heavily monologic corpus** → prioritize the relevant extraction work;
+  preserve class-specific admission formulas and avoid inventing absent kinds of evidence.
 - **Stylistically split body of work** (career phases, genres, venues) → Pass A0 will find it; treat
   the families as the persona's real structure rather than noise to average out. Two or three is
   workable; more than three usually means the boundary is being drawn on topic rather than on voice,
   and the discrimination gate will say so.
 - **Contradictory signals across time periods** → treat as documented evolution/tension *only if*
   projectibility stays high; otherwise drop the weaker signal rather than blending them into mush.
-- **Narrow user focus** (e.g. "only decision style") → re-weight scoring toward the requested
-  facet and prune off-focus probes.
-- **Modes:** default is full distillation. If the user says "analyze only" or "let me review
+- **Narrow user focus** (e.g. "only decision style") → focus requested edits and representative
+  checks on that facet, retaining useful unaffected content and the existing scorer formulas.
+- **Delivery scope:** a new build defaults to a complete working package in standard mode. If the user says "analyze only" or "let me review
   first", run Stages 1–3 and hand them the ranked extraction + scoring log, then stop. If they
   point you at an existing persona, run in fold-in/update mode.
 
@@ -479,13 +518,13 @@ frame. It is not for deceptive impersonation, forged attribution, or passing off
 statements as the person's real words. If a request bends that way, say so and reshape it toward
 legitimate perspective work.
 
-## Suggested execution order for the engineer inside this skill
-Because Stage 3 (scoring + elevation + deletion) and the tests encode the real value, get them
-right first, before polishing extraction breadth. And note the control flow is a **loop, not a
-straight line**: score → gate (projection + cost) → re-curate / re-weight → assemble → final
-verify. Assembly is always downstream of passing the gates; if the gates fail, you go back to
-curation, never forward to the template. The remaining stages can reuse familiar modular-skill
-patterns (lean front-loaded core, on-demand reference files, tight token budgets).
+## Completion takes precedence over unbounded evaluation loops
+
+Preserve extraction and class admission quality before polishing the package. Standard work uses
+incremental changes, lightweight content review and one bounded repair pass, then records the
+supported working delivery or incomplete draft. Research gates remain prerequisites for strict
+research qualification, not for every useful delivery. A failed gate does not authorize another
+round, more sources or a fresh budget. Preserve partial results and remaining items on interruption.
 
 ## Reference files
 - `references/acquisition.md` — before Stage 1: resolving remote source types, fetching, separating
@@ -502,7 +541,9 @@ patterns (lean front-loaded core, on-demand reference files, tight token budgets
 - `references/output-template.md` — Stage 4: exact core `SKILL.md` template, the layered
   `frameworks.md` §0–§7 and `voice.md` §0–§11 specs, the Fidelity Ledger layout, and the
   negative-space rule for sections a corpus cannot fill.
-- `references/release-evidence.md`: before Stage 1 and at release, grouped splits, isolated predictions, baselines and machine artifact contract.
+- `references/standard-workflow.md`: default mode, incremental upgrades, call accounting, resumption and separate completion statuses.
+- `references/evaluation-runner.md`: optional bounded dispatch, saved responses and separate review.
+- `references/release-evidence.md`: research mode before Stage 1 and at research release, grouped splits, isolated predictions, baselines and machine artifact contract.
 - `references/fidelity-tests.md` — Stage 5: projection / cost / style-match / discrimination
   procedures, thresholds, the sampling-description rule, the re-test obligation, and reporting.
 - `references/schemas/` — JSON Schema (draft 2020-12) for every intermediate artifact

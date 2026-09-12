@@ -1,5 +1,26 @@
 # Persona-Distiller
 
+## Bounded default workflow
+
+Ordinary builds and upgrades use **standard** mode: preserve source quality and existing useful
+runtime content, change affected modules incrementally, review changed claims and a few actual
+responses, then deliver a usable working version or an explicitly incomplete draft. Delivery
+status is separate from research evaluation status. Structural PASS never establishes fidelity.
+
+New builds allow up to four short candidate responses; upgrades allow two, with one review and
+at most one repair pass. All model calls share an eight-call ceiling, including continuations,
+graders, retries and delegated evaluation. The persistent ledger reuses completed results after
+interruption. Formatting-only changes need no new model evaluation. “Publish” or “upgrade” does
+not commission baseline/neighbor comparisons or a full independent qualification exercise.
+
+Comprehensive **research** mode requires an explicit request and a fixed budget. Existing
+class-specific scoring formulas and `validate_package.py --release` gates are unchanged. Missing
+admission evidence leaves new elements pending; inconclusive research does not force another
+round or deletion of useful source-supported reasoning. See the [standard workflow and completion
+report](references/standard-workflow.md), [runner](references/evaluation-runner.md) and
+[migration guidance](MIGRATION.md).
+
+
 **Turn one person's public record into a persona another agent can *embody*.**
 
 `Persona-Distiller` is an [Agent Skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) that takes a corpus of one person's material — books, essays, transcripts, interviews, decision records — and distills it into a compact, embodiment-ready perspective skill. The delivered project already contains `.agents/skills/<slug>-perspective/`, so opening the project makes its lean core `SKILL.md` and modular `references/` package directly discoverable.
@@ -191,14 +212,15 @@ impression. Calibration: ten modules against one 630k-word corpus, mean error 3.
 structure settled, coefficients provisional, and `--coefficients` exists so a future recalibration
 does not require editing the script.
 
-**Stage 5 — Final fidelity verification.** Projection re-check, cost/presence assertion, style-match
+**Stage 5 — Completion.** Standard uses source review, representative saved answers and a separate
+completion report. The following comprehensive fidelity verification applies only in research mode: Projection re-check, cost/presence assertion, style-match
 test, blind discrimination test, and three mechanical checks: `validate_package.py` (no ledger
 material inside a runtime reference, no load-list pointing at a module nobody wrote, no near-empty
 file that fails to say why, no implementation language in the core's description), `name_audit.py`
 (every name the package uses is attested *literally* in the corpus, and an editor's heading does not
 count as attestation), and `token_count.py` (realised size against budget, under a declared
 estimator). The hard minimum: *if the corpus contains any high-signal cost-bearing refusal, the
-core must contain at least one.* Failing this blocks delivery — it is the most common way a core ends
+core must contain at least one.* Failing this identifies a content gap; it cannot be hidden by structural PASS. In research mode it blocks qualification, and it is the most common way a core ends
 up articulate but generic. The mechanical checks exist for the one defect class careful reading
 cannot catch: the section that is simply not there, because there is nothing on the page to notice.
 
@@ -382,10 +404,10 @@ about is a tooling failure until proven otherwise.
 `discrimination_test.py` answers a question the other three fidelity checks structurally cannot.
 They ask whether generated prose reads like the person; this asks whether the person's *registers
 can be told apart* — and a passage can match the aggregate baseline perfectly while being
-indistinguishable from every other register the core promises. Below 0.70, collapse the families
-into one honest voice rather than shipping a distinction the persona cannot perform. As of 3.0 it is
-**mandatory whenever the corpus has more than one register family**, and re-triggered by any cluster
-merge — a merge being precisely the operation that can pool two registers into one module without
+indistinguishable from every other register the core promises. Below 0.70, the research distinction has not passed; retain that finding and avoid claiming
+verified discrimination. Revise family claims only when the source evidence supports the correction. As of 3.0 it is
+**required for research qualification whenever the corpus has more than one register family**;
+standard upgrades record affected research evidence stale after a cluster merge — a merge being precisely the operation that can pool two registers into one module without
 anyone deciding to.
 
 `register_discover.py` is the pass that makes that gate meaningful, and the division of labour between
@@ -456,7 +478,7 @@ MIT © 2026 Ariel Lee. [See LICENSE](LICENSE).
 
 This license covers the original text in this repository. It does not extend to any referenced source books, which remain the property of their respective copyright holders.
 
-## Independent evaluation and release validation
+## Optional research evaluation and strict release validation
 
 Split the source inventory by underlying work or episode before extracting traits. Construction
 uses train; development guides revisions; a separate final set is used once in fresh contexts.
@@ -474,7 +496,7 @@ python3 scripts/validate_package.py /path/to/persona --release --fidelity /path/
 python3 -m unittest discover -s tests -v
 ```
 
-Existing evaluations need to be rerun under this protocol. The validator verifies recorded
+Existing evaluations need to meet this protocol only for a current strict research claim; standard delivery may report them incomplete. The validator verifies recorded
 artifacts and freshness, not the truth of a grader's judgments or a claim of context isolation.
 
 ## Executable evaluation and stronger behavioral gates
@@ -487,6 +509,5 @@ commitment under pressure, blinded identity discrimination and historical-scope 
 
 [Register discovery](references/register-evidence.md) now checks event support, absolute effect
 size and stability across equal-length subsamples. Thin or unstable evidence produces
-`INSUFFICIENT_EVIDENCE`; undefined ratios use JSON null. Existing release evidence must be
-rerun to satisfy the new behavioral and discovery requirements. Simulated endpoint tests
+`INSUFFICIENT_EVIDENCE`; undefined ratios use JSON null. A new strict research release claim must satisfy the new behavioral and discovery requirements. Simulated endpoint tests
 verify the runner's mechanics, not the fidelity of any particular persona.

@@ -1,5 +1,11 @@
 # Stage 3: class-specific admission and ranking
 
+Scheduling follows [standard-workflow.md](standard-workflow.md). Preserve these content and
+admission rules; reuse applicable evidence on upgrades. Missing evidence leaves new candidates
+pending outside the operative core, not assigned invented metrics. Inconclusive findings do not
+authorize another corpus-wide pass, threshold changes or unbudgeted evaluation.
+
+
 Run `scripts/score_elements.py candidates.json --out scores.json` before assembly.
 The scorer is the single definition of numerical admission and precedence. It
 uses evidence appropriate to each element class and ranks eligible elements

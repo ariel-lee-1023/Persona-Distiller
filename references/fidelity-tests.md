@@ -1,5 +1,13 @@
 # Fidelity checks — gates (before assembly) and final verification (after)
 
+**Research mode only.** These qualification requirements keep their strict meaning. Ordinary
+builds/upgrades follow [standard-workflow.md](standard-workflow.md) and do not dispatch this full
+protocol. Comprehensive evaluation needs an explicit request and a fixed shared call budget.
+Stop at the limit, preserve inconclusive/failed/partial results and report a working version or
+draft separately. References to re-testing below never authorize unbounded retries or test-set
+replenishment during standard work.
+
+
 These are the empirical answer to "did the distillation actually capture the person, or just produce
 a plausible-sounding voice?" Two of them run **twice**, at two different points, and this is the
 important structural fact: the projection test and the cost test first run as **mandatory gates
@@ -18,7 +26,7 @@ Stage 3 scoring ─► GATE: projection test + cost test ─► (fail → re-cur
                                                      └─► (pass) ─► Stage 4 assembly ─► Stage 5 final verify
 ```
 
-Default thresholds are starting points; record whatever you use.
+The existing release thresholds are unchanged. Do not lower them to complete a workflow.
 
 ---
 

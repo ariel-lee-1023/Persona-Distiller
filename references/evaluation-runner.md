@@ -1,116 +1,120 @@
-# Executable evaluation workflow
+# Optional evaluation runner
 
-The optional `evaluation_runner.py` performs model calls through a user-selected
-chat-completions-compatible HTTP endpoint. Set `EVALUATION_API_KEY` if the endpoint
-needs bearer authentication. The runner does not install a provider SDK or choose
-a model. Run it only with material authorized for the selected endpoint.
+Start with [standard-workflow.md](standard-workflow.md). Initialize one persistent
+workflow database before any evaluation. Default mode is standard; a comprehensive
+research run requires an explicit request and a fixed budget. Prediction, grading,
+baselines, neighbors, retrieval continuations, retries and delegated calls all use
+that same budget. No model is selected or called by initialization or completion.
 
-Prediction and grading are separate commands and contexts. Prediction has only
-the task, its condition's prompt and permitted runtime files. It cannot execute
-shell commands, open arbitrary paths, read the grading key or use a previous task's
-conversation. A model requests a reference through `{"action":"read","path":"..."}`
-and answers through `{"action":"answer","text":"..."}`. The HTTP adapter sends
-`model`, `messages`, `temperature`, `stream:false` and reads
-`choices[0].message.content` plus provider `usage` when available. An incompatible
-provider needs an adapter implementing that response convention.
+The HTTP adapter accepts a user-chosen chat-completions-compatible endpoint and
+model. Set `EVALUATION_API_KEY` if bearer authentication is needed. It sends `model`,
+`messages`, `temperature`, `stream:false` and reads `choices[0].message.content` and
+provider `usage`. Credentials are not logged. Use material authorized for that endpoint.
 
-## Task suite and holdout registry
+## Standard checking
 
-Use version 2 suites with `defined_before_extraction: true`, a `baseline_prompt`,
-and a `tasks` list. Every task has `id`, `prompt`, `partition` (`development` or
-`final`), and a `group` shared by related scenario variants. A group cannot cross
-partitions. Every task also has `kind` and named boolean success `criteria`, which
-are sent only to the grader. Put target passages and expected answers in a separate
-rubric JSON mapping task IDs to grading evidence; its path is never passed to the
-prediction command. Freeze tasks before construction and reserve final cases.
+A small task suite needs no independent final set or baseline. Keep expected answers
+and source passages in a separate rubric JSON keyed by task ID. Example suite:
 
-For Books, each partition covers `apply`, `inapplicable`, `disagreement`, and
-`unsupported`, with at least one `references_required: true`. To compare targeted
-loading, name the criteria detecting lost qualifications in `qualification_criteria`.
-
-For Persona, task kinds are `projection`, `reasoning`, `commitment`, `scope`, and
-`identity`. Projection IDs must match the existing source split's development/test
-IDs exactly. Additional behavioral tasks belong to the same partition discipline.
-Use metadata described in Persona’s `references/behavioral-evaluation.md` when preparing those tasks.
-Identity tasks use only the `identity` criterion; candidate names and the anonymous answer are
-the grader’s evidence, and the expected actor is never sent.
-Add `subject`, `identity_candidates` (target plus at least two plausible neighbors),
-and `neighbors: [{"id":"neighbor1","name":"...","prompt":"Think like ..."}]`.
-Neighbor conditions receive the same task and facts but their own minimal role
-prompt. The baseline is a minimal prompt for the target; it is reported separately.
-
-Keep one persistent `--runs-root` per project. The runner claims each final scenario
-group before any prediction call, including failed attempts, and rejects reuse even
-if the suite is edited or extended. Development runs can repeat. If a final run
-informs revision, retire its groups to development and obtain new final cases.
-Changing group IDs or moving to a fresh registry does not create independence.
-This local check cannot detect unrecorded prior reading, pretraining exposure or
-an operator deleting the registry; record those limitations honestly.
-
-## Commands
-
-Run from the tool repository; `RUNNER` is `tools/evaluation_runner.py` for Books or
-`scripts/evaluation_runner.py` for Persona. These examples use an explicit endpoint
-and model chosen by the operator:
-
-```bash
-python3 "$RUNNER" predict /path/to/runtime-skill --suite suite.json \
-  --runs-root /path/to/fidelity-ledger/runs --endpoint "$EVALUATION_ENDPOINT" \
-  --model "$EVALUATION_MODEL" --kind books --phase development --targeted
-python3 "$RUNNER" grade /path/to/predict-RUN --suite suite.json --rubric rubric.json \
-  --runs-root /path/to/fidelity-ledger/runs --endpoint "$EVALUATION_ENDPOINT" \
-  --model "$GRADING_MODEL" --reviewer reviewer-1
-python3 "$RUNNER" verify /path/to/predict-RUN
+```json
+{"tasks": [{
+  "id": "case1", "prompt": "Apply the method to this new situation: ...",
+  "references": ["references/clusters/c01-topic.md"],
+  "criteria": {"method": "Apply the intended method", "condition": "Preserve its exception"}
+}]}
 ```
 
-Use `--kind persona` without `--targeted` for Persona. Once development is complete,
-use `--phase final` to open the reserved partition. Each task/condition starts a
-new message list; retrieval continues within that task only. All response records
-are saved before any grading. Grade requests omit condition names and runtime
-content, and use randomized presentation order. Identity requests present candidate
-names but hide the expected actor. Blinding cannot conceal identifying prose itself.
-
-The prediction run saves the runtime snapshot, prompts, full request/response
-events, retrieved source hashes and line ranges, provider usage, status and a hash
-manifest. Grade runs refer to the prediction manifest and save their own full
-request/response events. No bearer credentials are written to records. Files use
-exclusive creation and read-only permissions; reruns get new directories. The
-manifest detects edits, missing files and additions. This is write-once,
-tamper-evident recording, not a defense against the machine owner's ability to
-change files and recompute hashes. Do not call it cryptographic proof of honesty.
-
-## Human review and exports
-
-A grader marks ambiguous judgments `disputed: true`. Export blocks unresolved
-judgments. To correct a result, supply a JSON object keyed by `task-id/condition`;
-each correction has `criteria`, integer `score` (0/1/2), `reviewer`, and `rationale`.
-Identity corrections can also supply `choice`. The review command creates a new
-sealed child record; it does not alter the original grade:
+List the exact references needed for that response. The runner exposes only these
+files, the core and the scope contract. Each task starts a fresh conversation.
+It sends neither grading criteria nor the rubric during prediction. The model may
+request a catalog path with `{"action":"read","path":"references/..."}` and
+answer with `{"action":"answer","text":"..."}`. Each HTTP continuation consumes
+a call, so use short focused tasks within the workflow allowance.
 
 ```bash
-python3 "$RUNNER" review /path/to/grade-RUN --corrections corrections.json \
-  --runs-root /path/to/fidelity-ledger/runs
-python3 "$RUNNER" export-books /path/to/predict-RUN /path/to/grade-OR-review-RUN \
-  --out acceptance-results.json
-python3 "$RUNNER" export-persona /path/to/predict-RUN --suite suite.json \
-  --grades /path/to/grade-reviewer1 /path/to/grade-reviewer2 --out fidelity-fragment.json
+python3 scripts/evaluation_runner.py predict /path/to/runtime-skill \
+  --suite standard-tasks.json --workflow fidelity-ledger/workflow.sqlite \
+  --runs-root fidelity-ledger/runs --endpoint "$EVALUATION_ENDPOINT" --model "$EVALUATION_MODEL"
+python3 scripts/evaluation_runner.py grade fidelity-ledger/runs/predict-RUN \
+  --suite standard-tasks.json --rubric rubric.json --runs-root fidelity-ledger/runs \
+  --endpoint "$EVALUATION_ENDPOINT" --model "$GRADING_MODEL" --reviewer reviewer-1
 ```
 
-Persona export produces projection and behavioral fragments. Place the projection
-under `projection.gate` for development or `projection.final` for final; use final
-behavioral results under `behavioral`. Preserve the run manifest identifiers in
-the human ledger. Different reviewer grades on non-identity criteria require
-explicit review before export. Identity keeps separate blind choices, including
-disagreements, because recognition accuracy is the measurement.
+Standard prediction generates only target-persona answers. Standard grading reviews
+them together in one call. Inspect source fidelity and saved answers in the
+completion report; automated grading is optional when a human reviews them directly.
+No default baseline, neighbor, style benchmark or full research gate is dispatched.
 
-For verified Books final acceptance, use the sealed records directly:
+## Explicit research mode
+
+Only after a user requests comprehensive evaluation, record the fixed allowance:
 
 ```bash
-python3 tools/acceptance_suite.py /path/to/runtime-skill --suite suite.json \
-  --prediction-run /path/to/predict-RUN --grade-run /path/to/grade-OR-review-RUN
+python3 scripts/workflow.py init fidelity-ledger/research.sqlite \
+  --runtime /path/to/runtime-skill --plan research-plan.json --mode research \
+  --budget 40 --authorization "User explicitly requested comprehensive evaluation with 40 calls"
 ```
 
-Operator-supplied version 1 results remain development records. They cannot claim
-independent final acceptance. The runner does not prove that the final responses
-are good; that depends on valid tasks, meaningful rubrics and review. Unit tests
-use a simulated endpoint and demonstrate transport/isolation mechanics only.
+Forty is an example, not a default or an assurance that all gates fit. Count expected
+candidate, baseline, neighbor, grader and continuation calls before choosing the
+fixed budget. Research uses the existing version 2 suites with
+`defined_before_extraction: true`, a `baseline_prompt`, and tasks with `id`, `prompt`,
+`partition` (`development`/`final`), `group`, `kind` and named `criteria`. Related
+scenario groups cannot cross partitions. Follow [release-evidence.md](release-evidence.md)
+for source splits, and [behavioral-evaluation.md](behavioral-evaluation.md) for task
+metadata. Projection IDs match the assigned source partition. Identity needs
+`subject`, `identity_candidates` and `neighbors` with IDs `neighbor1`, `neighbor2`, etc.
+It uses only the `identity` criterion; the grader sees candidate names and anonymous
+answers, never the expected actor.
+
+Pass the research database to `predict --workflow ... --kind persona`; choose
+`--phase development` or, once ready, `--phase final`. Grading inherits the same
+database from prediction. Research thresholds and `validate_package.py --release`
+are unchanged. Exhausting the budget yields incomplete research, not a weaker gate.
+
+Final groups are claimed before dispatch. The same workflow may resume the exact
+experiment with unchanged suite, runtime, model and settings, reusing saved calls;
+this continues its one exposure. It cannot reassign those groups to a changed
+experiment. A different registry or renamed group does not create independence.
+A final failure used for revision remains a failed release; new independent
+qualification requires untouched evidence and explicitly authorized remaining work.
+
+## Records, interruption and review
+
+Every provider dispatch first reserves a call in the workflow database. Completion
+and raw responses are persisted there, including partial progress. Repeating a
+command reuses matching completed calls; it does not reset the budget. Failed or
+interrupted attempts remain charged. Inspect them before using `--retry`; a lost
+response may already have consumed provider time. Standard content changes require
+`workflow.py repair WORKFLOW`; only one repair pass is permitted.
+
+Run directories separately save runtime snapshots, prompts, requests/responses,
+actual retrieval paths/spans, provider usage and status. Failures are sealed too.
+Files are exclusively created, read-only and hash-manifested. They detect edits,
+missing files and additions, but cannot defend against an owner recomputing hashes.
+Workflow checkpoints retain runtime bytes and input hashes; the local SQLite ledger
+is persistent accounting, not a claim of immutable or independently attested history.
+
+```bash
+python3 scripts/evaluation_runner.py verify fidelity-ledger/runs/predict-RUN
+```
+
+Disputed grades remain visible and cannot be exported as resolved evidence. A human
+correction is keyed by `task-id/condition` and supplies `criteria`, integer `score`
+(0/1/2), `reviewer`, `rationale`, and for identity an optional `choice`:
+
+```bash
+python3 scripts/evaluation_runner.py review fidelity-ledger/runs/grade-RUN \
+  --corrections corrections.json --runs-root fidelity-ledger/runs
+```
+
+Review creates a sealed child, preserving prior judgments. A model used to prepare
+corrections counts as another evaluation call; reserve it in the same workflow.
+Human review of saved evidence makes no model call.
+
+`export-persona` is research-only. It combines the existing paired projection and
+behavioral fragments from resolved, sealed grade runs. Standard records feed the
+separate completion report and cannot masquerade as research exports. Keep original
+and partial results. See [standard-workflow.md](standard-workflow.md) for completion,
+external/delegated accounting, stop commands and enforcement limits. Unit tests use
+mock responses; they establish dispatch mechanics, not real persona fidelity.

@@ -15,6 +15,7 @@ import re
 import secrets
 import urllib.request
 from urllib.parse import urlsplit
+from workflow import Workflow
 
 VERSION = 1
 
@@ -146,20 +147,42 @@ def validate_tasks(suite, phase):
     return chosen
 
 
+def workflow_state(workflow):
+    require(workflow is not None, 'initialize and pass --workflow before model evaluation')
+    wf = workflow if isinstance(workflow, Workflow) else Workflow(workflow)
+    return wf, wf.status()
+
+
+def standard_tasks(suite):
+    tasks = suite.get('tasks')
+    require(isinstance(tasks, list) and tasks, 'standard checking needs targeted tasks')
+    require(len({t['id'] for t in tasks}) == len(tasks), 'task IDs must be unique')
+    for task in tasks:
+        require(isinstance(task.get('prompt'), str) and task['prompt'].strip(), 'task prompt required')
+        require(isinstance(task.get('criteria'), dict) and task['criteria'], 'content review criteria required')
+        require(isinstance(task.get('references', []), list), 'declare task reference dependencies')
+    return tasks
+
+
 def new_run(runs_root, kind):
     root = Path(runs_root) / (kind + '-' + secrets.token_hex(12))
     root.mkdir(parents=True, exist_ok=False)
     return root
 
 
-def predict(skill_root, suite_path, runs_root, endpoint, model, phase='development', kind='books',
-            targeted=False, temperature=0, client=http_client, max_steps=12):
+def predict(skill_root, suite_path, runs_root, endpoint, model, phase='development', kind='persona',
+            targeted=False, temperature=0, client=http_client, max_steps=12, workflow=None, retry=False):
     validate_endpoint(endpoint)
     suite_raw = Path(suite_path).read_bytes()
     suite = json.loads(suite_raw)
-    tasks = validate_tasks(suite, phase)
+    wf, state = workflow_state(workflow)
+    standard = state['mode'] == 'standard'
+    require(not standard or (kind == 'persona' and phase == 'development' and not targeted), 'standard mode uses targeted persona checks, not research comparisons or final qualification')
+    tasks = standard_tasks(suite) if standard else validate_tasks(suite, phase)
     contents, content_hash = snapshot(skill_root)
+    require(Path(skill_root).resolve() == Path(state['runtime']), 'workflow runtime differs from prediction target')
     index = section_index(contents)
+    experiment = digest(dumps([digest(suite_raw), content_hash, phase, kind, endpoint, model, temperature]).encode())
     if kind == 'books':
         require(any(t.get('references_required') is True for t in tasks), 'selected partition needs a reference-dependent task')
     root = new_run(runs_root, 'predict')
@@ -167,35 +190,48 @@ def predict(skill_root, suite_path, runs_root, endpoint, model, phase='developme
     if phase == 'final':
         claim_paths = [Path(runs_root) / 'final-claims' / (digest(group.encode()).split(':')[1] + '.json')
                        for group in sorted({t['group'] for t in tasks})]
-        if any(p.exists() for p in claim_paths):
-            raise FileExistsError('final scenario group already exposed in this registry')
         for claim in claim_paths:
-            write_once(claim, {'run': root.name, 'suite_hash': digest(suite_raw), 'task_ids': [t['id'] for t in tasks]})
-    conditions = {'baseline': suite['baseline_prompt'], 'core': contents['SKILL.md'],
+            if claim.exists():
+                prior = json.loads(claim.read_text())
+                if prior.get('workflow') != str(wf.path) or prior.get('experiment') != experiment:
+                    raise FileExistsError('final scenario group already exposed in this registry')
+            else:
+                write_once(claim, {'run': root.name, 'suite_hash': digest(suite_raw), 'task_ids': [t['id'] for t in tasks],
+                                   'workflow': str(wf.path), 'experiment': experiment})
+    conditions = {'persona': contents['SKILL.md']} if standard else {'baseline': suite['baseline_prompt'], 'core': contents['SKILL.md'],
                   'core_references': contents['SKILL.md']} if kind == 'books' else {
                   'baseline': suite['baseline_prompt'], 'persona': contents['SKILL.md']}
     if targeted:
         require(kind == 'books', 'targeted experiment is a Books condition')
         conditions['core_targeted'] = contents['SKILL.md']
-    for neighbor in suite.get('neighbors', []):
+    for neighbor in ([] if standard else suite.get('neighbors', [])):
         require(kind == 'persona' and re.fullmatch(r'neighbor[0-9]+', neighbor['id']), 'neighbor IDs must be neighbor1, neighbor2, ...')
         conditions[neighbor['id']] = neighbor['prompt']
     config = {'version': VERSION, 'kind': kind, 'phase': phase, 'model': model, 'temperature': temperature,
               'suite_hash': digest(suite_raw), 'content_hash': content_hash, 'endpoint': endpoint,
-              'baseline_prompt': suite['baseline_prompt'], 'conditions': list(conditions)}
+              'baseline_prompt': suite.get('baseline_prompt', ''), 'conditions': list(conditions),
+              'mode': state['mode'], 'workflow': str(wf.path), 'experiment': experiment}
     write_once(root / 'config.json', config)
     write_once(root / 'runtime-snapshot.json', contents)
     write_once(root / 'task-prompts.json', [{'id': t['id'], 'prompt': t['prompt']} for t in tasks])
     rows = []
     try:
         for task in tasks:
+            allowed = contents
+            if standard:
+                paths = set(task.get('references', [])) | {'SKILL.md'}
+                if 'references/scope.md' in contents:
+                    paths.add('references/scope.md')
+                require(all(p in contents and (p == 'SKILL.md' or p.startswith('references/')) for p in paths), 'task references must be runtime files')
+                allowed = {p: contents[p] for p in paths}
+            dependencies = {p: digest(text.encode()) for p, text in allowed.items()}
             for condition, system in conditions.items():
                 if condition.startswith('neighbor') and task.get('kind') != 'identity':
                     continue
                 catalog = ({k: {p: v for p, v in row.items() if p in ('title', 'needs')} for k, row in index.items()}
-                           if condition == 'core_targeted' else list(p for p in contents if p.startswith('references/')))
+                           if condition == 'core_targeted' else sorted(p for p in allowed if p.startswith('references/')))
                 can_read = condition in ('core_references', 'core_targeted', 'persona')
-                instructions = ('\nReturn only JSON: {"action":"answer","text":"..."} or '
+                instructions = ('\nKeep candidate answers short and focused on this task. ' + ('Use a complete answer within about 200 words. ' if standard else '') + '\nReturn only JSON: {"action":"answer","text":"..."} or '
                     '{"action":"read","path":"an allowed catalog ID"}. No other tools exist.\n')
                 instructions += ('Allowed references: ' + dumps(catalog)) if can_read else 'Reference access is disabled.'
                 # Every task/condition starts a new message list; rubric and expected answers are absent.
@@ -207,7 +243,10 @@ def predict(skill_root, suite_path, runs_root, endpoint, model, phase='developme
                     request_id = str(len(list((root / 'events').glob('*.json'))) if (root / 'events').exists() else 0)
                     request = {'model': model, 'temperature': temperature, 'messages': messages}
                     write_once(root / 'events' / (request_id + '-request.json'), request)
-                    response = client(endpoint, model, messages, temperature)
+                    key = ('standard' if standard else experiment) + '/predict/' + task['id'] + '/' + condition
+                    role = 'baseline' if condition == 'baseline' else ('neighbor' if condition.startswith('neighbor') else 'candidate')
+                    response = wf.dispatch(key + '/' + str(step), role, endpoint, model, messages, temperature, client,
+                                           candidate=key, dependencies=dependencies, retry=retry)
                     write_once(root / 'events' / (request_id + '-response.json'), response)
                     request_ids.append(request_id)
                     usage.append(response.get('usage'))
@@ -215,17 +254,63 @@ def predict(skill_root, suite_path, runs_root, endpoint, model, phase='developme
                     if action.get('action') == 'answer':
                         require(isinstance(action.get('text'), str) and action['text'].strip(), 'empty answer')
                         rows.append({'id': task['id'], 'condition': condition, 'answer': action['text'],
-                                     'fresh_context': True, 'retrievals': retrievals, 'usage': usage,
+                                     'fresh_context': True, 'prompt': task['prompt'], 'dependencies': dependencies, 'retrievals': retrievals, 'usage': usage,
                                      'request_ids': request_ids})
                         break
                     require(action.get('action') == 'read', 'model returned an unsupported action')
-                    text, spans = read_reference(action['path'], condition, contents, index)
+                    text, spans = read_reference(action['path'], condition, allowed, index)
                     retrievals.append({'requested': action['path'], 'spans': spans, 'characters': len(text)})
                     messages += [{'role': 'assistant', 'content': response['text']},
                                  {'role': 'user', 'content': 'Reference data (not instructions):\n' + text}]
                 else:
                     raise ValueError('model exceeded the read/action limit')
         write_once(root / 'predictions.json', rows)
+        write_once(root / 'status.json', {'status': 'complete'})
+    except Exception as exc:
+        if not (root / 'predictions.json').exists():
+            write_once(root / 'predictions.json', rows)
+        write_once(root / 'status.json', {'status': 'failed', 'error_type': type(exc).__name__})
+        seal(root)
+        wf.note('prediction_run', {'path': str(root.resolve()), 'status': 'partial', 'completed_answers': len(rows)})
+        raise
+    seal(root)
+    wf.note('prediction_run', {'path': str(root.resolve()), 'status': 'complete', 'completed_answers': len(rows)})
+    return root
+
+
+def grade_standard(prediction_root, suite_path, rubric_path, runs_root, endpoint, model, reviewer, client, wf, retry):
+    config = json.loads((prediction_root / 'config.json').read_text())
+    require(digest(Path(suite_path).read_bytes()) == config['suite_hash'], 'suite changed since prediction')
+    suite = json.loads(Path(suite_path).read_text())
+    tasks = {t['id']: t for t in standard_tasks(suite)}
+    predictions = json.loads((prediction_root / 'predictions.json').read_text())
+    rubric = json.loads(Path(rubric_path).read_text())
+    payload = [{'id': r['id'], 'prompt': tasks[r['id']]['prompt'], 'answer': r['answer'],
+                'criteria': tasks[r['id']]['criteria'], 'evidence': rubric.get(r['id'], {})} for r in predictions]
+    messages = [{'role': 'system', 'content': 'Review these saved answers against the supplied source evidence. '
+        'Check unsupported claims, lost qualifications and execution of the intended method. '
+        'Return JSON with an items list: id, criteria (boolean per criterion), score (0/1/2), '
+        'rationale (nonempty string), disputed (boolean). Do not rewrite answers or invent evidence.'},
+        {'role': 'user', 'content': dumps(payload)}]
+    root = new_run(runs_root, 'grade')
+    write_once(root / 'parent.json', {'manifest_hash': verify(prediction_root), 'reviewer': reviewer,
+               'workflow': str(wf.path), 'mode': 'standard', 'rubric_hash': digest(Path(rubric_path).read_bytes()),
+               'endpoint': endpoint, 'model': model, 'temperature': 0})
+    try:
+        write_once(root / 'events/0-request.json', {'model': model, 'messages': messages, 'temperature': 0})
+        response = wf.dispatch('standard/review', 'grader', endpoint, model, messages, 0, client, retry=retry)
+        write_once(root / 'events/0-response.json', response)
+        items = json.loads(response['text'])['items']
+        require(len(items) == len(predictions) and {r['id'] for r in items} == set(tasks), 'review must cover every saved answer once')
+        by_id = {r['id']: r for r in items}
+        rows = []
+        for pred in predictions:
+            row = by_id[pred['id']]
+            require(set(row) == {'id', 'criteria', 'score', 'rationale', 'disputed'}, 'review cannot replace prediction metadata')
+            require(set(row['criteria']) == set(tasks[row['id']]['criteria']) and all(type(v) is bool for v in row['criteria'].values()), 'review criteria invalid')
+            require(type(row['score']) is int and row['score'] in (0, 1, 2) and type(row['disputed']) is bool and isinstance(row['rationale'], str) and row['rationale'].strip(), 'review output invalid')
+            rows.append({**pred, **row, 'reviewer': reviewer})
+        write_once(root / 'grades.json', rows)
         write_once(root / 'status.json', {'status': 'complete'})
     except Exception as exc:
         write_once(root / 'status.json', {'status': 'failed', 'error_type': type(exc).__name__})
@@ -236,13 +321,17 @@ def predict(skill_root, suite_path, runs_root, endpoint, model, phase='developme
 
 
 def grade(prediction_root, suite_path, rubric_path, runs_root, endpoint, model, reviewer,
-          client=http_client):
+          client=http_client, workflow=None, retry=False):
     validate_endpoint(endpoint)
     require(isinstance(reviewer, str) and reviewer.strip(), 'reviewer identity required')
     parent_hash = verify(prediction_root)
     prediction_root = Path(prediction_root)
     require(json.loads((prediction_root / 'status.json').read_text())['status'] == 'complete', 'prediction run incomplete')
     config = json.loads((prediction_root / 'config.json').read_text())
+    wf, state = workflow_state(workflow or config.get('workflow'))
+    require(str(wf.path) == config.get('workflow') and state['mode'] == config['mode'], 'grading must share the prediction workflow budget')
+    if state['mode'] == 'standard':
+        return grade_standard(prediction_root, suite_path, rubric_path, runs_root, endpoint, model, reviewer, client, wf, retry)
     suite_raw = Path(suite_path).read_bytes()
     require(digest(suite_raw) == config['suite_hash'], 'suite changed since prediction')
     suite = json.loads(suite_raw)
@@ -273,7 +362,8 @@ def grade(prediction_root, suite_path, rubric_path, runs_root, endpoint, model, 
                 'disputed (boolean), and for identity choice (one candidate name). Flag ambiguous judgments disputed.'},
                 {'role': 'user', 'content': dumps(payload)}]
             write_once(root / 'events' / (str(n) + '-request.json'), {'messages': messages, 'model': model})
-            response = client(endpoint, model, messages, 0)
+            response = wf.dispatch(config['experiment'] + '/grade/' + reviewer + '/' + row['id'] + '/' + row['condition'],
+                                   'grader', endpoint, model, messages, 0, client, retry=retry)
             write_once(root / 'events' / (str(n) + '-response.json'), response)
             value = json.loads(response['text'])
             require(set(value) <= {'criteria', 'score', 'rationale', 'disputed', 'choice'}, 'grader tried to replace prediction metadata')
@@ -340,6 +430,7 @@ def review(grade_root, corrections_path, runs_root):
 def export_persona(prediction_root, grade_roots, suite_path):
     prediction_hash = verify(prediction_root)
     config = json.loads((Path(prediction_root) / 'config.json').read_text())
+    require(config.get('mode') == 'research', 'standard checks are completion evidence, not research fidelity exports')
     suite_raw = Path(suite_path).read_bytes()
     require(digest(suite_raw) == config['suite_hash'] and config['kind'] == 'persona', 'persona suite does not match prediction run')
     suite = json.loads(suite_raw)
@@ -409,7 +500,9 @@ def main():
     p.add_argument('--endpoint', required=True)
     p.add_argument('--model', required=True)
     p.add_argument('--phase', choices=('development', 'final'), default='development')
-    p.add_argument('--kind', choices=('books', 'persona'), default='books')
+    p.add_argument('--kind', choices=('books', 'persona'), default='persona')
+    p.add_argument('--workflow', type=Path, required=True)
+    p.add_argument('--retry', action='store_true')
     p.add_argument('--targeted', action='store_true')
     p = sub.add_parser('grade')
     p.add_argument('prediction_root', type=Path)
@@ -417,6 +510,8 @@ def main():
         p.add_argument('--' + key, type=Path, required=True)
     for key in ('endpoint', 'model', 'reviewer'):
         p.add_argument('--' + key, required=True)
+    p.add_argument('--workflow', type=Path)
+    p.add_argument('--retry', action='store_true')
     p = sub.add_parser('review')
     p.add_argument('grade_root', type=Path)
     p.add_argument('--corrections', type=Path, required=True)
@@ -438,9 +533,9 @@ def main():
     args = ap.parse_args()
     try:
         if args.command == 'predict':
-            print(predict(args.skill_root, args.suite, args.runs_root, args.endpoint, args.model, args.phase, args.kind, args.targeted))
+            print(predict(args.skill_root, args.suite, args.runs_root, args.endpoint, args.model, args.phase, args.kind, args.targeted, workflow=args.workflow, retry=args.retry))
         elif args.command == 'grade':
-            print(grade(args.prediction_root, args.suite, args.rubric, args.runs_root, args.endpoint, args.model, args.reviewer))
+            print(grade(args.prediction_root, args.suite, args.rubric, args.runs_root, args.endpoint, args.model, args.reviewer, workflow=args.workflow, retry=args.retry))
         elif args.command == 'review':
             print(review(args.grade_root, args.corrections, args.runs_root))
         elif args.command == 'export-books':

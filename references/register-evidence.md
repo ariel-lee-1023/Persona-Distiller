@@ -1,5 +1,11 @@
 # Register evidence with sparse counts
 
+Scheduling follows [standard-workflow.md](standard-workflow.md). Preserve these content and
+admission rules; reuse applicable evidence on upgrades. Missing evidence leaves new candidates
+pending outside the operative core, not assigned invented metrics. Inconclusive findings do not
+authorize another corpus-wide pass, threshold changes or unbudgeted evaluation.
+
+
 `register_discover.py` treats ratios as descriptive, not sufficient evidence for
 separation. Zero versus positive has an undefined ratio, recorded as JSON null.
 A difference can force incompatibility only after sufficient source observations,

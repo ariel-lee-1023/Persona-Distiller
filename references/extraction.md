@@ -1,5 +1,11 @@
 # Stage 2 — Multi-granularity extraction
 
+Scheduling follows [standard-workflow.md](standard-workflow.md). Preserve these content and
+admission rules; reuse applicable evidence on upgrades. Missing evidence leaves new candidates
+pending outside the operative core, not assigned invented metrics. Inconclusive findings do not
+authorize another corpus-wide pass, threshold changes or unbudgeted evaluation.
+
+
 Three passes, run over the segmented clusters. The output is `extractions.json`: a flat list of
 candidate elements, each with evidence, ready for Stage 3 scoring. The central discipline of this
 stage is to **spend effort in proportion to diagnostic value, not ease of measurement** — the easy
@@ -11,8 +17,8 @@ pass (fine-grained) is necessary but cheap; the two hard passes are where identi
 
 ### A0 — Register discovery, before any measurement is pooled
 
-**Run `scripts/register_discover.py` first. This step is mandatory and its output governs the rest
-of the pass.**
+**Before new pooled measurements, use applicable register discovery evidence. Incremental
+upgrades reuse unaffected results; unresolved discovery remains unresolved in standard mode.**
 
 Until 3.0 this pass began by running the metrics script over the whole corpus, and the register
 question was raised only later, optionally, as a discrimination test that fired "if the core claims
@@ -32,9 +38,12 @@ So: measure per unit, then decide whether pooling is allowed.
    constraint: any pair that exceeds the ratio threshold on three or more dimensions is
    *incommensurable* and may never share a family.
 3. **Read the verdict.**
+   - `INSUFFICIENT_EVIDENCE` — keep the finding, narrow register claims and preserve supported
+     reasoning. Do not automatically search more subsets or commission another evaluation round.
    - `MULTI_REGISTER` — the families are the organising unit for the rest of the pass, for
      `voice.md`, and for the cluster budgets. Every subsequent measurement is per family. The
-     discrimination test in `fidelity-tests.md` is now **mandatory**, not conditional.
+     discrimination test in `fidelity-tests.md` is required for strict research qualification.
+     Standard delivery records this evaluation as incomplete unless reusable evidence exists.
    - `SINGLE_REGISTER` — a finding, not a default. Copy the distance matrix into
      `fidelity-ledger/provenance.md` §4 as the evidence for it. A single-family package that cannot
      show the matrix has not established anything; it has merely not looked.

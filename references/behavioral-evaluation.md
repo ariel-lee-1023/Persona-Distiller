@@ -1,5 +1,13 @@
 # Behavioral release evidence
 
+**Research mode only.** These qualification requirements keep their strict meaning. Ordinary
+builds/upgrades follow [standard-workflow.md](standard-workflow.md) and do not dispatch this full
+protocol. Comprehensive evaluation needs an explicit request and a fixed shared call budget.
+Stop at the limit, preserve inconclusive/failed/partial results and report a working version or
+draft separately. References to re-testing below never authorize unbounded retries or test-set
+replenishment during standard work.
+
+
 Position recall, characteristic reasoning, costly commitment, identity recognition,
 historical scope and surface style are separate results. A projection score of
 .50 consisting entirely of direction-only answers no longer suffices for release:

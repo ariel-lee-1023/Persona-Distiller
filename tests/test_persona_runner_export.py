@@ -44,8 +44,8 @@ class PersonaRunnerExportTests(unittest.TestCase):
                 actor = next((c for c in suite['identity_candidates'][1:] if c in messages[0]['content']), 'Target')
                 value = {'action': 'answer', 'text': actor + ': characteristic response to this case.'}
             return {'text': runner.dumps(value), 'usage': {'total_tokens': 100}}
-        pred = runner.predict(f.skill, f.suite_path, f.root / 'runs', 'https://example.invalid', 'mock', 'final', 'persona', client=client)
-        grades = [runner.grade(pred, f.suite_path, f.rubric, f.root / 'runs', 'https://example.invalid', 'mock', judge, client=client) for judge in ('judge1', 'judge2')]
+        pred = runner.predict(f.skill, f.suite_path, f.root / 'runs', 'https://example.invalid', 'mock', 'final', 'persona', client=client, workflow=f.workflow)
+        grades = [runner.grade(pred, f.suite_path, f.rubric, f.root / 'runs', 'https://example.invalid', 'mock', judge, client=client, workflow=f.workflow) for judge in ('judge1', 'judge2')]
         exported = runner.export_persona(pred, grades, f.suite_path)
         report = check_behavioral(exported['behavioral'], exported['behavioral']['content_hash'])
         self.assertEqual(report['identity']['macro_accuracy'], 1)

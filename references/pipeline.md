@@ -3,10 +3,14 @@
 Read this before running Stage 1 the first time. It covers how to get clean text out of mixed
 formats, how to cut the corpus into clusters, and the internal artifacts the later stages depend on.
 
-Before semantic extraction, follow [release-evidence.md](release-evidence.md): assign work/episode
-groups using metadata, create `split.json`, and materialize separate train, development and test
-collections. All construction steps below operate on train only. Coverage reports distinguish
-training coverage from held-out coverage. Keep final targets sealed until final verification.
+Start with [standard-workflow.md](standard-workflow.md). Standard is the default; record scope,
+affected modules, reusable evidence and the persistent call budget before work. Upgrades revisit
+only affected content. Preserve unaffected modules and recover source text only for actual gaps.
+Formatting-only changes need no new model evaluation.
+
+Research mode follows [release-evidence.md](release-evidence.md): split grouped metadata before
+semantic extraction, keep final targets hidden and construct from train only. Standard mode does
+not automatically create or replenish independent qualification sets. Preserve existing reservations.
 
 ## Working directories
 
@@ -22,17 +26,18 @@ later stage reads and writes here, so resolve the path once and reuse it.
 ├── registers.json         # Pass A0 output: register families, distance matrix, verdict
 ├── extractions.json       # Stage 2 output: every candidate element with evidence
 ├── scores.json            # Stage 3 output: class admission + within-class ranking + keep/cut reasons
-└── fidelity.json          # gate results + Stage 5 results
+├── workflow.sqlite        # persistent mode, scope, budget, calls and runtime checkpoints
+├── completion-01.json     # delivery status separately from evaluation status
+└── fidelity.json          # research results when commissioned; failed/partial records retained
 ```
 
 Keep these artifacts for the whole run — do not clean up between stages. Three things depend on it:
-the control flow is a **loop** (a failed gate sends you back to re-curate, which needs
-`extractions.json` and the previous `scores.json`); the hard deletion rule is only defensible
+bounded repairs reuse `extractions.json` and the previous `scores.json`; the hard deletion rule is only defensible
 because `scores.json` logs every keep/cut with its reason; and the honesty split relocates all
 caveats into the coverage report and `fidelity-ledger/provenance.md`, which are built from
 `coverage_map.json` and `fidelity.json`.
 
-Only the finished persona directory is delivered to the user, at the persona-out location resolved
+The supported current persona directory and its completion report are delivered to the user, at the persona-out location resolved
 at the start of the run. The work dir is your scratchpad and stays behind.
 
 **If the work dir sits inside a git repository, confirm it is ignored before writing.** `raw/` holds
@@ -196,8 +201,8 @@ report and of the available class admission evidence.
 ```
 
 Use it to:
-- **Auto-weight** — high `dialogue_ratio` → raise the interactional pass and probe weight; low
-  → lean on projectible-regularity extraction.
+- **Focus extraction** — dialogue-rich material supports interactional evidence; monologic
+  material supports other diagnostics. Preserve the class-specific admission rules and formulas.
 - **Set expectations** — `thin_domains` and `temporal gaps` become explicit caveats in the
   coverage report handed to the user (never in the persona).
 - **Bound scope** — if `total_tokens` is very low or `domains` is one narrow slice, plan for a

@@ -5,11 +5,16 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import sys
+from functools import partial
 import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 HELPERS = ROOT / ('tools' if (ROOT / 'tools').exists() else 'scripts')
+sys.path.insert(0, str(HELPERS))
+from workflow import Workflow
+
 spec = importlib.util.spec_from_file_location('runner_under_test', HELPERS / 'evaluation_runner.py')
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
@@ -34,6 +39,11 @@ class RunnerTests(unittest.TestCase):
         self.rubric = self.root / 'rubric.json'
         self.rubric.write_text(runner.dumps({t['id']: {'truth': 'GRADING SECRET'} for t in self.suite['tasks']}))
         self.calls = []
+        self.workflow = Workflow.create(self.root / 'workflow.sqlite', self.skill, 'Mock research protocol regression',
+                                        ['SKILL.md', 'references/book.md'], mode='research', budget=1000,
+                                        authorization='Explicit comprehensive mocked test')
+        self.predict = partial(runner.predict, workflow=self.workflow, kind='books')
+        self.grade = partial(runner.grade, workflow=self.workflow)
 
     def model(self, endpoint, model, messages, temperature):
         self.calls.append(copy.deepcopy(messages))
@@ -51,14 +61,14 @@ class RunnerTests(unittest.TestCase):
         return {'text': runner.dumps(value), 'usage': {'total_tokens': len(runner.dumps(messages)) // 4}}
 
     def run_prediction(self, phase='development', targeted=True):
-        return runner.predict(self.skill, self.suite_path, self.root / 'runs', 'https://example.invalid/chat/completions', 'mock-model', phase, targeted=targeted, client=self.model)
+        return self.predict(self.skill, self.suite_path, self.root / 'runs', 'https://example.invalid/chat/completions', 'mock-model', phase, targeted=targeted, client=self.model)
 
     def test_prediction_isolation_retrieval_capture_and_sealed_grade_export(self):
         pred = self.run_prediction()
         before = copy.deepcopy(self.calls)
         self.assertTrue(all('GRADING SECRET' not in runner.dumps(m) for m in before))
         self.assertEqual(sum(len(m) == 2 for m in before), 16)
-        grade = runner.grade(pred, self.suite_path, self.rubric, self.root / 'runs', 'https://example.invalid', 'mock-grader', 'judge1', client=self.model)
+        grade = self.grade(pred, self.suite_path, self.rubric, self.root / 'runs', 'https://example.invalid', 'mock-grader', 'judge1', client=self.model)
         self.assertTrue(all('core_targeted' not in runner.dumps(m) for m in self.calls[len(before):]))
         exported = runner.export_books(pred, grade)
         whole = exported['runs']['core_references'][0]
@@ -100,7 +110,7 @@ class RunnerTests(unittest.TestCase):
             data = json.loads(answer['text']); data['disputed'] = True
             answer['text'] = runner.dumps(data)
             return answer
-        grade = runner.grade(pred, self.suite_path, self.rubric, self.root / 'runs', 'https://example.invalid', 'mock', 'judge', client=disputed)
+        grade = self.grade(pred, self.suite_path, self.rubric, self.root / 'runs', 'https://example.invalid', 'mock', 'judge', client=disputed)
         with self.assertRaisesRegex(ValueError, 'disputed'):
             runner.export_books(pred, grade)
         original_hash = runner.verify(grade)
@@ -120,7 +130,7 @@ class RunnerTests(unittest.TestCase):
             response['text'] = runner.dumps(value)
             return response
         with self.assertRaisesRegex(ValueError, 'metadata'):
-            runner.grade(pred, self.suite_path, self.rubric, self.root / 'runs',
+            self.grade(pred, self.suite_path, self.rubric, self.root / 'runs',
                          'https://example.invalid', 'mock', 'judge', client=forged)
         grade = next((self.root / 'runs').glob('grade-*'))
         self.assertTrue(runner.verify(grade))
@@ -128,7 +138,7 @@ class RunnerTests(unittest.TestCase):
 
     def test_credentials_in_endpoint_rejected_before_records_are_written(self):
         with self.assertRaisesRegex(ValueError, 'credentials'):
-            runner.predict(self.skill, self.suite_path, self.root / 'runs',
+            self.predict(self.skill, self.suite_path, self.root / 'runs',
                            'https://user:secret@example.invalid', 'mock', client=self.model)
         self.assertFalse((self.root / 'runs').exists())
         self.assertFalse(self.calls)
@@ -146,11 +156,11 @@ class RunnerTests(unittest.TestCase):
         def invalid(*args):
             return {'text': '{"action":"read","path":"/etc/passwd"}'}
         with self.assertRaises(ValueError):
-            runner.predict(self.skill, self.suite_path, self.root / 'runs', 'https://example.invalid', 'mock', client=invalid)
+            self.predict(self.skill, self.suite_path, self.root / 'runs', 'https://example.invalid', 'mock', client=invalid)
         pred = next((self.root / 'runs').glob('predict-*'))
         self.assertTrue(runner.verify(pred))
         with self.assertRaisesRegex(ValueError, 'incomplete'):
-            runner.grade(pred, self.suite_path, self.rubric, self.root / 'runs', 'https://example.invalid', 'mock', 'judge', client=self.model)
+            self.grade(pred, self.suite_path, self.rubric, self.root / 'runs', 'https://example.invalid', 'mock', 'judge', client=self.model)
 
 
 if __name__ == '__main__':

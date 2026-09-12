@@ -1,5 +1,13 @@
 # Independent evaluation and release evidence
 
+**Research mode only.** These qualification requirements keep their strict meaning. Ordinary
+builds/upgrades follow [standard-workflow.md](standard-workflow.md) and do not dispatch this full
+protocol. Comprehensive evaluation needs an explicit request and a fixed shared call budget.
+Stop at the limit, preserve inconclusive/failed/partial results and report a working version or
+draft separately. References to re-testing below never authorize unbounded retries or test-set
+replenishment during standard work.
+
+
 Read this before Stage 1 and again before release. The JSON checks bind recorded
 results to exact files. They cannot establish that a model context was isolated,
 that a source grouping is historically correct, or that a grader was honest.
@@ -136,8 +144,8 @@ excluded from the runtime hash so writing results cannot invalidate itself.
 Structural validation remains available without `--release` for drafts. Only the
 release invocation supports a claim of verified release gates. Missing, malformed,
 failed or stale required evidence exits nonzero. Keep its validation report in the
-ledger. Existing personas need new evaluations and the scope contract; do not
-retrofit passing declarations onto old results.
+ledger. Existing personas need new evidence only to claim current strict research qualification;
+ordinary incremental delivery uses a separate completion report. Never retrofit passing declarations.
 
 ## Executable runs and new required evidence
 

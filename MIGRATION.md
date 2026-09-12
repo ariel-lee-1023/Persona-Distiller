@@ -1,5 +1,20 @@
 # Migrating from 2.x to 3.0
 
+## Default upgrades are incremental working deliveries
+
+A request to meet the latest version uses standard mode, not comprehensive qualification.
+Follow [standard-workflow.md](references/standard-workflow.md): inspect existing runtime and
+limitations, identify affected modules, preserve useful material and reuse applicable evidence.
+Old research evidence remains visible and may be stale; do not rewrite hashes or declarations.
+The migrations below describe what is needed for a **current research release claim**. They do
+not require every ordinary upgrade to restart extraction, discovery or independent evaluation.
+
+Initialize the persistent workflow before dispatch; existing unbudgeted runner commands now
+require `--workflow`. Standard completion uses `completion_report.py`, while `--release` keeps
+all prior gates and thresholds. Comprehensive evaluation requires an explicit request and fixed
+budget. Missing admission evidence leaves new elements pending. No scorer formula changes.
+
+
 ## Current executable evaluation contracts
 
 Re-run register discovery on the original units. Current `registers.json` requires observation

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Defaulted ordinary builds and upgrades to bounded standard work, with incremental evidence reuse, a persistent shared evaluation budget, one repair pass and separate delivery/evaluation completion statuses. Comprehensive research now requires explicit authorization and a fixed budget; existing scoring formulas and strict release gates are unchanged.
+
 - Added isolated HTTP evaluation runs, separate blind grading and append-only human review with tamper-evident records and projection/behavioral exports.
 - Register discovery now requires supported absolute differences and stable equal-length subsamples, emits finite JSON and can report insufficient evidence.
 - Replaced universal retention cutoffs with one class-specific admission and ranking scorer. Release evidence now requires separate reasoning, commitment-under-pressure, historical-scope and blind identity checks.
