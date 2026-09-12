@@ -1,194 +1,134 @@
-# Bounded builds and incremental upgrades
+# Standard production and completion
 
-Ordinary builds and upgrades use **standard** mode. “Improve”, “upgrade”, “publish”
-and “meet the latest version” do not request comprehensive research qualification.
-Use **research** only for an explicit comprehensive evaluation request, with a
-fixed call budget and recorded authorization before dispatch. Publication permission
-is separate from evaluation scope; this workflow does not publish existing personas.
+Standard is the default for fresh builds and upgrades. Comprehensive research needs
+explicit authorization and a fixed budget; publishing or upgrading does not imply it.
+Use a finite source-processing boundary separately from evaluation. At that boundary,
+narrow supported scope or deliver a candidate. Keep source recovery outside the repository.
 
-This changes scheduling and completion, not source quality, scoring formulas or
-research thresholds. Preserve attribution, speaker boundaries, dates, applicability,
-ordered procedures, costly commitments, interactional moves and concrete examples.
-Preserve useful existing runtime material unless a specific correction justifies an
-edit. A smaller evaluation budget is not a reason to shorten or simplify the persona.
+## Prepare the artifact and contract
 
-## Start with the existing artifact
+Follow [situated-evidence.md](situated-evidence.md), [output-template.md](output-template.md)
+and, for existing personas, [migration.md](migration.md). Preserve supported content and
+contextualize overbroad rules. Source claims do not need a numerical research admission
+score. No automatic register certification, held-out experiment or comparator expansion.
 
-For upgrades, inspect the core, affected references, known limitations and reusable
-results before editing. Identify content changes separately from formatting or
-packaging changes. Preserve unaffected modules. Read additional passages or recover
-missing substantive material with OCR when a real content gap calls for it. Do not
-acquire sources just to replenish independent test sets in standard mode.
-
-Record a plan before work:
-
-```json
-{
-  "operation": "upgrade",
-  "change_type": "content",
-  "scope": "Restore the applicability condition in the topic module",
-  "affected_modules": ["references/clusters/c01-topic.md"],
-  "known_limitations": ["Blind identity evaluation remains incomplete"],
-  "reusable_evidence": ["fidelity-ledger/prior-topic-review.json"]
-}
-```
-
-`operation` is `new` or `upgrade`; `change_type` is `content` or `formatting`.
-Affected modules are paths relative to the actual runtime root. Plan the files a new
-build will create as well. The runtime root may be a nested skill or a canonical
-root exposed by a discovery symlink. Keep its path stable while the workflow runs.
+Prepare a JSON plan using [recognition-plan.schema.json](schemas/recognition-plan.schema.json).
+Its `contract` records subject, intended use, supported `period_domains`, supplied sources,
+relative output location, delivery target and `source_boundary`: priority materials,
+finite `reading_units` and `ocr_pages`. In provenance explain what a reading unit means
+and record actual use. A schema-valid schematic example can be generated locally:
 
 ```bash
-python3 scripts/workflow.py init fidelity-ledger/workflow.sqlite \
-  --runtime /path/to/actual/skill-root --plan plan.json
-python3 scripts/workflow.py status fidelity-ledger/workflow.sqlite
+python3 scripts/recognition_runner.py example-plan --out /path/to/work/plan.json
 ```
 
-Initialization is exclusive: reuse the same database after interruption, never
-initialize a fresh one to reset consumption. It stores mode, scope, affected files,
-initial runtime bytes/hashes, budget, request/response records and item status.
-Store this private maintainer database outside runtime references. Model prompts,
-source excerpts and responses may be present; publish only appropriate summaries.
+Replace the fictional evidence, cases and diagnostic patterns with the actual bounded
+production findings. Do not run the example as an empirical persona assessment.
+The plan holds three cases in order (characteristic, changed_condition, interpersonal),
+situated evidence and three to five source-backed patterns with anchors 0..4.
+Each case optionally names only its relevant runtime references. Core and scope are
+always loaded. Equivalent scope module names use `runtime_routes.scope`; framework
+and voice routes can be supplied to the structural validator through `--routes`.
 
-## Standard evaluation allowance
+`generation` configures the user's authorized chat-completions endpoint URL, generator
+model, two judge models, temperature, answer/judge output-token caps, input-token limit,
+per-request timeout, fixed Unix `deadline`, and `max_words: 250`. Prefer a different
+judge model when available within budget; same-model fresh contexts remain valid with
+the dependence recorded. Input limits use UTF-8 bytes as a conservative token bound.
+The word check counts CJK characters individually; this conservative bound may require
+shorter CJK responses. Endpoint credentials use `PERSONA_API_KEY`, never a saved key.
 
-- New build: up to four short candidate responses and one review.
-- Upgrade: up to two targeted candidate responses and one review.
-- Eight model calls total, including retrieval continuations, grading, retries,
-  delegated work and repair checks. The ceiling is not a target.
-- At most one bounded repair pass. No baseline or neighboring-persona comparison.
-- Formatting-only changes need no new model evaluation; document why content is unchanged.
+## Initialize once, freeze before answers
 
-The runner uses the shared database before every provider call. Reservations count
-immediately, even if a request fails or the process dies. Completed requests with
-identical relevant inputs are reused. Failed prediction runs also seal their completed
-answers in `predictions.json`; a human may review those partial results for delivery.
-They cannot be passed to the research grader as a completed prediction run. An unfinished reservation is not permission
-to call again: inspect it, then explicitly use `--retry` if a retry is warranted
-and budget remains. Invalid saved responses stay visible; do not overwrite them.
-
-A standard task names only the references it needs. The core and scope contract are
-always included. Changes outside those dependencies do not regenerate its answer.
-Changing relevant inputs requires the single repair pass:
+Prepare a workflow plan that adds `scope`, `affected_modules`, `operation` (`new` or
+`upgrade`) and `change_type` (`content` or `formatting`) to the recognition plan.
+Paths are relative to the actual runtime root. Store the SQLite workflow in private
+scratch; its resumable prompts/runtime snapshots may include machine-local paths.
+Publish the portable run artifacts and validation summary, not the scratch database.
 
 ```bash
-python3 scripts/workflow.py repair fidelity-ledger/workflow.sqlite
+python3 scripts/workflow.py init /path/to/work/workflow.sqlite \
+  --runtime /path/to/persona --plan /path/to/work/plan.json
+python3 scripts/recognition_runner.py freeze --runtime /path/to/persona \
+  --plan /path/to/work/plan.json --workflow /path/to/work/workflow.sqlite \
+  --run /path/to/persona/transworld-identity/runs/build-01
+python3 scripts/recognition_runner.py run --workflow /path/to/work/workflow.sqlite \
+  --run /path/to/persona/transworld-identity/runs/build-01
 ```
 
-All calls share the overall limit; a repair does not add eight more calls. A new
-model reviewer is still a grading call. A human reading already saved outputs does
-not consume a model call. Human source review still needs an actual source locator,
-excerpt, assessment and the condition or exception checked.
+Initialization is exclusive; never reset consumption by replacing the database.
+Freeze persists actual runtime/module, profile, source-packet, scenario, rubric and
+configuration hashes, with a hash manifest. It creates evidence/profile documents if
+absent; existing evidence must match the plan. A supplied profile document is also
+frozen and given to judges. Confirm its consistency with the structured profile.
+Changing criteria or runtime needs a new run directory, preserving the previous one.
 
-For a host or delegate that calls models outside the runner, reserve each call first
-with `workflow.py reserve WORKFLOW --item ID --role candidate --candidate RESPONSE_ID --request request.json`.
-The request JSON must include the actual prompt/settings and relevant input hashes.
-A `saved_response` means reuse it without dispatch. Otherwise record the returned ID
-with `workflow.py finish WORKFLOW --call-id ID --response response.json` or `--error REASON`. Use roles
-`candidate`, `baseline`, `neighbor`, `grader`, or `delegated`; delegates producing
-candidates or grades use those specific roles so their per-pass caps also apply.
-Do not launch opaque multi-call delegation: each provider call needs a reservation.
+The runner uses six fresh generation contexts with equal task facts, no tools and a
+250-word limit backed by output-token caps. The generic control is instructed to answer
+competently and sees no persona. Neither receives profile/rubric/test answers. Two fresh
+judges see all anonymous pairs in reversed order, frozen evidence and rubric. All output
+and scoring details are in [recognition-protocol.md](recognition-protocol.md).
 
-At exhaustion, stop dispatch and package the supported current result. Additional
-calls require explicit authorization, recorded with `workflow.py authorize-more WORKFLOW --calls N
---authorization "the user's additional evaluation instruction"`. This adds a fixed
-allowance without deleting past consumption or resetting the repair counter. A host
-must verify the authorization; the tool cannot establish who supplied that string.
+## Budget, failure and reuse
 
-## Lightweight content checks and completion
+Eight calls total includes retries, delegated calls and repair retests. Reserve a slot
+persistently before dispatch. Failed or interrupted reservations remain charged.
+Received responses persist immediately. Receipt and content usability are separate:
+`output_usable` is unknown until validation, then true or false. Malformed or overlong
+responses remain in the original charged call records and are excluded from reuse. A process timeout terminates its HTTP child. Deadline expiry
+prevents new dispatch and bounds pending calls; never label an interrupted call complete.
+Do not launch extra evaluation planning agents.
 
-Run structural, discovery-link and reference-link validation. For substantive
-changes, review changed claims against sources, including an important condition or
-exception where applicable. Inspect a few actual representative responses aimed at
-the changed behavior for unsupported claims, lost qualifications and execution of
-the intended method. Reuse saved responses when their dependency hashes still match.
-A new build records at least two representative responses; an upgrade needs at least
-one relevant saved response, normally two when separate behaviors changed.
+Resume the same `run` command; successful matching outputs are reused, not regenerated.
+A lost JSON mirror is recovered from the persistent completed call. Use `--retry` only
+for inspected failed/missing or unusable attempts within remaining budget. It also
+replaces malformed judge JSON or invalid required judge fields, while preserving their
+original records under `runs/<id>/attempts/` with hashes and relocation metadata.
+At most one replacement per affected item is dispatched per explicit retry invocation;
+newly invalid outputs stop that item. A valid failing or inconclusive judgment is usable
+and is not resampled by `--retry`. Replacing an invalid response may leave too little
+budget to finish recognition; report the remaining gap. There is at most one
+repair pass (`workflow.py repair WORKFLOW`), with no extra calls. Once eight are consumed,
+record the correction and stale results, then deliver the actual status. Additional
+calls need explicit fixed-budget authorization; `authorize-more` records that authorization
+without erasing consumption. A deadline extension must also be explicitly configured.
 
-Use [evaluation-runner.md](evaluation-runner.md) for isolated optional model calls.
-Manual saved responses can also be reviewed; record their origin honestly. The
-completion command makes no model calls and does not turn structural PASS into a
-fidelity claim. Its review JSON contains:
+For later separately contracted work, initialize its own ledger and import matching
+successful records with `workflow.py import-calls WORKFLOW --source PRIOR_WORKFLOW`.
+Imports retain source database hash and call IDs, and are not new calls. Exact request
+fingerprints decide reuse. Runtime/scenario/generation changes invalidate affected
+answers; profile/rubric/evidence changes invalidate judgments, while unchanged answers
+survive. Unrelated unloaded modules do not invalidate answers. A rename-only migration
+uses no new generations and records applicability of historical results.
 
-```json
-{
-  "summary": "Restored A as a prerequisite to B, retaining exception C",
-  "reviewer": "source reviewer",
-  "usable": true,
-  "limitations": ["Independent identity evaluation is incomplete"],
-  "source_checks": [{
-    "claim": "B requires A", "locator": "Work, chapter 2, page 10",
-    "source_excerpt": "The actual short passage reviewed",
-    "condition_or_exception": "C prevents applying B",
-    "assessment": "The updated module retains both requirements", "passed": true,
-    "dependencies": {"references/clusters/c01-topic.md": "sha256:ACTUAL_FILE_HASH"}
-  }],
-  "responses": [{
-    "prediction_run": "runs/predict-RUN", "id": "case1",
-    "assessment": "The saved answer applies A and preserves C",
-    "checks": {"supported_claims": true, "qualifications": true, "method": true}
-  }],
-  "pending_elements": [{"id": "PROC-new", "missing_evidence": "Required transfer evidence", "operative_core": false}],
-  "existing_evidence": [{"id": "unchanged-voice-review", "dependencies": {"references/voice.md": "sha256:ACTUAL_FILE_HASH"}}],
-  "remaining_items": ["Research qualification was not commissioned"],
-  "source_processing": {"passages_reviewed": 2, "ocr_pages_recovered": 0}
-}
-```
+## Complete without model calls
 
-Paths in review records are relative to the review JSON. Alternatively a response
-entry has `record` and `record_hash` instead of `prediction_run`/`id`; the saved JSON
-must contain actual `prompt`, `answer`, and runtime `dependencies` hashes. Those
-operator-produced records are auditable declarations, not proof of execution.
-Mark prior research entries in `existing_evidence` with `evaluation: "research"` and their
-actual status and record location, including partial or failed runs without a `fidelity.json`.
-These keep evaluation status incomplete unless the current strict release validator passes.
-Source checks must cover the changed substantive modules. Packaging/formatting
-work may omit source checks and answers but records `formatting_only_rationale`.
+Run `validate_package.py PERSONA` for structure. Prepare a source review JSON with
+`summary`, `reviewer`, `reviewed_all_core_claims`, `limitations` and `source_checks`.
+Each check has `claim`, `outcome`, `assessment`, `condition_or_exception`, `evidence_ids`,
+and exact runtime `dependencies` from the frozen module hashes. Implementation safeguards
+are explicitly marked `implementation_safeguard: true`. Review all retained core claims,
+not only changed files. Describe machine-assisted editorial review honestly; it is not
+an independent historical audit. Missing attribution, quotations or universal conditions
+must be corrected or removed before claiming source-grounded status.
 
 ```bash
-python3 scripts/completion_report.py /path/to/persona-project \
-  --workflow fidelity-ledger/workflow.sqlite --review review.json \
-  --out fidelity-ledger/completion-01.json
+python3 scripts/completion_report.py /path/to/persona \
+  --workflow /path/to/work/workflow.sqlite --review /path/to/work/source-review.json \
+  --run /path/to/persona/transworld-identity/runs/build-01 \
+  --out /path/to/persona/transworld-identity/validation.json
 ```
 
-This stops new dispatch, runs the existing structural validator, checks evidence
-freshness and writes a new report without overwriting prior reports:
+Completion recomputes acceptance from saved outputs without model calls. It checks
+current runtime, source packet and profile applicability, retains prior validation bytes
+in `history/`, and stops dispatch. Source-grounded, machine-recognized and research
+outcomes stay separate. `standard_accepted` requires all three current gates to pass;
+otherwise deliver `candidate` with visible limitations. Optional `--fidelity` checks a
+separate strict research artifact; it cannot replace standard recognition.
 
-- Delivery: `incomplete_draft` or `usable_working_version`.
-- Evaluation: `lightweight_checks_completed`, `research_evaluation_incomplete`, or
-  `research_evaluation_passed`. The report separately records whether lightweight
-  checks completed and whether research was not run, failed/incomplete, or passed.
-
-If research evidence exists, the report executes the unchanged `--release` checks
-on it and retains failures. A usable working version can coexist with a failed or
-incomplete research gate. Research PASS is reported only from that strict validator.
-If lightweight evidence or usable content is missing, deliver an explicitly incomplete
-draft with the specific gap. Report limitations even when all lightweight checks pass.
-
-## Inconclusive evidence and resumption
-
-`INSUFFICIENT_EVIDENCE` remains an inconclusive finding. Narrow the voice/register
-claim without discarding useful source-supported reasoning. Do not lower thresholds,
-try additional subsets, or start another evaluation round automatically. Preserve
-class-specific admission rules: a new element lacking their evidence stays pending
-outside the operative core. Never fabricate transfer or discrimination metrics.
-Existing useful material is not automatically deleted or retroactively declared to
-have passed current rules. Record its actual evidence status and relevant limitations.
-
-Mark only affected module-level evidence stale in the completion ledger; retain
-unrelated current evidence. Whole-runtime research hashes remain strict: any byte
-change still prevents an old full-package research result from qualifying the new
-bytes. Do not relabel that result as fresh just because local checks are reusable.
-
-Checkpoint with `workflow.py checkpoint WORKFLOW --record checkpoint.json`, where the JSON
-has `remaining_items` and a separate `source_processing` record. The database retains
-runtime bytes/hashes, completed calls, partial/failed attempts and remaining budget.
-Resume necessary unfinished work only. When asked to finish, run `workflow.py stop`
-and produce the best supported completion report. Preserve partial research records.
-Evaluation limits bound dispatch, not source-processing time or total elapsed time.
-
-The database enforces calls routed through it, including concurrent reservations.
-It cannot count hidden host calls, inspect an agent's private context, verify a human
-judgment, or prevent the machine owner deleting it. Content judgments, declared dependencies and formatting-only classification also remain
-auditable reviewer declarations. These are enforcement limits,
-not reasons to invent stronger evaluation claims or automatically run more tests.
+Recorded hashes are tamper-evident, not protection against the owner rewriting history.
+The ledger cannot count hidden calls outside its API, verify exhaustive source review,
+or turn declared context isolation into independent model errors. Unknown token usage
+or model identifiers stay unknown. Report actual usage when available; eight calls is
+not a token/cost guarantee. Update README status and stop. Publication follows existing
+user authorization, independently of acceptance.

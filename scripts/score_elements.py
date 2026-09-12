@@ -107,10 +107,10 @@ def score_elements(data):
     candidates.sort(key=lambda pair: (PRIORITY.index(pair[0]['class']), -pair[1]['within_class_score'], pair[0]['id']))
     retained = []
     for e, row in candidates:
-        conflict = next((prior['id'] for prior in retained if prior['id'] in e.get('conflicts_with', [])
-                         or e['id'] in prior.get('conflicts_with', [])), None)
-        if conflict:
-            row.update(decision='cut', reason='conflict loses by class/rank/ID precedence to ' + conflict)
+        conflicts = sorted(other['id'] for other in elements if other['id'] != e['id'] and
+                           (other['id'] in e.get('conflicts_with', []) or e['id'] in other.get('conflicts_with', [])))
+        if conflicts:
+            row.update(decision='pending', reason='contextual review required; preserve conflicting evidence: ' + ', '.join(conflicts))
         else:
             retained.append(e)
             row.update(decision='retain', rank=len(retained))

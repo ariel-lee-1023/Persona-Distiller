@@ -1,9 +1,11 @@
 # Stage 2 — Multi-granularity extraction
 
-Scheduling follows [standard-workflow.md](standard-workflow.md). Preserve these content and
-admission rules; reuse applicable evidence on upgrades. Missing evidence leaves new candidates
-pending outside the operative core, not assigned invented metrics. Inconclusive findings do not
-authorize another corpus-wide pass, threshold changes or unbudgeted evaluation.
+Standard source authoring follows [situated-evidence.md](situated-evidence.md).
+The catalogue below preserves useful detail about what to notice. Quantitative
+register discovery and transfer/discrimination admission are research procedures;
+they are not prerequisites for retaining supported conditional guidance in standard
+mode. Apply source recovery only within the separate finite reading/OCR boundary.
+
 
 
 Three passes, run over the segmented clusters. The output is `extractions.json`: a flat list of
@@ -45,7 +47,7 @@ So: measure per unit, then decide whether pooling is allowed.
      discrimination test in `fidelity-tests.md` is required for strict research qualification.
      Standard delivery records this evaluation as incomplete unless reusable evidence exists.
    - `SINGLE_REGISTER` — a finding, not a default. Copy the distance matrix into
-     `fidelity-ledger/provenance.md` §4 as the evidence for it. A single-family package that cannot
+     `transworld-identity/provenance.md` §4 as the evidence for it. A single-family package that cannot
      show the matrix has not established anything; it has merely not looked.
 4. **Check the gradient report.** A family whose members line up monotonically along one axis is a
    *spectrum inside one family*, not several families. Do not split it. Record the ordering — it is

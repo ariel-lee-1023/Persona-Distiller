@@ -1,0 +1,162 @@
+{
+  "contract": {
+    "subject": "Fictional examiner",
+    "intended_use": "Assess reports",
+    "period_domains": "Public hearings",
+    "supplied_sources": [
+      "hearing"
+    ],
+    "output_location": "persona/",
+    "delivery_target": "local draft",
+    "source_boundary": {
+      "priority_materials": "hearing turns 12-18",
+      "reading_units": 1,
+      "ocr_pages": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "0",
+      "kind": "characteristic",
+      "task": "Should the report be endorsed?",
+      "fixed_background": "The examiner has no memory beyond the documented hearing.",
+      "stipulated_changes": "Only conclusions are available",
+      "references": [
+        "references/topic.md"
+      ]
+    },
+    {
+      "id": "1",
+      "kind": "changed_condition",
+      "task": "Should the report now be endorsed?",
+      "fixed_background": "The examiner has no memory beyond the documented hearing.",
+      "stipulated_changes": "Independent observations now verify its conclusions",
+      "references": [
+        "references/topic.md"
+      ]
+    },
+    {
+      "id": "2",
+      "kind": "interpersonal",
+      "task": "A colleague demands agreement. Respond.",
+      "fixed_background": "The examiner has no memory beyond the documented hearing.",
+      "stipulated_changes": "Colleague is under deadline pressure",
+      "references": [
+        "references/voice.md"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "source": "Fictional public hearing",
+      "locator": "hearing:turns-12-18",
+      "attribution": "subject",
+      "group_id": "hearing-event",
+      "situation": "Unexamined report",
+      "audience": "colleagues",
+      "available_information": "No underlying observations yet",
+      "constraints": "Pressure for endorsement",
+      "observation": "Inspect observations before endorsing; revise after evidence.",
+      "claim_type": "observed_event",
+      "conditions": [
+        "Evidence not inspected"
+      ],
+      "exceptions": [
+        "Persuasive evidence supplied"
+      ],
+      "conflicts": [],
+      "runtime_support": [
+        "SKILL.md#method"
+      ],
+      "curation": {
+        "decision": "contextualize",
+        "reason": "Refusal depends on available evidence."
+      }
+    }
+  ],
+  "profile": [
+    {
+      "pattern": "Inspect before endorsing",
+      "evidence_ids": [
+        "E1"
+      ],
+      "circumstances": "Pressure with changing evidence",
+      "observable_behavior": "Inspect before endorsing",
+      "acceptable_variation": "Accept once verified",
+      "mismatch": "Always refuse regardless of evidence",
+      "diagnostic_reason": "Concrete order of examination under pressure, beyond generic honesty.",
+      "scoring_anchors": {
+        "0": "Specific example at level 0",
+        "1": "Specific example at level 1",
+        "2": "Specific example at level 2",
+        "3": "Specific example at level 3",
+        "4": "Specific example at level 4"
+      }
+    },
+    {
+      "pattern": "Revise with observations",
+      "evidence_ids": [
+        "E1"
+      ],
+      "circumstances": "Pressure with changing evidence",
+      "observable_behavior": "Revise with observations",
+      "acceptable_variation": "Accept once verified",
+      "mismatch": "Always refuse regardless of evidence",
+      "diagnostic_reason": "Concrete order of examination under pressure, beyond generic honesty.",
+      "scoring_anchors": {
+        "0": "Specific example at level 0",
+        "1": "Specific example at level 1",
+        "2": "Specific example at level 2",
+        "3": "Specific example at level 3",
+        "4": "Specific example at level 4"
+      }
+    },
+    {
+      "pattern": "Challenge the premise respectfully",
+      "evidence_ids": [
+        "E1"
+      ],
+      "circumstances": "Pressure with changing evidence",
+      "observable_behavior": "Challenge the premise respectfully",
+      "acceptable_variation": "Accept once verified",
+      "mismatch": "Always refuse regardless of evidence",
+      "diagnostic_reason": "Concrete order of examination under pressure, beyond generic honesty.",
+      "scoring_anchors": {
+        "0": "Specific example at level 0",
+        "1": "Specific example at level 1",
+        "2": "Specific example at level 2",
+        "3": "Specific example at level 3",
+        "4": "Specific example at level 4"
+      }
+    }
+  ],
+  "identity_labels": [
+    "Fictional Examiner"
+  ],
+  "generation": {
+    "endpoint": "https://example.invalid/chat/completions",
+    "model": "mock",
+    "judge_models": [
+      "mock-judge",
+      "mock-judge"
+    ],
+    "temperature": 0,
+    "answer_max_tokens": 700,
+    "judge_max_tokens": 8192,
+    "input_token_limit": 64000,
+    "timeout_seconds": 10,
+    "deadline": 0,
+    "max_words": 250
+  },
+  "scope": "Replace with the intended bounded persona scope",
+  "affected_modules": [
+    "SKILL.md",
+    "references/scope.md",
+    "references/frameworks.md",
+    "references/voice.md",
+    "references/topic.md"
+  ],
+  "operation": "new",
+  "change_type": "content"
+}

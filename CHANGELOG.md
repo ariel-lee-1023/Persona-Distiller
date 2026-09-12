@@ -1,5 +1,28 @@
 # Changelog
 
+## Implementation corrections for bounded recognition
+
+- Relink operational audit scripts inside migrated evidence directories, preserving
+  exact originals, file modes and relocation history. Keep historical runs unchanged.
+- Separate received responses from usable outputs. Explicit retries replace invalid
+  answers or malformed judge records within the remaining budget and preserve attempts.
+- Treat identical presented answers as ties regardless of judge preference; passing
+  end-to-end fixtures now use different persona and control answers.
+
+## Bounded recognition and Transworld Identity
+
+- Standard production now uses three realistic cases, six bounded answers and two
+  independent-context judgments under one persistent eight-call ceiling.
+- Added frozen input contracts, deterministic five-dimensional scoring, deadlines,
+  token caps, resume/reuse lineage and separate candidate/standard acceptance reporting.
+- Added lossless legacy evidence relocation, conflict preflight, read-only import and
+  historical path resolution. New writes use `transworld-identity/`.
+- Preserved situated source work and nuanced voice while removing mandatory research
+  admission and register certification from ordinary production.
+- Added mocked scoring, isolation, budget, resume, migration and status regressions.
+  These do not establish empirical machine recognition or human calibration.
+
+
 ## Unreleased
 
 - Defaulted ordinary builds and upgrades to bounded standard work, with incremental evidence reuse, a persistent shared evaluation budget, one repair pass and separate delivery/evaluation completion statuses. Comprehensive research now requires explicit authorization and a fixed budget; existing scoring formulas and strict release gates are unchanged.

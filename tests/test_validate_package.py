@@ -36,7 +36,7 @@ class TestGeneratedProjectLayout(unittest.TestCase):
         (skill / "references" / "frameworks.md").write_text("# Frameworks\n", encoding="utf-8")
         (skill / "references" / "voice.md").write_text("# Voice\n", encoding="utf-8")
         (clusters / "c01-topic.md").write_text("# Topic\n\nuid: c01\n", encoding="utf-8")
-        ledger = self.root / "fidelity-ledger"
+        ledger = self.root / "transworld-identity"
         ledger.mkdir()
         (ledger / "provenance.md").write_text(
             "# Audit\n\n## Weights and evidence\n\nRecorded evidence.\n", encoding="utf-8"

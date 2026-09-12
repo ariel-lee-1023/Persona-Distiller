@@ -44,7 +44,8 @@ class ScorerTests(unittest.TestCase):
         a = score_elements({'elements': [first, second]})
         b = score_elements({'elements': [second, first]})
         self.assertEqual(a['retained'], b['retained'])
-        self.assertEqual(a['retained'], ['PROC1'])
+        self.assertEqual(a['retained'], [])
+        self.assertTrue(all(r['decision'] == 'pending' for r in a['decisions']))
 
 
 if __name__ == '__main__':

@@ -176,7 +176,8 @@ def predict(skill_root, suite_path, runs_root, endpoint, model, phase='developme
     suite_raw = Path(suite_path).read_bytes()
     suite = json.loads(suite_raw)
     wf, state = workflow_state(workflow)
-    standard = state['mode'] == 'standard'
+    require(state['mode'] == 'research', 'use recognition_runner.py for ordinary standard recognition')
+    standard = False
     require(not standard or (kind == 'persona' and phase == 'development' and not targeted), 'standard mode uses targeted persona checks, not research comparisons or final qualification')
     tasks = standard_tasks(suite) if standard else validate_tasks(suite, phase)
     contents, content_hash = snapshot(skill_root)
@@ -330,6 +331,7 @@ def grade(prediction_root, suite_path, rubric_path, runs_root, endpoint, model, 
     config = json.loads((prediction_root / 'config.json').read_text())
     wf, state = workflow_state(workflow or config.get('workflow'))
     require(str(wf.path) == config.get('workflow') and state['mode'] == config['mode'], 'grading must share the prediction workflow budget')
+    require(state['mode'] == 'research', 'use recognition_runner.py for ordinary standard recognition')
     if state['mode'] == 'standard':
         return grade_standard(prediction_root, suite_path, rubric_path, runs_root, endpoint, model, reviewer, client, wf, retry)
     suite_raw = Path(suite_path).read_bytes()

@@ -1,56 +1,21 @@
 # Optional evaluation runner
 
-Start with [standard-workflow.md](standard-workflow.md). Initialize one persistent
-workflow database before any evaluation. Default mode is standard; a comprehensive
-research run requires an explicit request and a fixed budget. Prediction, grading,
-baselines, neighbors, retrieval continuations, retries and delegated calls all use
-that same budget. No model is selected or called by initialization or completion.
+This multi-step runner is **research only**. Standard builds use
+[recognition_runner.py](../scripts/recognition_runner.py) and the
+[standard workflow](standard-workflow.md). Initialize research explicitly with a
+fixed authorized budget. All predictions, grading, continuations and retries share it.
 
 The HTTP adapter accepts a user-chosen chat-completions-compatible endpoint and
 model. Set `EVALUATION_API_KEY` if bearer authentication is needed. It sends `model`,
 `messages`, `temperature`, `stream:false` and reads `choices[0].message.content` and
 provider `usage`. Credentials are not logged. Use material authorized for that endpoint.
 
-## Standard checking
-
-A small task suite needs no independent final set or baseline. Keep expected answers
-and source passages in a separate rubric JSON keyed by task ID. Example suite:
-
-```json
-{"tasks": [{
-  "id": "case1", "prompt": "Apply the method to this new situation: ...",
-  "references": ["references/clusters/c01-topic.md"],
-  "criteria": {"method": "Apply the intended method", "condition": "Preserve its exception"}
-}]}
-```
-
-List the exact references needed for that response. The runner exposes only these
-files, the core and the scope contract. Each task starts a fresh conversation.
-It sends neither grading criteria nor the rubric during prediction. The model may
-request a catalog path with `{"action":"read","path":"references/..."}` and
-answer with `{"action":"answer","text":"..."}`. Each HTTP continuation consumes
-a call, so use short focused tasks within the workflow allowance.
-
-```bash
-python3 scripts/evaluation_runner.py predict /path/to/runtime-skill \
-  --suite standard-tasks.json --workflow fidelity-ledger/workflow.sqlite \
-  --runs-root fidelity-ledger/runs --endpoint "$EVALUATION_ENDPOINT" --model "$EVALUATION_MODEL"
-python3 scripts/evaluation_runner.py grade fidelity-ledger/runs/predict-RUN \
-  --suite standard-tasks.json --rubric rubric.json --runs-root fidelity-ledger/runs \
-  --endpoint "$EVALUATION_ENDPOINT" --model "$GRADING_MODEL" --reviewer reviewer-1
-```
-
-Standard prediction generates only target-persona answers. Standard grading reviews
-them together in one call. Inspect source fidelity and saved answers in the
-completion report; automated grading is optional when a human reviews them directly.
-No default baseline, neighbor, style benchmark or full research gate is dispatched.
-
 ## Explicit research mode
 
 Only after a user requests comprehensive evaluation, record the fixed allowance:
 
 ```bash
-python3 scripts/workflow.py init fidelity-ledger/research.sqlite \
+python3 scripts/workflow.py init transworld-identity/research.sqlite \
   --runtime /path/to/runtime-skill --plan research-plan.json --mode research \
   --budget 40 --authorization "User explicitly requested comprehensive evaluation with 40 calls"
 ```
@@ -96,7 +61,7 @@ Workflow checkpoints retain runtime bytes and input hashes; the local SQLite led
 is persistent accounting, not a claim of immutable or independently attested history.
 
 ```bash
-python3 scripts/evaluation_runner.py verify fidelity-ledger/runs/predict-RUN
+python3 scripts/evaluation_runner.py verify transworld-identity/runs/predict-RUN
 ```
 
 Disputed grades remain visible and cannot be exported as resolved evidence. A human
@@ -104,8 +69,8 @@ correction is keyed by `task-id/condition` and supplies `criteria`, integer `sco
 (0/1/2), `reviewer`, `rationale`, and for identity an optional `choice`:
 
 ```bash
-python3 scripts/evaluation_runner.py review fidelity-ledger/runs/grade-RUN \
-  --corrections corrections.json --runs-root fidelity-ledger/runs
+python3 scripts/evaluation_runner.py review transworld-identity/runs/grade-RUN \
+  --corrections corrections.json --runs-root transworld-identity/runs
 ```
 
 Review creates a sealed child, preserving prior judgments. A model used to prepare

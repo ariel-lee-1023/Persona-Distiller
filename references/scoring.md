@@ -1,9 +1,11 @@
 # Stage 3: class-specific admission and ranking
 
-Scheduling follows [standard-workflow.md](standard-workflow.md). Preserve these content and
-admission rules; reuse applicable evidence on upgrades. Missing evidence leaves new candidates
-pending outside the operative core, not assigned invented metrics. Inconclusive findings do not
-authorize another corpus-wide pass, threshold changes or unbudgeted evaluation.
+This numerical admission and budgeting protocol is optional research guidance.
+Standard production uses [situated-evidence.md](situated-evidence.md) and the bounded
+[recognition protocol](recognition-protocol.md); it does not need transfer or register
+certification metrics to retain source-supported conditional guidance. Missing research
+metrics remain unknown. Do not commission evaluation to fill numerical quotas.
+
 
 
 Run `scripts/score_elements.py candidates.json --out scores.json` before assembly.
@@ -61,9 +63,9 @@ The deterministic class order is procedure, cost_refusal, verdict,
 projectible_regularity, interactional, variation, preoccupation, stable_style.
 Within a class, descending class-specific score wins; IDs break exact ties.
 `conflicts_with` names other candidate IDs. Either direction records a conflict;
-the earlier eligible candidate in the ordered ranking wins. A failed candidate
-cannot displace an eligible one. The scorer logs every admission and conflict
-reason and hashes its input.
+all involved candidates remain pending for contextual review, with both records
+preserved. Resolve period, audience, domain and circumstance differences first;
+unresolved evidence weakens the instruction. Ranking cannot settle contradictions.
 
 Scores across classes do not measure the same thing and must not be compared as
 one universal scalar. `retain` means eligible for the package, not automatically
@@ -176,7 +178,7 @@ these in order — stop as soon as the pool clears:
    = 0; that is a corpus fact, not a curation failure, and Stage 2 will not find what is not there.
    Confirm against `dialogue_ratio` before assuming the pass was lazy.
 3. **Ship a reduced-scope core below the floor.** Narrow what the persona claims in the frontmatter
-   description, log the shortfall and the computed `supply` in `fidelity-ledger/provenance.md`, and
+   description, log the shortfall and the computed `supply` in `transworld-identity/provenance.md`, and
    name it in the coverage report.
 
 Never top the core up with `stable_style` material to reach the floor. It would breach the 20% cap,
@@ -243,7 +245,7 @@ This is the question `output-template.md`'s "one file per high-value source clus
 Below 1,800 the cluster cannot carry a module that is more than a summary. Do **not** pad it. Either:
 
 1. **Fold it into its nearest sibling module** as a subsection, if they share a register or period; or
-2. **Demote its concrete, attested material to `fidelity-ledger/episodic.md`** (events, not concepts
+2. **Demote its concrete, attested material to `transworld-identity/episodic.md`** (events, not concepts
    or expression — see `output-template.md`'s episodic scope) and let the core, `frameworks.md`, and
    `voice.md` carry what mattered.
 
@@ -285,7 +287,7 @@ loaded_worst_case = core_budget + 2 × max(module_budget) + voice.md + framework
 ```
 
 Two modules because a close secondary ranking may load one. Record this line in
-`fidelity-ledger/provenance.md` alongside the core budget.
+`transworld-identity/provenance.md` alongside the core budget.
 
 ## The standing modules are computed too
 
@@ -360,7 +362,7 @@ cannot.
 
 **Recording a run so the next calibration has something to work with.** Guessed coefficients only
 stop being guesses if runs are recorded, and a run is only comparable if the constants it used are
-recorded with it. Every run therefore writes three things into `fidelity-ledger/provenance.md` §1
+recorded with it. Every run therefore writes three things into `transworld-identity/provenance.md` §1
 and §3:
 
 1. The **coefficient set actually used** — `python3 scripts/cluster_budget.py --emit-coefficients`
@@ -380,7 +382,7 @@ Scoring does not flow straight into Stage 4. Before assembly, run the **projecti
 gate** in `fidelity-tests.md`; a failing projection score means you re-curate (down-weight over-fit
 elements, promote better-generalizing ones) or narrow scope and re-score, and a cost-gate miss means
 you re-include or elevate the missing divergence. Record both outcomes in the persona's
-`fidelity-ledger/provenance.md`, and note any weight change they triggered. Only a set that clears
+`transworld-identity/provenance.md`, and note any weight change they triggered. Only a set that clears
 both gates gets assembled.
 
 

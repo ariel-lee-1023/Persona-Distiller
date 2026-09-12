@@ -74,7 +74,7 @@ needs a new independent final assessment if the previous final answers were seen
 ## Artifact contract
 
 Keep `fidelity.json`, `split.json`, and `registers.json` together in
-`fidelity-ledger/` (or pass an external `--fidelity` path whose sibling files have
+`transworld-identity/` (or pass an external `--fidelity` path whose sibling files have
 those names). The complete machine format is
 [schemas/fidelity.schema.json](schemas/fidelity.schema.json).
 
@@ -130,7 +130,7 @@ Never update an old result's hash to make it appear fresh.
 ```bash
 python3 -m pip install -r requirements-release.txt
 python3 scripts/validate_package.py /path/to/persona --print-hash
-python3 scripts/validate_package.py /path/to/persona --release --fidelity /path/to/fidelity-ledger/fidelity.json
+python3 scripts/validate_package.py /path/to/persona --release --fidelity /path/to/transworld-identity/fidelity.json
 ```
 
 The runtime hash is SHA-256 of compact UTF-8 JSON (`ensure_ascii=False`, separators

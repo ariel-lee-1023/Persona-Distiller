@@ -35,7 +35,7 @@
         "SINGLE_REGISTER",
         "INSUFFICIENT_EVIDENCE"
       ],
-      "description": "MULTI_REGISTER: families become the organising unit for the rest of Pass A, for voice.md, and for the cluster budgets, and the discrimination test becomes mandatory rather than conditional. SINGLE_REGISTER is a finding, not a default — the distance matrix must be copied into fidelity-ledger/provenance.md as the evidence for it."
+      "description": "MULTI_REGISTER: families become the organising unit for the rest of Pass A, for voice.md, and for the cluster budgets, and the discrimination test becomes mandatory rather than conditional. SINGLE_REGISTER is a finding, not a default. The distance matrix must be copied into transworld-identity/provenance.md as the evidence for it."
     },
     "n_registers": {
       "type": "integer",

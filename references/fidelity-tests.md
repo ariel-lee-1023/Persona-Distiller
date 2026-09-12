@@ -13,13 +13,12 @@ a plausible-sounding voice?" Two of them run **twice**, at two different points,
 important structural fact: the projection test and the cost test first run as **mandatory gates
 before Stage 4**, where their results feed back into inclusion and weighting; they then run again in
 Stage 5 as final verification on the assembled core. All results go into `fidelity.json`, are logged
-to the persona's `fidelity-ledger/provenance.md`, and feed the coverage report handed to the user —
-**never** into the core, and never into `references/`.
+to the persona's `transworld-identity/provenance.md`, and feed the coverage report handed to the user. They stay outside the core and `references/`.
 
-Everything logged to `fidelity-ledger/provenance.md` is a record for the human reader, not an
+Everything logged to `transworld-identity/provenance.md` is a record for the human reader, not an
 instruction for the embodied persona — write scores and caveats as facts about the distillation
 ("projection score 0.62, single-cluster"), never as a sentence telling the persona what to say when
-evidence is thin. See `output-template.md`'s Fidelity Ledger section for the phrasing rule.
+evidence is thin. See `output-template.md`'s Transworld Identity section for the phrasing rule.
 
 ```
 Stage 3 scoring ─► GATE: projection test + cost test ─► (fail → re-curate / re-weight, loop)
@@ -61,7 +60,7 @@ release command. The final set must never supply extracted regularities, refusal
   ones), or narrow the persona's claimed scope, then re-score and re-run. Do not proceed to assembly,
   and never ship a confident persona over a failed projection test.
 
-Record the score (overall, `hit_2`/`hit_1`, and per-domain) in `fidelity-ledger/provenance.md`,
+Record the score (overall, `hit_2`/`hit_1`, and per-domain) in `transworld-identity/provenance.md`,
 plus any re-curation or weight change it triggered. Report per-domain where you can — a persona can
 project well on its home turf and poorly elsewhere, and the user needs to know which is which.
 
@@ -83,7 +82,7 @@ common failure is silently dropping them during curation. This test runs in two 
 2. Confirm the high-signal ones **survived curation and are slated for the core** (the elevation
    rules in `scoring.md` should already guarantee this; the gate verifies it).
 3. Any high-signal divergence not slated for the core is **re-included or elevated before assembly** —
-   or, only if genuinely marginal, **logged** in `fidelity-ledger/provenance.md` with the reason it
+   or, only if genuinely marginal, **logged** in `transworld-identity/provenance.md` with the reason it
    was left out.
 
 **Presence assertion (final, at Stage 5):** if the corpus contains any high-signal cost-refusal or
@@ -94,7 +93,7 @@ construction; the assertion here is the backstop.
 Pass condition: no high-signal cost-refusal is absent from the core without a logged justification,
 and the minimum-presence assertion holds. A persona that has lost its costly commitments will feel
 articulate and generic — these two forms are the guard against exactly that. Log the divergence
-inventory and its in-core status to `fidelity-ledger/provenance.md`.
+inventory and its in-core status to `transworld-identity/provenance.md`.
 
 ## 3. Style-match test  (tests expression rules)
 

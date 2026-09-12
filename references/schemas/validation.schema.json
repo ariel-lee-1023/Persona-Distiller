@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persona-distiller.local/schemas/validation.schema.json",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "run_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "mode": {
+      "enum": [
+        "standard",
+        "research"
+      ]
+    },
+    "timestamp": {
+      "type": "number"
+    },
+    "delivery_status": {
+      "enum": [
+        "candidate",
+        "standard_accepted"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runtime_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "module_hashes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "revision": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "hashes": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "gates": {
+      "type": "object",
+      "properties": {
+        "package": {
+          "enum": [
+            "passed",
+            "failed",
+            "inconclusive",
+            "not_run"
+          ]
+        },
+        "source": {
+          "enum": [
+            "passed",
+            "failed",
+            "inconclusive",
+            "not_run"
+          ]
+        },
+        "machine_recognition": {
+          "enum": [
+            "passed",
+            "failed",
+            "inconclusive",
+            "not_run"
+          ]
+        }
+      },
+      "required": [
+        "package",
+        "source",
+        "machine_recognition"
+      ],
+      "additionalProperties": false
+    },
+    "source_review": {
+      "type": "object"
+    },
+    "recognition": {
+      "type": "object"
+    },
+    "assessment_records": {
+      "type": "object"
+    },
+    "budget": {
+      "type": "object"
+    },
+    "research": {
+      "type": "object"
+    },
+    "claim": {
+      "type": "string",
+      "minLength": 1
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "run_id",
+    "mode",
+    "timestamp",
+    "delivery_status",
+    "summary",
+    "runtime_hash",
+    "module_hashes",
+    "revision",
+    "hashes",
+    "gates",
+    "source_review",
+    "recognition",
+    "assessment_records",
+    "budget",
+    "research",
+    "claim",
+    "limitations"
+  ],
+  "additionalProperties": true
+}

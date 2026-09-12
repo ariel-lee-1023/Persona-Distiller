@@ -337,7 +337,8 @@
           "decision": {
             "enum": [
               "cut",
-              "retain"
+              "retain",
+              "pending"
             ]
           },
           "reason": {

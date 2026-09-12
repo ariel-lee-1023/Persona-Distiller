@@ -34,7 +34,7 @@ later stage reads and writes here, so resolve the path once and reuse it.
 Keep these artifacts for the whole run — do not clean up between stages. Three things depend on it:
 bounded repairs reuse `extractions.json` and the previous `scores.json`; the hard deletion rule is only defensible
 because `scores.json` logs every keep/cut with its reason; and the honesty split relocates all
-caveats into the coverage report and `fidelity-ledger/provenance.md`, which are built from
+caveats into the coverage report and `transworld-identity/provenance.md`, which are built from
 `coverage_map.json` and `fidelity.json`.
 
 The supported current persona directory and its completion report are delivered to the user, at the persona-out location resolved
@@ -139,7 +139,7 @@ The correct move when a batch arrives:
    as any other cluster, applied to the merged corpus, ignoring which delivery each file came from.
 4. **Where a topic is genuinely new**, a new cluster is correct — because the boundary is topical,
    not chronological-by-delivery. It coincides with the batch; it is not defined by it.
-5. **Record the check.** The batch log in `fidelity-ledger/provenance.md` states which existing
+5. **Record the check.** The batch log in `transworld-identity/provenance.md` states which existing
    clusters the new material was tested against and what the overlap was. An unrecorded check is
    indistinguishable from no check.
 

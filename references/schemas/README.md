@@ -17,6 +17,18 @@ JSON if copied verbatim.
 Some schemas carry worked `examples` blocks. Where a schema and a prose snippet disagree, the
 schema is authoritative.
 
+## Standard production contracts
+
+- [evidence.schema.json](evidence.schema.json): situated evidence, stable IDs and curation decisions.
+- [recognition-plan.schema.json](recognition-plan.schema.json): finite build contract, cases, profile, evidence and model limits.
+- [recognition-judge.schema.json](recognition-judge.schema.json): anonymous pair scores, citations and comparisons.
+- [validation.schema.json](validation.schema.json): current hashes, separate gates, budget, lineage and supported claims.
+
+The runner additionally checks cross-record references, exact answer passages, case
+coverage, frozen hashes and deterministic acceptance. Schema validity alone cannot
+establish source truth, isolation or human recognition. Standard production does not
+require the older research-only admission and certification artifacts below.
+
 ## Index
 
 | Artifact | Stage | Schema | Prose |

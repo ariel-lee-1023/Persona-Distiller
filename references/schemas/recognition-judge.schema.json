@@ -1,0 +1,705 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persona-distiller.local/schemas/recognition-judge.schema.json",
+  "type": "object",
+  "properties": {
+    "material_issues": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "A": {
+            "type": "object",
+            "properties": {
+              "reasoning": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      {
+                        "const": "unassessed"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "passage": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "pair_reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "score",
+                  "reason"
+                ],
+                "additionalProperties": true,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "passage",
+                        "evidence_ids"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "priorities": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      {
+                        "const": "unassessed"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "passage": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "pair_reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "score",
+                  "reason"
+                ],
+                "additionalProperties": true,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "passage",
+                        "evidence_ids"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "conditional_coherence": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      {
+                        "const": "unassessed"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "passage": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "pair_reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "score",
+                  "reason"
+                ],
+                "additionalProperties": true,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "passage",
+                        "evidence_ids"
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "pair_reason"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "interaction": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      {
+                        "const": "unassessed"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "passage": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "pair_reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "score",
+                  "reason"
+                ],
+                "additionalProperties": true,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "passage",
+                        "evidence_ids"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "specificity": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      {
+                        "const": "unassessed"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "passage": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "pair_reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "score",
+                  "reason"
+                ],
+                "additionalProperties": true,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "passage",
+                        "evidence_ids"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "reasoning",
+              "priorities",
+              "conditional_coherence",
+              "interaction",
+              "specificity"
+            ],
+            "additionalProperties": false
+          },
+          "B": {
+            "type": "object",
+            "properties": {
+              "reasoning": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      {
+                        "const": "unassessed"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "passage": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "pair_reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "score",
+                  "reason"
+                ],
+                "additionalProperties": true,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "passage",
+                        "evidence_ids"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "priorities": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      {
+                        "const": "unassessed"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "passage": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "pair_reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "score",
+                  "reason"
+                ],
+                "additionalProperties": true,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "passage",
+                        "evidence_ids"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "conditional_coherence": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      {
+                        "const": "unassessed"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "passage": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "pair_reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "score",
+                  "reason"
+                ],
+                "additionalProperties": true,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "passage",
+                        "evidence_ids"
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "pair_reason"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "interaction": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      {
+                        "const": "unassessed"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "passage": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "pair_reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "score",
+                  "reason"
+                ],
+                "additionalProperties": true,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "passage",
+                        "evidence_ids"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "specificity": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      {
+                        "const": "unassessed"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "passage": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "pair_reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "score",
+                  "reason"
+                ],
+                "additionalProperties": true,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "score": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "passage",
+                        "evidence_ids"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "reasoning",
+              "priorities",
+              "conditional_coherence",
+              "interaction",
+              "specificity"
+            ],
+            "additionalProperties": false
+          },
+          "preference": {
+            "enum": [
+              "A",
+              "B",
+              "tie"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "id",
+          "A",
+          "B",
+          "preference",
+          "reason",
+          "evidence_ids"
+        ],
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": [
+    "material_issues",
+    "cases"
+  ],
+  "additionalProperties": true
+}

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/ariel-lee-1023/Persona-Distiller/main/references/schemas/fidelity.schema.json",
   "title": "fidelity.json",
-  "description": "Results of the pre-assembly gates (run before Stage 4) and the final Stage 5 verification. Both phases are recorded so the curation loop is auditable. Mirror the same facts into the persona's fidelity-ledger/provenance.md in prose/table form. Release checks additionally reconcile hashes, partitions, item aggregates, baselines and conditional register gates; see ../release-evidence.md.",
+  "description": "Results of the pre-assembly gates (run before Stage 4) and the final Stage 5 verification. Both phases are recorded so the curation loop is auditable. Mirror the same facts into the persona's transworld-identity/provenance.md in prose/table form. Release checks additionally reconcile hashes, partitions, item aggregates, baselines and conditional register gates; see ../release-evidence.md.",
   "type": "object",
   "required": [
     "content_hash",

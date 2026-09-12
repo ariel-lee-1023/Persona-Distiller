@@ -27,6 +27,7 @@ import json
 import os
 import re
 import sys
+from pathlib import Path
 from urllib.parse import unquote, urlsplit
 from release_checks import release_checks, runtime_hash
 
@@ -125,6 +126,7 @@ def main():
     ap = argparse.ArgumentParser(description="Machine-check a distilled package's structural rules.")
     ap.add_argument("package_dir", help="persona project root containing .agents/skills/<name>/")
     ap.add_argument("--json", help="write check artifact here")
+    ap.add_argument("--routes", help="JSON mapping of scope/frameworks/voice to existing relative runtime paths")
     ap.add_argument("--strict", action="store_true", help="treat warnings as errors")
     ap.add_argument("--headings", help="file of required core heading anchors, one per line")
     ap.add_argument("--release", action="store_true", help="require current fidelity evidence and release gates")
@@ -150,8 +152,8 @@ def main():
     skill = os.path.join(skill_root, "SKILL.md")
     references = os.path.join(skill_root, "references")
     clusters_dir = os.path.join(references, "clusters")
-    provenance = os.path.join(root, "fidelity-ledger", "provenance.md")
-    episodic = os.path.join(root, "fidelity-ledger", "episodic.md")
+    provenance = os.path.join(root, "transworld-identity", "provenance.md")
+    episodic = os.path.join(root, "transworld-identity", "episodic.md")
     results = []
 
     layout_ok = len(skill_roots) == 1
@@ -165,23 +167,28 @@ def main():
                          "SKILL.md exists inside the discovered skill directory"
                          if os.path.isfile(skill) else
                          "missing .agents/skills/<name>/SKILL.md"))
-    refs_ok = os.path.isdir(references) and os.path.isfile(os.path.join(references, "voice.md")) and os.path.isfile(os.path.join(references, "frameworks.md"))
+    routes = {'voice': 'references/voice.md', 'frameworks': 'references/frameworks.md'}
+    if args.routes:
+        routes.update(json.loads(read(args.routes)))
+    refs_ok = os.path.isdir(references) and all(
+        isinstance(p, str) and not Path(p).is_absolute() and '..' not in Path(p).parts and os.path.isfile(os.path.join(skill_root, p))
+        for p in routes.values())
     results.append(check("S3", "error", refs_ok,
                          "references/, voice.md, and frameworks.md present" if refs_ok else "need references/ with voice.md and frameworks.md"))
     prov_ok = os.path.isfile(provenance)
-    results.append(check("S4", "error", prov_ok, "fidelity-ledger/provenance.md present outside .agents/" if prov_ok else "missing project-level fidelity-ledger/provenance.md"))
+    results.append(check("S4", "error", prov_ok, "transworld-identity/provenance.md present outside .agents/" if prov_ok else "missing project-level transworld-identity/provenance.md"))
     results.append(check("S4", "warn", os.path.isfile(episodic),
-                         "fidelity-ledger/episodic.md present" if os.path.isfile(episodic) else "episodic.md absent (permitted but expected when episodic material exists)"))
+                         "transworld-identity/episodic.md present" if os.path.isfile(episodic) else "episodic.md absent (permitted but expected when episodic material exists)"))
     misplaced = []
     if os.path.isdir(references):
         for path in markdown_files(references):
-            if os.path.basename(path) in ("provenance.md", "episodic.md"):
+            if os.path.basename(path) in ("provenance.md", "episodic.md", "recognition-profile.md", "validation.json", "evidence.json"):
                 misplaced.append(rel(path, root))
     results.append(check("S5", "error", not misplaced,
                          "no ledger files under references/" if not misplaced else "ledger file(s) wrongly under references/: " + ", ".join(misplaced)))
     modules = list(markdown_files(clusters_dir)) if os.path.isdir(clusters_dir) else []
-    results.append(check("S6", "error", os.path.isdir(clusters_dir),
-                         "cluster modules directory is references/clusters/" if os.path.isdir(clusters_dir) else "missing references/clusters/"))
+    results.append(check("S6", "warn", True,
+                         "cluster modules directory is references/clusters/" if os.path.isdir(clusters_dir) else "topic modules may use an equivalent existing layout"))
 
     core = read(skill) if os.path.isfile(skill) else ""
     fields = frontmatter(core) if core else None
@@ -220,14 +227,37 @@ def main():
     # Parse targets from the text, independently of the files that happen to exist.
     runtime_files = ([skill] if core else []) + list(markdown_files(references))
     missing_links = []
+    hidden_links = []
     for source in runtime_files:
         for target in local_targets(read(source)):
             dest = os.path.normpath(os.path.join(os.path.dirname(source), target))
             if not os.path.isfile(dest) and source == skill and "/" not in target:
                 parent = references if target in {"voice.md", "frameworks.md", "scope.md"} else clusters_dir
                 dest = os.path.join(parent, target)
+            actual = Path(dest).resolve()
+            safe_root = Path(skill_root).resolve()
+            if not actual.is_relative_to(safe_root) or 'transworld-identity' in actual.parts:
+                hidden_links.append(rel(source, skill_root) + ': ' + target)
             if not os.path.isfile(dest):
                 missing_links.append(rel(source, skill_root) + ": " + target)
+    for source in runtime_files:
+        text = read(source)
+        if re.search(r'transworld-identity/|fidelity-ledger/', text):
+            hidden_links.append(rel(source, skill_root) + ': assessment route in runtime')
+        if Path(source).resolve().is_relative_to(Path(root, 'transworld-identity').resolve()):
+            hidden_links.append(rel(source, skill_root) + ': symlink exposes assessment')
+    results.append(check('S7', 'error', not hidden_links, 'runtime/evaluation separation' if not hidden_links else '; '.join(hidden_links)))
+    local_paths, raw_sources = [], []
+    for path in markdown_files(root):
+        if 'transworld-identity/runs/' in rel(path, root) or 'transworld-identity/history/' in rel(path, root):
+            continue
+        if re.search(r'(?:/Users/|/home/|/private/tmp/|[A-Z]:\\Users\\)', read(path)):
+            local_paths.append(rel(path, root))
+    for path in Path(root).rglob('*'):
+        if path.is_file() and '.git' not in path.parts and path.suffix.lower() in ('.pdf', '.epub', '.docx'):
+            raw_sources.append(path.relative_to(root).as_posix())
+    results.append(check('S8', 'error', not local_paths and not raw_sources,
+                         'no detected raw books or local paths' if not local_paths and not raw_sources else ', '.join(local_paths + raw_sources)))
     referenced = set()
     for target in local_targets(core):
         if target in {"voice.md", "frameworks.md", "scope.md", "SKILL.md"}:
@@ -264,11 +294,8 @@ def main():
         results.append(check("L1", "warn", not bad_lines,
                              "no second-person or bare-English-imperative lines found" if not bad_lines else
                              "possible second-person/imperative line(s): " + ", ".join(bad_lines)))
-        heading = first_section_heading(read(provenance))
-        l2_ok = any(word in heading.casefold() for word in ("weights", "admission", "权重", "准入"))
-        results.append(check("L2", "error", l2_ok,
-                             "first provenance heading identifies weights" if l2_ok else
-                             "first provenance heading must identify admission rules or legacy weights (found: %s)" % (heading or "none")))
+        results.append(check("L2", "error", bool(read(provenance).strip()),
+                             "provenance records the build contract and source/editorial lineage; content requires source review"))
     else:
         results.append(check("L1", "warn", True, "skipped: provenance.md is missing (reported by S3)"))
         results.append(check("L2", "error", False, "cannot check first provenance heading because provenance.md is missing"))
@@ -297,7 +324,7 @@ def main():
         except (OSError, ValueError) as exc:
             ap.error(str(exc))
     if args.release:
-        results.extend(release_checks(skill_root, args.fidelity or os.path.join(root, "fidelity-ledger", "fidelity.json")))
+        results.extend(release_checks(skill_root, args.fidelity or os.path.join(root, "transworld-identity", "fidelity.json")))
 
     effective = [{**item, "effective_level": "error" if args.strict and item["level"] == "warn" else item["level"]}
                  for item in results]

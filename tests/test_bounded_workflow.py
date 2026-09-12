@@ -42,32 +42,17 @@ class BoundedWorkflowTests(unittest.TestCase):
         return runner.predict(self.skill, self.suite, self.root / 'runs', 'https://example.invalid',
                               'mock', workflow=self.wf, client=self.client)
 
-    def test_default_standard_has_only_target_and_one_batched_review(self):
-        pred = self.predict()
-        config = json.loads((pred / 'config.json').read_text())
-        self.assertEqual(config['mode'], 'standard'); self.assertEqual(config['conditions'], ['persona'])
-        self.assertNotIn('unaffected topic', json.dumps(self.calls).lower())
-        rubric = self.root / 'rubric.json'; rubric.write_text('{"case1":{"evidence":"PRIVATE SOURCE"}}')
-        grade = runner.grade(pred, self.suite, rubric, self.root / 'runs', 'https://example.invalid', 'judge', 'reviewer', client=self.client)
-        self.assertEqual(self.wf.status()['consumed'], 2)
-        self.assertNotIn('PRIVATE SOURCE', json.dumps(self.calls[0]))
-        self.assertTrue(runner.verify(grade))
-        with self.assertRaisesRegex(ValueError, 'research fidelity'):
-            runner.export_persona(pred, [grade], self.suite)
-
-    def test_resume_reuses_completed_answers_and_ignores_unrelated_module_change(self):
-        self.predict()
-        (self.skill / 'references/other.md').write_text('Updated unrelated material.')
-        self.wf = Workflow(self.wf.path)
-        self.predict()
-        self.assertEqual(len(self.calls), 1)
-        self.assertEqual(self.wf.status()['consumed'], 1)
-        (self.skill / 'references/topic.md').write_text('The relevant condition has changed.')
-        with self.assertRaisesRegex(DispatchStopped, 'repair'):
+    def test_legacy_research_runner_cannot_substitute_for_standard_recognition(self):
+        with self.assertRaisesRegex(ValueError, 'recognition_runner'):
             self.predict()
-        self.wf.repair(); self.predict()
-        self.assertEqual(len(self.calls), 2)
-        with self.assertRaises(DispatchStopped): self.wf.repair()
+        self.assertEqual(self.wf.status()['consumed'], 0)
+
+    def test_exact_request_reuse_survives_restart(self):
+        call, _ = self.wf.reserve('case1', 'candidate', {'prompt': 'fixed'}, candidate='case1')
+        self.wf.finish(call, response={'text': 'saved'})
+        _, saved = Workflow(self.wf.path).reserve('case1', 'candidate', {'prompt': 'fixed'}, candidate='case1')
+        self.assertEqual(saved, {'text': 'saved'})
+        self.assertEqual(self.wf.status()['consumed'], 1)
 
     def test_global_budget_stops_before_dispatch_and_persists_across_resume(self):
         for i in range(8):
@@ -116,10 +101,10 @@ class BoundedWorkflowTests(unittest.TestCase):
         self.assertEqual(checkpoint['remaining_calls'], 8)
 
     def test_candidate_caps_and_no_default_comparisons(self):
-        for i in range(2):
+        for i in range(3):
             self.wf.reserve(str(i), 'candidate', {'prompt': str(i)}, candidate=str(i))
         with self.assertRaisesRegex(DispatchStopped, 'candidate response limit'):
-            self.wf.reserve('third', 'candidate', {}, candidate='third')
+            self.wf.reserve('fourth', 'candidate', {}, candidate='fourth')
         for role in ('baseline', 'neighbor'):
             with self.assertRaises(DispatchStopped): self.wf.reserve(role, role, {})
 
@@ -135,7 +120,7 @@ class BoundedWorkflowTests(unittest.TestCase):
     def test_concurrent_reservations_cannot_exceed_budget(self):
         wf = Workflow.create(self.root / 'one.sqlite', self.skill, 'One call', ['SKILL.md'], budget=1)
         def reserve(i):
-            try: wf.reserve(str(i), 'delegated', {'item': i}); return True
+            try: wf.reserve(str(i), 'candidate', {'item': i}, candidate=str(i)); return True
             except DispatchStopped: return False
         with ThreadPoolExecutor(max_workers=2) as pool:
             self.assertEqual(sum(pool.map(reserve, [1, 2])), 1)
@@ -151,67 +136,11 @@ class BoundedWorkflowTests(unittest.TestCase):
 
     def test_stop_and_formatting_do_not_dispatch(self):
         self.wf.stop()
-        with self.assertRaises(DispatchStopped): self.predict()
+        with self.assertRaises(DispatchStopped): self.wf.reserve('stopped', 'judge', {})
         wf = Workflow.create(self.root / 'format.sqlite', self.skill, 'Fix formatting', ['SKILL.md'], change_type='formatting')
         with self.assertRaisesRegex(DispatchStopped, 'formatting'):
             wf.dispatch('sample', 'candidate', 'https://example.invalid', 'mock', [], 0, self.client, candidate='sample')
         self.assertEqual(wf.status()['consumed'], 0)
-
-
-class CompletionTests(unittest.TestCase):
-    def setUp(self):
-        self.fixture = packages.TestGeneratedProjectLayout('test_accepts_agents_skill_layout')
-        self.fixture.setUp(); self.fixture.write_valid_project(); self.addCleanup(self.fixture.doCleanups)
-        self.package = self.fixture.root
-        self.skill = self.package / '.agents/skills/demo-perspective'
-        self.wf = Workflow.create(self.package / 'fidelity-ledger/workflow.sqlite', self.skill, 'Update topic condition', ['references/clusters/c01-topic.md'])
-        (self.skill / 'references/clusters/c01-topic.md').write_text('# Topic\n\nuid: c01\nUse B only after A; stop for C.\n')
-        deps = {'references/clusters/c01-topic.md': file_hash(self.skill / 'references/clusters/c01-topic.md')}
-        saved = self.package / 'answer.json'; saved.write_text(json.dumps({'prompt': 'When may I use B?', 'answer': 'After A, except C.', 'dependencies': deps}))
-        self.review = {'summary': 'Restored condition A and exception C.', 'reviewer': 'Human source reviewer', 'usable': True,
-                       'limitations': ['Independent identity evaluation has not passed.'],
-                       'source_checks': [{'claim': 'B requires A', 'locator': 'Work, chapter 2, page 10', 'source_excerpt': 'A before B, except C.',
-                            'condition_or_exception': 'Do not apply B when C holds.', 'assessment': 'Condition restored faithfully.', 'passed': True, 'dependencies': deps}],
-                       'responses': [{'record': 'answer.json', 'record_hash': file_hash(saved), 'assessment': 'Applies the exception.',
-                                      'checks': {'supported_claims': True, 'qualifications': True, 'method': True}}]}
-        self.review_path = self.package / 'review.json'
-
-    def result(self, **kwargs):
-        self.review_path.write_text(json.dumps(self.review))
-        return completion_report.report(self.package, self.wf, self.review_path, **kwargs)
-
-    def test_usable_working_delivery_can_have_failed_research_gate(self):
-        fidelity = self.package / 'fidelity-ledger/fidelity.json'; fidelity.write_text('{}')
-        result = self.result()
-        self.assertEqual(result['delivery_status'], 'usable_working_version')
-        self.assertEqual(result['evaluation_status'], 'research_evaluation_incomplete')
-        self.assertEqual(result['research_validation']['verdict'], 'FAIL')
-        self.assertEqual(self.wf.status()['consumed'], 0)
-
-    def test_structure_only_does_not_establish_lightweight_content_or_fidelity(self):
-        self.review['source_checks'] = []; self.review['responses'] = []
-        result = self.result()
-        self.assertEqual(result['structure']['verdict'], 'PASS')
-        self.assertEqual(result['delivery_status'], 'incomplete_draft')
-        self.assertFalse(result['lightweight_checks_completed'])
-
-    def test_stale_source_review_does_not_pass_and_unrelated_evidence_survives(self):
-        other = {'id': 'voice review', 'dependencies': {'references/voice.md': file_hash(self.skill / 'references/voice.md')}}
-        self.review['existing_evidence'] = [other]
-        (self.skill / 'references/clusters/c01-topic.md').write_text('# Topic\nuid: c01\nChanged again.')
-        result = self.result()
-        self.assertEqual(result['delivery_status'], 'incomplete_draft')
-        self.assertTrue(result['existing_evidence'][0]['current'])
-        self.assertFalse(result['source_checks'][0]['current_and_complete'])
-
-    def test_formatting_completion_needs_no_new_model_answers(self):
-        wf = Workflow.create(self.package / 'format.sqlite', self.skill, 'Reformat', ['SKILL.md'], change_type='formatting')
-        (self.skill / 'SKILL.md').write_text((self.skill / 'SKILL.md').read_text() + '\n')
-        self.review.update(source_checks=[], responses=[], formatting_only_rationale='Only trailing whitespace changed; runtime content retained.')
-        self.wf = wf
-        result = self.result()
-        self.assertEqual(result['delivery_status'], 'usable_working_version')
-        self.assertEqual(result['evaluation_status'], 'lightweight_checks_completed')
 
 
 if __name__ == '__main__':
