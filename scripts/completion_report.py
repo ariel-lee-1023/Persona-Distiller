@@ -75,6 +75,8 @@ def report(package, workflow, review_path, run=None, fidelity=None):
             recognition = assessment['recognition']
             # The current source packet and profile must match the frozen judge inputs.
             frozen = read(Path(run) / 'frozen.json')
+            if 'assessment_scope' in frozen and file_hash(Path(package) / frozen['assessment_scope']['path']) != frozen['assessment_scope']['hash']:
+                recognition = {'outcome': 'inconclusive', 'reason': 'current assessment scope differs from frozen judge inputs'}
             if packet['records'] != frozen['plan']['evidence'] or file_hash(Path(package) / 'transworld-identity/recognition-profile.md') != frozen['plan'].get('profile_document_hash'):
                 recognition = {'outcome': 'inconclusive', 'reason': 'current evidence/profile differs from frozen inputs'}
         except (OSError, ValueError, KeyError) as exc:
@@ -86,7 +88,7 @@ def report(package, workflow, review_path, run=None, fidelity=None):
     budget = {k: state[k] for k in ('budget', 'consumed', 'remaining', 'calls', 'deadline', 'repair_pass', 'reuse_lineage') if k in state}
     # Drop machine-local validator paths from the publishable report.
     structural = {k: v for k, v in structural.items() if k not in ('package', 'skill_root')}
-    return {'schema_version': 1, 'run_id': Path(run).name if run else None, 'mode': state['mode'],
+    return {'schema_version': 1, 'structure_revision': 2, 'run_id': Path(run).name if run else None, 'mode': state['mode'],
             'timestamp': time.time(), 'delivery_status': status, 'summary': review['summary'],
             'runtime_error': runtime_error, 'runtime_hash': digest(contents), 'module_hashes': modules,
             'revision': review.get('revision'), 'hashes': assessment['hashes'] if assessment else None,

@@ -114,6 +114,10 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "structure_revision": {
+      "const": 2,
+      "description": "New writes use revision 2. Missing metadata identifies legacy inputs requiring inspection."
     }
   },
   "required": [
@@ -134,7 +138,8 @@
     "budget",
     "research",
     "claim",
-    "limitations"
+    "limitations",
+    "structure_revision"
   ],
   "additionalProperties": true
 }

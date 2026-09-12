@@ -171,7 +171,7 @@ def new_run(runs_root, kind):
 
 
 def predict(skill_root, suite_path, runs_root, endpoint, model, phase='development', kind='persona',
-            targeted=False, temperature=0, client=http_client, max_steps=12, workflow=None, retry=False):
+            targeted=False, temperature=0, client=http_client, max_steps=12, workflow=None, retry=False, legacy_replay=False):
     validate_endpoint(endpoint)
     suite_raw = Path(suite_path).read_bytes()
     suite = json.loads(suite_raw)
@@ -182,8 +182,14 @@ def predict(skill_root, suite_path, runs_root, endpoint, model, phase='developme
     tasks = standard_tasks(suite) if standard else validate_tasks(suite, phase)
     contents, content_hash = snapshot(skill_root)
     require(Path(skill_root).resolve() == Path(state['runtime']), 'workflow runtime differs from prediction target')
+    if kind == 'persona' and not legacy_replay:
+        from output_structure import structure_issues
+        issues = structure_issues(skill_root)
+        require(not issues, '; '.join(issues))
     index = section_index(contents)
     experiment = digest(dumps([digest(suite_raw), content_hash, phase, kind, endpoint, model, temperature]).encode())
+    if kind == 'persona' and not legacy_replay:
+        experiment = digest(dumps([experiment, {'structure_revision': 2}]).encode())
     if kind == 'books':
         require(any(t.get('references_required') is True for t in tasks), 'selected partition needs a reference-dependent task')
     root = new_run(runs_root, 'predict')
@@ -212,6 +218,9 @@ def predict(skill_root, suite_path, runs_root, endpoint, model, phase='developme
               'suite_hash': digest(suite_raw), 'content_hash': content_hash, 'endpoint': endpoint,
               'baseline_prompt': suite.get('baseline_prompt', ''), 'conditions': list(conditions),
               'mode': state['mode'], 'workflow': str(wf.path), 'experiment': experiment}
+    if kind == 'persona':
+        config['structure_revision'] = 1 if legacy_replay else 2
+        config['context_protocol'] = 'legacy-host-scope' if legacy_replay else 'declared-retrieval'
     write_once(root / 'config.json', config)
     write_once(root / 'runtime-snapshot.json', contents)
     write_once(root / 'task-prompts.json', [{'id': t['id'], 'prompt': t['prompt']} for t in tasks])
@@ -221,8 +230,6 @@ def predict(skill_root, suite_path, runs_root, endpoint, model, phase='developme
             allowed = contents
             if standard:
                 paths = set(task.get('references', [])) | {'SKILL.md'}
-                if 'references/scope.md' in contents:
-                    paths.add('references/scope.md')
                 require(all(p in contents and (p == 'SKILL.md' or p.startswith('references/')) for p in paths), 'task references must be runtime files')
                 allowed = {p: contents[p] for p in paths}
             dependencies = {p: digest(text.encode()) for p, text in allowed.items()}
@@ -237,7 +244,7 @@ def predict(skill_root, suite_path, runs_root, endpoint, model, phase='developme
                 instructions += ('Allowed references: ' + dumps(catalog)) if can_read else 'Reference access is disabled.'
                 # Every task/condition starts a new message list; rubric and expected answers are absent.
                 messages = [{'role': 'system', 'content': system + instructions}, {'role': 'user', 'content': task['prompt']}]
-                if condition == 'persona' and 'references/scope.md' in contents:
+                if legacy_replay and condition == 'persona' and 'references/scope.md' in contents:
                     messages[0]['content'] += '\nHost scope contract:\n' + contents['references/scope.md']
                 retrievals, usage, request_ids = [], [], []
                 for step in range(max_steps):
@@ -479,7 +486,9 @@ def export_persona(prediction_root, grade_roots, suite_path):
     baseline_votes = [values[(task['id'], 'baseline')]['choice'] == suite['subject']
                       for task in tasks.values() if task['kind'] == 'identity' for values in grade_sets]
     behavior['identity']['baseline_accuracy'] = sum(baseline_votes) / len(baseline_votes) if baseline_votes else None
-    result = {'runner_manifest': prediction_hash, 'phase': config['phase'], 'behavioral': behavior}
+    result = {'runner_manifest': prediction_hash, 'phase': config['phase'], 'behavioral': behavior,
+              'structure_revision': config.get('structure_revision', 1),
+              'context_protocol': config.get('context_protocol', 'legacy-host-scope')}
     if projection:
         n = len(projection)
         result['projection'] = {'content_hash': config['content_hash'], 'items': projection,
@@ -506,6 +515,7 @@ def main():
     p.add_argument('--workflow', type=Path, required=True)
     p.add_argument('--retry', action='store_true')
     p.add_argument('--targeted', action='store_true')
+    p.add_argument('--legacy-replay', action='store_true', help='explicit historical persona Host scope contract protocol')
     p = sub.add_parser('grade')
     p.add_argument('prediction_root', type=Path)
     for key in ('suite', 'rubric', 'runs-root'):
@@ -535,7 +545,7 @@ def main():
     args = ap.parse_args()
     try:
         if args.command == 'predict':
-            print(predict(args.skill_root, args.suite, args.runs_root, args.endpoint, args.model, args.phase, args.kind, args.targeted, workflow=args.workflow, retry=args.retry))
+            print(predict(args.skill_root, args.suite, args.runs_root, args.endpoint, args.model, args.phase, args.kind, args.targeted, workflow=args.workflow, retry=args.retry, legacy_replay=args.legacy_replay))
         elif args.command == 'grade':
             print(grade(args.prediction_root, args.suite, args.rubric, args.runs_root, args.endpoint, args.model, args.reviewer, workflow=args.workflow, retry=args.retry))
         elif args.command == 'review':

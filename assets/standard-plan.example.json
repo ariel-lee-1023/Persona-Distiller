@@ -152,11 +152,11 @@
   "scope": "Replace with the intended bounded persona scope",
   "affected_modules": [
     "SKILL.md",
-    "references/scope.md",
     "references/frameworks.md",
     "references/voice.md",
     "references/topic.md"
   ],
   "operation": "new",
-  "change_type": "content"
+  "change_type": "content",
+  "structure_revision": 2
 }

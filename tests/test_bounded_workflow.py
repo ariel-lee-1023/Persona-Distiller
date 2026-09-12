@@ -69,6 +69,8 @@ class BoundedWorkflowTests(unittest.TestCase):
         self.assertEqual(wf.status()['consumed'], 9)
 
     def test_partial_answers_survive_exhaustion_and_research_resumes_exact_experiment(self):
+        (self.skill / 'transworld-identity').mkdir()
+        (self.skill / 'transworld-identity/scope.md').write_text('Fictional research coverage.')
         self.wf = Workflow.create(self.root / 'research.sqlite', self.skill, 'Explicit final test', ['SKILL.md'],
                                   mode='research', budget=1, authorization='One final prediction call initially')
         suite = {'version': 2, 'defined_before_extraction': True, 'baseline_prompt': 'Target role',

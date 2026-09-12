@@ -7,7 +7,8 @@ schema or recognition round.
 
 ## Prepare from the supported perspective
 
-Inspect the existing README, core, scope, frameworks, voice and relevant evidence
+Inspect the existing README, core, reconstruction scope at
+`transworld-identity/scope.md`, frameworks, voice and relevant evidence
 modules. Identify what draws this perspective's attention, what it asks the reader
 to do, and what makes that interaction particular. Trace substantive character claims
 through existing evidence links; do not duplicate the recognition profile. A narrow

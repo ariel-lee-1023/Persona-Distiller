@@ -257,9 +257,17 @@ def release_checks(skill_root, fidelity_path):
 
     def scope():
         root = Path(skill_root)
-        contract = root / 'references' / 'scope.md'
-        require(contract.is_file() and len(contract.read_text().strip()) >= 80, 'need operational references/scope.md')
-        require('references/scope.md' in (root / 'SKILL.md').read_text(), 'core must load scope contract')
+        revision = f.get('structure_revision')
+        require(revision in (None, 1, 2), 'unsupported structure revision')
+        if revision == 2:
+            from output_structure import structure_issues
+            issues = structure_issues(root)
+            require(not issues, '; '.join(issues))
+        else:
+            # Missing metadata is historical evidence, never silently relabeled.
+            contract = root / 'references' / 'scope.md'
+            require(contract.is_file() and len(contract.read_text().strip()) >= 80, 'legacy protocol needs operational references/scope.md; inspect before migration')
+            require('references/scope.md' in (root / 'SKILL.md').read_text(), 'legacy core must load scope contract')
     run('R8', scope)
     for kind in ('reasoning', 'commitment', 'scope', 'identity'):
         run('R9.' + kind, lambda kind=kind: check_behavioral(f['behavioral'], digest, kind))

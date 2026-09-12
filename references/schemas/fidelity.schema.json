@@ -844,6 +844,12 @@
           }
         }
       }
+    },
+    "structure_revision": {
+      "enum": [
+        1,
+        2
+      ]
     }
   }
 }

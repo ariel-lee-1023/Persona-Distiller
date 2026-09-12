@@ -26,9 +26,18 @@ Replace the fictional evidence, cases and diagnostic patterns with the actual bo
 production findings. Do not run the example as an empirical persona assessment.
 The plan holds three cases in order (characteristic, changed_condition, interpersonal),
 situated evidence and three to five source-backed patterns with anchors 0..4.
-Each case optionally names only its relevant runtime references. Core and scope are
-always loaded. Equivalent scope module names use `runtime_routes.scope`; framework
-and voice routes can be supplied to the structural validator through `--routes`.
+New plans declare `structure_revision: 2`. Every case requires an explicit `references`
+list: `[]` loads only the core, and a nonempty list loads exactly those references with
+it. Framework and voice routes can be supplied to the validator through `--routes`.
+Remove a legacy `runtime_routes.scope` only after inspecting and redistributing its
+content through the migration procedure. No scope file is automatically loaded.
+
+An optional `assessment_scope: "transworld-identity/scope.md"` includes that account
+only in judge evidence. Freeze its actual content and separate hash. It never enters
+persona or control context. Both conditions receive the same scenario facts.
+Missing revision metadata identifies a legacy plan for inspection. `--legacy-replay`
+explicitly preserves the old injection protocol in historical experiments; it is not
+an upgrade or a default for new builds. Frozen historical plans and reports stay intact.
 
 `generation` configures the user's authorized chat-completions endpoint URL, generator
 model, two judge models, temperature, answer/judge output-token caps, input-token limit,

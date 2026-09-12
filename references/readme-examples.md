@@ -67,6 +67,9 @@ personas to adopt its public voice. None of these examples mandates warmth or fr
 
 ## Implementation review: the affected Wittgenstein README
 
+The revision-pinned links below document the historical layout. Preserve them as
+evidence; current reconstruction reports belong in `transworld-identity/scope.md`.
+
 Reviewed on 2026-09-12 against [revision 09e7753][w-readme] and its
 [pre-migration README][w-old]. This is an editorial implementation example in the tool
 repository; it does not modify or re-assess the separate persona repository.

@@ -83,3 +83,13 @@ separate completion report and cannot masquerade as research exports. Keep origi
 and partial results. See [standard-workflow.md](standard-workflow.md) for completion,
 external/delegated accounting, stop commands and enforcement limits. Unit tests use
 mock responses; they establish dispatch mechanics, not real persona fidelity.
+
+## Reconstruction scope and protocol compatibility
+
+New persona predictions record `structure_revision: 2` and
+`context_protocol: "declared-retrieval"`. They use the declared runtime catalog and
+retrieval protocol without a hidden Host scope contract. Reconstruction scope stays
+in `transworld-identity/scope.md`; it is not in the runtime catalog. `--legacy-replay`
+explicitly selects and records the historical injection for a persona replay. Missing
+metadata in old records remains legacy evidence requiring inspection. Books conditions,
+retrieval behavior, manifests and comparison prompts are unchanged by this revision.

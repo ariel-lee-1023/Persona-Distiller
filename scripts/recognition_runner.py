@@ -11,6 +11,7 @@ import time
 import urllib.request
 
 from workflow import Workflow, DispatchStopped, digest, file_hash, runtime_files, encoded
+from output_structure import STRUCTURE_REVISION, SCOPE, boundary_issues, structure_issues
 from recognition import DIMENSIONS, assess, delivery_status, require, nonempty
 
 RUBRIC = {
@@ -41,6 +42,8 @@ def read(path):
 def runtime_snapshot(root):
     root = Path(root).resolve()
     require((root / 'SKILL.md').is_file(), 'runtime SKILL.md missing')
+    issues = boundary_issues(root)
+    require(not issues, '; '.join(issues))
     result = {}
     for rel in runtime_files(root):
         p = root / rel
@@ -53,7 +56,14 @@ def runtime_snapshot(root):
     return result
 
 
-def validate_plan(plan):
+def validate_plan(plan, legacy=False):
+    revision = plan.get('structure_revision')
+    require(revision == STRUCTURE_REVISION or (legacy and revision in (None, 1)), 'legacy plan requires inspection and explicit replay or migration to structure_revision 2')
+    if revision == STRUCTURE_REVISION:
+        require('scope' not in plan.get('runtime_routes', {}), 'inspect and redistribute legacy runtime_routes.scope before removing it')
+        require(plan.get('assessment_scope') in (None, SCOPE), 'assessment_scope must select the canonical report')
+        for case in plan.get('cases', []):
+            require(isinstance(case.get('references'), list), 'each new case needs an explicit references list; [] means core only')
     contract = plan.get('contract', {})
     for key in ('subject', 'intended_use', 'period_domains', 'supplied_sources', 'output_location', 'delivery_target'):
         require(bool(contract.get(key)), 'build contract missing ' + key)
@@ -98,14 +108,18 @@ def validate_plan(plan):
     require(isinstance(plan.get('identity_labels', []), list) and all(nonempty(x) for x in plan.get('identity_labels', [])), 'identity labels must be literal nonempty strings')
 
 
-def freeze(runtime, plan, run, workflow):
-    validate_plan(plan)
+def freeze(runtime, plan, run, workflow, legacy_replay=False):
+    validate_plan(plan, legacy=legacy_replay)
     wf = Workflow(workflow)
     state = wf.status()
     require(Path(state['runtime']).resolve() == Path(runtime).resolve(), 'workflow runtime differs')
     contents = runtime_snapshot(runtime)
-    routes = plan.get('runtime_routes', {'scope': 'references/scope.md'})
-    require(routes.get('scope') in contents, 'runtime scope contract required')
+    if plan.get('structure_revision') == STRUCTURE_REVISION:
+        issues = structure_issues(runtime)
+        require(not issues, '; '.join(issues))
+    else:
+        routes = plan.get('runtime_routes', {'scope': 'references/scope.md'})
+        require(routes.get('scope') in contents, 'legacy replay scope contract required')
     for case in plan['cases']:
         refs = case.get('references', [p for p in contents if p.startswith('references/')])
         require(isinstance(refs, list) and all(p in contents and p.startswith('references/') for p in refs), 'case references must resolve inside runtime')
@@ -127,12 +141,25 @@ def freeze(runtime, plan, run, workflow):
     plan['profile_document_hash'] = file_hash(profile_path)
     plan['profile_document'] = profile_path.read_text()
     cfg = plan['generation']
+    assessment_scope = None
+    if plan.get('assessment_scope'):
+        scope_path = Path(runtime) / SCOPE
+        assessment_scope = {'path': SCOPE, 'content': scope_path.read_text(), 'hash': file_hash(scope_path)}
     frozen = {'schema_version': 1, 'plan': plan, 'runtime': contents, 'rubric': RUBRIC,
               'hashes': {'runtime': digest(contents), 'modules': {p: digest(t) for p, t in contents.items()},
                          'profile': digest({'patterns': plan['profile'], 'document': plan['profile_document']}), 'source_packet': digest(plan['evidence']),
                          'scenarios': digest(plan['cases']), 'rubric': digest(RUBRIC), 'generation': digest(cfg)}}
     run = Path(run)
     require(run.parent.name == 'runs' and run.parent.parent.name == 'transworld-identity', 'new runs belong in transworld-identity/runs/<run-id>')
+    if plan.get('structure_revision') == STRUCTURE_REVISION:
+        frozen['structure_revision'] = STRUCTURE_REVISION
+        if assessment_scope is not None:
+            frozen['assessment_scope'] = assessment_scope
+            frozen['hashes']['assessment_scope'] = assessment_scope['hash']
+        frozen['loaded_inputs'] = {case['id']: {condition: request_for(frozen, case, condition)['dependencies']
+                                  for condition in ('persona', 'control')} for case in plan['cases']}
+    else:
+        frozen['compatibility'] = 'explicit legacy replay; original plan retained'
     save(run / 'frozen.json', frozen)
     save(run / 'freeze-manifest.json', {'frozen_hash': file_hash(run / 'frozen.json')})
     wf.note('recognition_freeze', {'run_id': run.name, 'hashes': frozen['hashes']})
@@ -146,7 +173,11 @@ def request_for(frozen, case, condition):
     deps = {}
     system = common
     if condition == 'persona':
-        paths = sorted(set(['SKILL.md', plan.get('runtime_routes', {}).get('scope', 'references/scope.md')] + case.get('references', [p for p in contents if p.startswith('references/')])) )
+        if plan.get('structure_revision') == STRUCTURE_REVISION:
+            paths = sorted(set(['SKILL.md'] + case['references']))
+        else:
+            # Reconstruct historical requests exactly; never erase an old dependency.
+            paths = sorted(set(['SKILL.md', plan.get('runtime_routes', {}).get('scope', 'references/scope.md')] + case.get('references', [p for p in contents if p.startswith('references/')])))
         system += '\nRuntime perspective:\n' + '\n'.join(contents[p] for p in paths)
         deps = {p: digest(contents[p]) for p in paths}
     facts = {k: case[k] for k in ('task', 'fixed_background', 'stipulated_changes')}
@@ -293,11 +324,11 @@ def words(text):
     return len(re.findall(r'[\u3400-\u9fff]|[^\W_]+(?:[’\x27-][^\W_]+)*', text))
 
 
-def execute(run, workflow, client=http_client, retry=False, allow_dispatch=True):
+def execute(run, workflow, client=http_client, retry=False, allow_dispatch=True, legacy_replay=False):
     run = Path(run)
     require(read(run / 'freeze-manifest.json')['frozen_hash'] == file_hash(run / 'frozen.json'), 'frozen inputs changed')
     frozen = read(run / 'frozen.json')
-    validate_plan(frozen['plan'])
+    validate_plan(frozen['plan'], legacy=legacy_replay or not allow_dispatch)
     wf = Workflow(workflow)
     state = wf.status()
     require(runtime_snapshot(state['runtime']) == frozen['runtime'], 'runtime changed; freeze a new assessment version')
@@ -328,6 +359,8 @@ def execute(run, workflow, client=http_client, retry=False, allow_dispatch=True)
                 answers = c['answers'] if index == 0 else {'A': c['answers']['B'], 'B': c['answers']['A']}
                 shown.append({k: c[k] for k in ('id', 'kind', 'task', 'fixed_background', 'stipulated_changes')} | {'answers': answers})
             packet = {'source_packet': frozen['plan']['evidence'], 'profile': frozen['plan']['profile'], 'profile_document': frozen['plan']['profile_document'], 'rubric': frozen['rubric'], 'cases': shown}
+            if 'assessment_scope' in frozen:
+                packet['assessment_scope'] = frozen['assessment_scope']
             request = {'endpoint': cfg['endpoint'], 'model': cfg['judge_models'][index], 'temperature': cfg['temperature'],
                        'max_tokens': cfg['judge_max_tokens'], 'timeout_seconds': cfg['timeout_seconds'],
                        'input_token_limit': cfg['input_token_limit'], 'messages': [
@@ -349,6 +382,7 @@ def execute(run, workflow, client=http_client, retry=False, allow_dispatch=True)
     if errors and outcome['outcome'] == 'not_run' and (allow_dispatch or records or state['consumed']):
         outcome['outcome'] = 'inconclusive'
     result = {'schema_version': 1, 'run_id': run.name, 'mode': state['mode'], 'timestamp': time.time(),
+              'structure_revision': frozen['plan'].get('structure_revision', 1),
               'hashes': frozen['hashes'], 'recognition': outcome, 'records': records, 'errors': errors,
               'budget': {k: wf.status()[k] for k in ('budget', 'consumed', 'remaining', 'calls', 'deadline', 'repair_pass', 'reuse_lineage')}, 'judge_dependence': 'Same model, fresh contexts' if cfg['judge_models'][0] == cfg['judge_models'][1] else 'Different configured models, fresh contexts',
               'limitations': ['Internal diagnostic suite; machine scores are not calibrated human-acceptance probabilities.', 'No minimal named-persona comparison or comprehensive research claim.']}
@@ -369,9 +403,11 @@ def main():
     p = sub.add_parser('freeze')
     p.add_argument('--runtime', type=Path, required=True); p.add_argument('--plan', type=Path, required=True)
     p.add_argument('--run', type=Path, required=True); p.add_argument('--workflow', type=Path, required=True)
+    p.add_argument('--legacy-replay', action='store_true')
     p = sub.add_parser('run')
     p.add_argument('--run', type=Path, required=True); p.add_argument('--workflow', type=Path, required=True)
     p.add_argument('--retry', action='store_true')
+    p.add_argument('--legacy-replay', action='store_true')
     args = ap.parse_args()
     try:
         if args.command == 'example-plan':
@@ -379,7 +415,7 @@ def main():
             example['generation']['deadline'] = time.time() + 600
             save(args.out, example)
             return
-        result = freeze(args.runtime, read(args.plan), args.run, args.workflow) if args.command == 'freeze' else execute(args.run, args.workflow, retry=args.retry)
+        result = freeze(args.runtime, read(args.plan), args.run, args.workflow, legacy_replay=args.legacy_replay) if args.command == 'freeze' else execute(args.run, args.workflow, retry=args.retry, legacy_replay=args.legacy_replay)
         print(encoded(result))
     except (ValueError, OSError, KeyError) as exc:
         ap.error(str(exc))

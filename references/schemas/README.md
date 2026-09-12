@@ -144,3 +144,9 @@ ranking, not a universal weighted retention score. Existing weight/composite exa
 historical; use [scoring.md](../scoring.md). `fidelity.json` requires the four behavioral gates
 in [behavioral-evaluation.md](../behavioral-evaluation.md). `registers.json` requires stability
 evidence and permits `INSUFFICIENT_EVIDENCE`; undefined ratios are null, never Infinity.
+
+New recognition plans and validation writes carry `structure_revision: 2`. Recognition
+cases require explicit `references`, including `[]` for core-only generation. The
+optional `assessment_scope` selects the canonical reconstruction report for frozen,
+separately hashed judge evidence. Legacy plans are inspected through explicit replay
+or migrated with passage review; missing metadata is never silently upgraded.

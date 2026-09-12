@@ -14,6 +14,8 @@ class PersonaRunnerExportTests(unittest.TestCase):
         self.addCleanup(f.doCleanups)
         runner = helpers.runner
         (f.skill / 'SKILL.md').write_text('Target perspective. Use characteristic methods.')
+        (f.skill / 'transworld-identity').mkdir()
+        (f.skill / 'transworld-identity/scope.md').write_text('Fictional research coverage.')
         tasks = []
         for phase in ('development', 'final'):
             for kind, labels, criteria in [

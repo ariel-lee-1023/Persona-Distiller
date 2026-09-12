@@ -155,3 +155,12 @@ Release now also requires [behavioral evidence](behavioral-evaluation.md) for re
 costly commitments under pressure, historical scope and identity recognition. These are
 reported separately from position recall, cost inventory and style. Register discovery must
 supply stable equal-length subsample evidence; insufficient evidence blocks the register claim.
+
+## Structure revision 2
+
+New research fidelity records carry `structure_revision: 2`. R8 checks the reconstruction
+account at `transworld-identity/scope.md` and runtime/host separation; it no longer
+requires a runtime filename, minimum length or literal core link. R9 historical-scope
+behavior remains independently required. A structure revision cannot grant a behavioral
+pass. Missing revision metadata retains the legacy gate and identifies an old record
+for inspection, never an instruction to rewrite its bytes, hashes or outcome.

@@ -9,17 +9,19 @@ persona-repository/
   SKILL.md
   AGENTS.md                       # when the delivery environment requires it
   README.md
+  LICENSE
   references/
-    scope.md
     frameworks.md
     voice.md
     <topic-or-source-modules>.md
   transworld-identity/
+    scope.md
     provenance.md
     evidence.json
     recognition-profile.md
     validation.json
     runs/<run-id>/
+    migrations/<migration-id>/
   .agents/skills/<persona-slug> -> ../..
 ```
 
@@ -32,14 +34,18 @@ route to it. A reference symlink must not expose it indirectly.
 
 `SKILL.md` has valid name/description frontmatter, compact operational perspective,
 conditional methods, interaction guidance, limits and meaningful reference-loading
-triggers. Load scope with the core, relevant topic methods for their triggers and voice
-before sustained prose. Keep citations out of repetitive narration where unnecessary,
+triggers. Load relevant topic methods for their triggers and voice before sustained prose.
+Include only necessary cross-cutting portrayal rules in the core, such as keeping
+pseudonymous speakers distinct from the author and avoiding fabricated quotations. Keep citations out of repetitive narration where unnecessary,
 but do not prohibit truthful uncertainty, source qualifications or clear extrapolation.
 No mandatory catchphrases, automatic historical verdicts or claim to actual memories.
 
-`scope.md` identifies the historical anchor, supported period/domains, fixed facts,
-permitted changes, extrapolation rules and unsupported territory. Historical opinions
-are not automatically opinions about modern scenarios.
+Place conceptual qualifications beside the methods they qualify. Historical opinions
+are not automatically opinions about modern scenarios. Answer modern questions
+substantively using supported methods, without routine historical disclaimers.
+An optional operational module may be named `scope.md`, but it must be distinct from
+the reconstruction report and loaded only through an explicit relevant route. The
+default template creates no runtime scope module or replacement mandatory file.
 
 `frameworks.md` gives methods with triggers, steps, conditions, failure handling,
 exceptions and characteristic tradeoffs. Where useful, distinguish how evidence is
@@ -64,7 +70,7 @@ and locators. Preserve supported modules and avoid repetitive biography or raw d
 Make recognizable character, an imaginable interaction, a usable first action and
 honest expectations as explicit as installation and status. Before drafting, read
 [readme-experience.md](readme-experience.md) and inspect the existing introduction,
-core, scope, frameworks, voice and their evidence links. Derive its promise from the
+core, reconstruction scope, frameworks, voice and their evidence links. Derive its promise from the
 package actually produced. Technical upgrades alone do not warrant a new introduction.
 
 A useful reader path is an introduction, a concrete starting question or situation,
@@ -86,6 +92,19 @@ a minimal named-persona prompt. Review the four reader outcomes in the existing
 completion pass; updating assessment status should change only affected passages.
 
 ## Maintainer records
+
+`transworld-identity/scope.md` explains the historical referent, represented periods,
+works and domains, actually accessible or inherited materials, edition/translation/
+editorial and pseudonymous-authorship limitations, gaps, unresolved attribution and
+exact-quotation limits. Identify intended applications extending beyond observed
+behavior and link the runtime consequences incorporated into existing modules.
+Link provenance for the detailed inventory and validation for assessment results.
+Write for maintainers and interested readers, not as an additional persona prompt.
+Source gaps must not automatically make the persona hesitant or add repetitive caveats.
+
+Host instructions may route maintenance or explicit source-inspection requests to
+these records. They must not load the assessment directory for ordinary conversation.
+Audit `AGENTS.md`, `CLAUDE.md` and their linked instructions as well as the core.
 
 `provenance.md` records build contract, finite source-processing boundary and actual
 coverage, source inventory, baseline/revision, lineage, editorial decisions and

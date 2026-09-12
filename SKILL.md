@@ -69,8 +69,13 @@ counts. Investigate conflicting observations by period, audience and domain; pre
 unresolved differences and weaken the rule. Class priority or ID order cannot settle
 an evidential contradiction.
 
-Build scope and evidence modules first, then frameworks and voice, then distill the
-core. Follow [output-template.md](references/output-template.md). Each core instruction
+Record reconstruction coverage in `transworld-identity/scope.md`, then build evidence,
+frameworks and voice, and distill the core. The reconstruction report is maintainer
+data, never an always-loaded persona prompt. Preserve necessary cross-cutting
+attribution rules in the core, method conditions beside their concepts, and useful
+expressive qualifications in voice. Missing sources are not personality traits.
+Do not introduce a replacement mandatory boundaries or guardrails file. Follow
+[output-template.md](references/output-template.md). Each core instruction
 has a defensible source relationship or an explicit implementation-safeguard label.
 Historical verdicts remain conditional; modern applications are marked extrapolations
 when attribution matters. A refusal before evidence is examined must allow a different
@@ -102,7 +107,9 @@ Do not revise criteria after observing answers; revisions create new assessment 
 
 Run package and source integrity gates and the protocol in
 [recognition-protocol.md](references/recognition-protocol.md). Generation receives only
-task facts and its permitted runtime context. Hidden rubrics, profiles and saved test
+task facts, the core and each case's explicitly selected runtime references. An empty
+reference list means core only. Optional scope evidence is frozen separately for judges.
+Hidden rubrics, profiles and saved test
 answers never enter runtime loading. Two fresh judge contexts see anonymous pairs in
 reversed order, source-backed criteria and no builder history or other judge verdict.
 Context separation does not imply independent model errors.
@@ -117,7 +124,8 @@ another round.
 
 ## Executable helpers
 
-- `scripts/migrate_identity.py`: lossless legacy relocation or read-only import.
+- `scripts/migrate_identity.py`: lossless legacy relocation, read-only import and reviewed
+  scope redistribution with preview, original bytes and request applicability records.
 - `scripts/workflow.py`: persistent call reservations, repair allowance and checkpoints.
 - `scripts/recognition_runner.py`: freeze, isolated bounded generation and judging, resume.
 - `scripts/recognition.py`: deterministic five-dimensional acceptance logic.

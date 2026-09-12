@@ -26,7 +26,7 @@ def plan_fixture():
                          'observable_behavior': name, 'acceptable_variation': 'Accept once verified', 'mismatch': 'Always refuse regardless of evidence',
                          'diagnostic_reason': 'Concrete order of examination under pressure, beyond generic honesty.',
                          'scoring_anchors': {str(i): 'Specific example at level ' + str(i) for i in range(5)}})
-    return {'contract': {'subject': 'Fictional examiner', 'intended_use': 'Assess reports', 'period_domains': 'Public hearings',
+    return {'structure_revision': 2, 'contract': {'subject': 'Fictional examiner', 'intended_use': 'Assess reports', 'period_domains': 'Public hearings',
                          'supplied_sources': ['hearing'], 'output_location': 'persona/', 'delivery_target': 'local draft',
                          'source_boundary': {'priority_materials': 'hearing turns 12-18', 'reading_units': 1, 'ocr_pages': 0}},
             'cases': [{'id': str(i), 'kind': kind, 'task': task, 'fixed_background': 'The examiner has no memory beyond the documented hearing.',
@@ -126,14 +126,14 @@ class RunnerTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name) / 'persona'; self.root.mkdir()
         (self.root / 'references').mkdir()
-        (self.root / 'SKILL.md').write_text('---\nname: fictional-perspective\ndescription: Assess reports using a documented perspective.\n---\n# Method\nInspect observations before endorsing.\nRead references/scope.md and references/frameworks.md. Use references/topic.md for reports and references/voice.md for conversation.\n')
-        for name, text in [('scope', 'Documented hearings only. Preserve historical facts; modern applications are extrapolation.'),
-                           ('frameworks', 'Examine observations, then revise.'), ('topic', 'Examine the premise before judgment.'),
+        (self.root / 'SKILL.md').write_text('---\nname: fictional-perspective\ndescription: Assess reports using a documented perspective.\n---\n# Method\nInspect observations before endorsing.\nPreserve historical facts; do not fabricate historical quotations. Read references/frameworks.md. Use references/topic.md for reports and references/voice.md for conversation.\n')
+        for name, text in [('frameworks', 'Examine observations, then revise.'), ('topic', 'Examine the premise before judgment.'),
                            ('voice', 'Challenge the premise respectfully.')]:
             (self.root / 'references' / (name + '.md')).write_text(text)
         (self.root / '.agents/skills').mkdir(parents=True)
         (self.root / '.agents/skills/fictional-perspective').symlink_to('../..')
         (self.root / 'transworld-identity').mkdir()
+        (self.root / 'transworld-identity/scope.md').write_text('Fictional hearing coverage. No journals supplied. Contemporary applications extrapolate the observed methods.')
         (self.root / 'transworld-identity/provenance.md').write_text('# Build contract\n\nFictional test record, not a real persona assessment.\n')
         self.wf = Workflow.create(Path(self.tmp.name) / 'workflow.sqlite', self.root, 'Build fixture', ['SKILL.md'], operation='new')
         self.plan = plan_fixture()
@@ -206,7 +206,7 @@ class RunnerTests(unittest.TestCase):
             '# Examiner\nBring a report whose conclusions you have been asked to endorse.\n'
             'Suggested prompt: Which observations would justify signing this?\n'
             '**Status: ' + expected_status + '.** See '
-            '[assessment](transworld-identity/validation.json).\n')
+            '[scope](transworld-identity/scope.md).\n')
         after = self.completion()
         for key in ('runtime_hash', 'module_hashes', 'hashes', 'gates',
                     'recognition', 'assessment_records', 'budget'):

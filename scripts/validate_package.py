@@ -30,6 +30,7 @@ import sys
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 from release_checks import release_checks, runtime_hash
+from output_structure import structure_issues
 
 AUDIT_WORDS = ("token", "budget", "cluster", "probe", "corpus", "distill", "score")
 BAN_STRINGS = ("provenance", "episodic.md", "extraction", "holdout", "Stage ",
@@ -126,7 +127,8 @@ def main():
     ap = argparse.ArgumentParser(description="Machine-check a distilled package's structural rules.")
     ap.add_argument("package_dir", help="persona project root containing .agents/skills/<name>/")
     ap.add_argument("--json", help="write check artifact here")
-    ap.add_argument("--routes", help="JSON mapping of scope/frameworks/voice to existing relative runtime paths")
+    ap.add_argument("--routes", help="JSON mapping of framework/voice roles to existing relative runtime paths")
+    ap.add_argument("--structure-revision", type=int, choices=(1, 2), default=2, help="1 explicitly inspects a legacy layout; new validation defaults to 2")
     ap.add_argument("--strict", action="store_true", help="treat warnings as errors")
     ap.add_argument("--headings", help="file of required core heading anchors, one per line")
     ap.add_argument("--release", action="store_true", help="require current fidelity evidence and release gates")
@@ -157,6 +159,10 @@ def main():
     results = []
 
     layout_ok = len(skill_roots) == 1
+    if args.structure_revision == 2:
+        layout_ok = layout_ok and Path(skill_root).is_symlink() and Path(skill_root).resolve() == Path(root).resolve()
+        issues = structure_issues(root)
+        results.append(check('S9', 'error', not issues, '; '.join(issues) or 'reconstruction scope and host boundaries present; editorial responsibilities require source review'))
     layout_detail = (
         "one discoverable skill exists under .agents/skills/"
         if layout_ok else
@@ -169,7 +175,10 @@ def main():
                          "missing .agents/skills/<name>/SKILL.md"))
     routes = {'voice': 'references/voice.md', 'frameworks': 'references/frameworks.md'}
     if args.routes:
-        routes.update(json.loads(read(args.routes)))
+        supplied_routes = json.loads(read(args.routes))
+        if args.structure_revision == 2 and 'scope' in supplied_routes:
+            results.append(check('S9', 'error', False, 'legacy runtime_routes.scope requires passage review and plan migration'))
+        routes.update(supplied_routes)
     refs_ok = os.path.isdir(references) and all(
         isinstance(p, str) and not Path(p).is_absolute() and '..' not in Path(p).parts and os.path.isfile(os.path.join(skill_root, p))
         for p in routes.values())
@@ -249,7 +258,7 @@ def main():
     results.append(check('S7', 'error', not hidden_links, 'runtime/evaluation separation' if not hidden_links else '; '.join(hidden_links)))
     local_paths, raw_sources = [], []
     for path in markdown_files(root):
-        if 'transworld-identity/runs/' in rel(path, root) or 'transworld-identity/history/' in rel(path, root):
+        if any('transworld-identity/' + tree + '/' in rel(path, root) for tree in ('runs', 'history', 'migrations', 'archive', 'archives', 'snapshots')):
             continue
         if re.search(r'(?:/Users/|/home/|/private/tmp/|[A-Z]:\\Users\\)', read(path)):
             local_paths.append(rel(path, root))
@@ -329,7 +338,7 @@ def main():
     effective = [{**item, "effective_level": "error" if args.strict and item["level"] == "warn" else item["level"]}
                  for item in results]
     failed = [item for item in effective if not item["ok"] and item["effective_level"] == "error"]
-    artifact = {"package": root, "skill_root": skill_root, "strict": args.strict, "checks": effective,
+    artifact = {"structure_revision": args.structure_revision, "package": root, "skill_root": skill_root, "strict": args.strict, "checks": effective,
                 "errors": len(failed), "warnings": sum(not x["ok"] and x["level"] == "warn" for x in effective),
                 "verdict": "FAIL" if failed else "PASS"}
     if args.json:

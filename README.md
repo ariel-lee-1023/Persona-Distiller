@@ -19,23 +19,28 @@ persona-repository/
   SKILL.md
   AGENTS.md                       # where the host requires it
   README.md
+  LICENSE
   references/
-    scope.md
     frameworks.md
     voice.md
     <topic-or-source-modules>.md
   transworld-identity/
+    scope.md
     provenance.md
     evidence.json
     recognition-profile.md
     validation.json
     runs/<run-id>/
+    migrations/<migration-id>/
   .agents/skills/<persona-slug> -> ../..
 ```
 
 Equivalent existing modules can keep their names. Runtime references contain useful
 attribution and context but never load hidden assessment rubrics or answers. Raw books,
 recovered full text and scratch stay outside the published repository.
+Reconstruction coverage and evidence limits live in `transworld-identity/scope.md`.
+Ordinary conversation loads the core and relevant runtime references. Necessary
+behavioral conditions stay beside the instructions they qualify.
 
 Each persona's README also introduces the particular encounter it offers: what catches
 this perspective's attention, what it asks of the reader and a concrete question to try.

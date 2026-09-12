@@ -45,7 +45,7 @@ class TestGeneratedProjectLayout(unittest.TestCase):
     def run_validator(self) -> tuple[subprocess.CompletedProcess[str], dict]:
         report = self.root.parent / "validation.json"
         proc = subprocess.run(
-            [sys.executable, str(VALIDATOR), str(self.root), "--json", str(report)],
+            [sys.executable, str(VALIDATOR), str(self.root), "--structure-revision", "1", "--json", str(report)],
             text=True,
             capture_output=True,
             check=False,

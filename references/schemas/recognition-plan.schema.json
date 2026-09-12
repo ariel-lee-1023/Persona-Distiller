@@ -110,7 +110,8 @@
           "task",
           "fixed_background",
           "stipulated_changes",
-          "kind"
+          "kind",
+          "references"
         ],
         "additionalProperties": true
       },
@@ -398,6 +399,25 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "structure_revision": {
+      "const": 2,
+      "description": "New writes use revision 2. Missing metadata identifies legacy inputs requiring inspection."
+    },
+    "assessment_scope": {
+      "const": "transworld-identity/scope.md",
+      "description": "Optional judge-only report, frozen with its actual bytes and separate hash."
+    },
+    "runtime_routes": {
+      "type": "object",
+      "not": {
+        "required": [
+          "scope"
+        ]
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   },
   "required": [
@@ -405,7 +425,8 @@
     "cases",
     "profile",
     "evidence",
-    "generation"
+    "generation",
+    "structure_revision"
   ],
   "additionalProperties": true
 }

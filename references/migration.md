@@ -86,3 +86,56 @@ call allowance and migration details in linked records. Place use-affecting limi
 beside their promises and avoid duplicating them without a distinct purpose. Historical
 research remains historical. Completion does not require inventing a pass or obtaining
 fresh held-out sources. Publication follows the user's authorization, not this migration document.
+
+## Redistribute reconstruction scope (structure revision 2)
+
+This supersedes the old mandatory runtime-scope rule. Inspect scope passages before
+moving anything. Coverage, source availability, editions, translation and verification
+gaps belong in `transworld-identity/scope.md`. Necessary attribution constraints belong
+concisely in the core; conditions on a method or concept belong beside it; expressive
+qualifications belong in voice when useful. Keep consequential practical limitations
+beside README promises and preserve the introduction. Record destinations and reasons
+for every material passage. This is editorial judgment, not keyword classification.
+
+Reconcile an existing reconstruction account deliberately, preserving disagreements
+and both original versions. Remove scope loading from core and host instructions,
+update active plans to revision 2 with explicit case references, then remove the old
+file after accounting for incoming links. Never leave a runtime redirect or symlink
+into assessment. An independently useful optional operational module may still use
+the basename `scope.md`; no replacement mandatory file is required.
+
+The helper accepts a reviewed JSON `--scope-plan`. It previews by default; `--apply`
+executes the same preflight and writes the reviewed edits. Preview is a useful review
+surface, not a new permission step. Its fields are:
+
+- `structure_revision: 2`, `reviewer`, `legacy_scope` (the old relative file path).
+- `changes`: distinct objects with `path`, `before_hash` (SHA-256 with `sha256:` prefix,
+  or null for absent files), and full reviewed UTF-8 `content` (null deletes the file).
+  A changed existing canonical scope also needs `reconciliation_reason`.
+- `passages`: `start_line`, `end_line` in the original scope, `destinations` (relative
+  paths with optional anchors) and `reason`. Account for every nonblank source line.
+- Optional `recognition_plan`: the complete current revision-2 plan, used to compare
+  actual requests with preserved frozen runs. Also update the active plan file in
+  `changes` where it lives in the repository. Without a current plan, applicability
+  remains explicitly unresolved.
+
+```bash
+python3 scripts/migrate_identity.py /path/to/persona --scope-plan /path/to/work/reviewed.json
+python3 scripts/migrate_identity.py /path/to/persona --scope-plan /path/to/work/reviewed.json --apply
+```
+
+The helper stages changes, checks paths and host boundaries, then archives all changed
+original files in `transworld-identity/migrations/<id>/originals/`. The migration record
+keeps passage disposition, before/after hashes and request dependencies. Conflicting
+or stale bytes stop before mutation. Reapplying a completed unchanged mapping is a
+no-op. Source review must still confirm the meaning and sufficiency of redistribution;
+mechanical coverage cannot prove that a philosophical condition survived correctly.
+
+Removing injected scope generally changes persona requests, even after semantic
+redistribution. Preserve old answers as history; reuse only complete matching requests
+and configurations, including unchanged controls. Judge-only evidence changes can
+reuse matching answers but require new judgments. README or unused maintainer edits
+require zero model calls. Never drop an old dependency to manufacture a match.
+A layout migration can finish without new recognition and should report Candidate
+when no applicable pass remains. Any further assessment retains the eight-call budget
+and explicit additional-budget rules; there is no automatic research escalation.
