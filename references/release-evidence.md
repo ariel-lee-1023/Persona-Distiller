@@ -138,3 +138,12 @@ release invocation supports a claim of verified release gates. Missing, malforme
 failed or stale required evidence exits nonzero. Keep its validation report in the
 ledger. Existing personas need new evaluations and the scope contract; do not
 retrofit passing declarations onto old results.
+
+## Executable runs and new required evidence
+
+Use the optional [evaluation runner](evaluation-runner.md) to execute controlled prediction,
+separate blind grading and sealed records. Human corrections are appended as child records.
+Release now also requires [behavioral evidence](behavioral-evaluation.md) for reasoning,
+costly commitments under pressure, historical scope and identity recognition. These are
+reported separately from position recall, cost inventory and style. Register discovery must
+supply stable equal-length subsample evidence; insufficient evidence blocks the register claim.

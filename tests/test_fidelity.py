@@ -17,6 +17,22 @@ from release_checks import file_hash, runtime_hash, release_checks
 SCRIPTS = Path(__file__).resolve().parents[1] / 'scripts'
 
 
+def valid_behavior(content_hash):
+    data = {'content_hash': content_hash}
+    for kind, keys in [('reasoning', ('method', 'conditions')), ('commitment', ('costly_choice', 'resisted_pressure')), ('scope', ('period', 'conditions', 'attribution'))]:
+        labels = ['attested_period', 'earlier_period', 'changed_conditions'] if kind == 'scope' else ['new1', 'new2']
+        data[kind] = [{'id': kind + label, 'prompt': 'New situation ' + label, 'answer': 'Recorded characteristic response.',
+                       'criteria': {k: True for k in keys}, 'rationale': 'Supported by source and conditions.', 'disputed': False,
+                       'scope_case': label, 'method': 'Check assumptions then apply rule', 'attested_choice': 'Costly choice',
+                       'convenient_alternative': 'Easy choice', 'pressure': 'Incentive to conform'} for label in labels]
+    candidates = ['Target', 'Neighbor A', 'Neighbor B']
+    data['identity'] = {'candidates': candidates, 'cases': [
+        {'id': 'shared-task', 'prompt': 'The same task and facts.', 'answer': 'Characteristic answer for ' + actor, 'truth': actor,
+         'judgments': [{'reviewer': judge, 'choice': actor, 'blinded': True, 'disputed': False, 'rationale': 'Distinctive reasoning.'} for judge in ('judge1', 'judge2')]}
+        for actor in candidates]}
+    return data
+
+
 class SplitTests(unittest.TestCase):
     def test_related_passages_never_cross_partitions_and_order_is_stable(self):
         items = [{'id': f'p{i}', 'group': f'work{i // 3}', 'domain': 'ethics'} for i in range(30)]
@@ -86,6 +102,8 @@ class ReleaseTests(unittest.TestCase):
         self.registers = {
             'verdict': 'SINGLE_REGISTER', 'n_registers': 1, 'n_units': 2,
             'thresholds': {'ratio': 3, 'dims': 3},
+            'stability': {'adequate': True, 'stable': True, 'subsamples': 3, 'tokens_per_subsample': 200,
+                          'minimum_agreement': .8, 'family_agreement': 1, 'pairs': [{'indices': [0, 1], 'split': False, 'agreement': 1}]},
             'units': [{'unit_id': 'u1', 'features': {'sentence_length': 10}, 'family': 'R1'},
                       {'unit_id': 'u2', 'features': {'sentence_length': 11}, 'family': 'R1'}],
             'families': [{'family_id': 'R1', 'members': ['u1', 'u2']}],
@@ -100,7 +118,8 @@ class ReleaseTests(unittest.TestCase):
                   'stale': [], 'isolation': {'split_before_extraction': True, 'test_exposures': 1, 'construction_partitions': ['train']},
                   'register_families': ['R1'], 'projection': {'gate': result('development'), 'final': result('test')},
                   'cost': {'content_hash': self.digest, 'total_divergences': 1, 'slated_for_core': 1, 'in_core_final': 1, 'logged_out': 0, 'missing_unlogged': 0, 'presence_assertion': 'pass'},
-                  'style': {'content_hash': self.digest, 'modulation_reproduced': True, 'avoid_list_violations': 0}}
+                  'style': {'content_hash': self.digest, 'modulation_reproduced': True, 'avoid_list_violations': 0},
+                  'behavioral': valid_behavior(self.digest)}
 
     def check(self, data=None):
         path = self.root / 'fidelity.json'
@@ -241,6 +260,26 @@ class ReleaseTests(unittest.TestCase):
         with patch('builtins.__import__', side_effect=import_without_jsonschema):
             checks = self.check()
         self.assertTrue(any(not c['ok'] and 'requirements-release.txt' in c['detail'] for c in checks))
+
+    def test_position_recall_does_not_replace_characteristic_reasoning(self):
+        self.f['behavioral']['reasoning'][0]['criteria']['method'] = False
+        checks = self.check()
+        self.assertTrue(any(c['check'] == 'R9.reasoning' and not c['ok'] for c in checks))
+
+    def test_preserved_text_does_not_replace_commitment_under_pressure(self):
+        self.f['behavioral']['commitment'][0]['criteria']['resisted_pressure'] = False
+        self.assertTrue(any(not c['ok'] for c in self.check()))
+
+    def test_scope_file_does_not_replace_historical_scope_behavior(self):
+        self.f['behavioral']['scope'][1]['criteria']['period'] = False
+        self.assertTrue(any(not c['ok'] for c in self.check()))
+
+    def test_identity_requires_blinding_and_same_facts_for_neighbors(self):
+        self.f['behavioral']['identity']['cases'][1]['prompt'] = 'Different facts'
+        self.assertTrue(any(not c['ok'] for c in self.check()))
+        self.f['behavioral'] = valid_behavior(self.digest)
+        self.f['behavioral']['identity']['cases'][0]['judgments'][0]['blinded'] = False
+        self.assertTrue(any(not c['ok'] for c in self.check()))
 
     def test_multifamily_needs_discrimination_and_behavioral_selection(self):
         self.registers.update(verdict='MULTI_REGISTER', n_registers=2, families=[{'family_id': 'R1', 'members': ['u1']}, {'family_id': 'R2', 'members': ['u2']}])

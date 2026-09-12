@@ -13,7 +13,8 @@
     "isolation",
     "projection",
     "cost",
-    "style"
+    "style",
+    "behavioral"
   ],
   "additionalProperties": false,
   "properties": {
@@ -616,6 +617,233 @@
     "merge_review": {
       "type": "string",
       "minLength": 1
+    },
+    "behavioral": {
+      "type": "object",
+      "required": [
+        "content_hash",
+        "reasoning",
+        "commitment",
+        "scope",
+        "identity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "reasoning": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "prompt",
+              "answer",
+              "criteria",
+              "rationale",
+              "disputed"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "prompt": {
+                "type": "string",
+                "minLength": 1
+              },
+              "answer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              },
+              "criteria": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "boolean"
+                }
+              },
+              "disputed": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "commitment": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "prompt",
+              "answer",
+              "criteria",
+              "rationale",
+              "disputed"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "prompt": {
+                "type": "string",
+                "minLength": 1
+              },
+              "answer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              },
+              "criteria": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "boolean"
+                }
+              },
+              "disputed": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "scope": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "prompt",
+              "answer",
+              "criteria",
+              "rationale",
+              "disputed"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "prompt": {
+                "type": "string",
+                "minLength": 1
+              },
+              "answer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              },
+              "criteria": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "boolean"
+                }
+              },
+              "disputed": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "identity": {
+          "type": "object",
+          "required": [
+            "candidates",
+            "cases"
+          ],
+          "properties": {
+            "candidates": {
+              "type": "array",
+              "minItems": 3,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "cases": {
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "prompt",
+                  "answer",
+                  "truth",
+                  "judgments"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "answer": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "truth": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "judgments": {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "reviewer",
+                        "choice",
+                        "blinded",
+                        "disputed",
+                        "rationale"
+                      ],
+                      "properties": {
+                        "reviewer": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "choice": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "rationale": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "blinded": {
+                          "type": "boolean"
+                        },
+                        "disputed": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

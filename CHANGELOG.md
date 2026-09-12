@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added isolated HTTP evaluation runs, separate blind grading and append-only human review with tamper-evident records and projection/behavioral exports.
+- Register discovery now requires supported absolute differences and stable equal-length subsamples, emits finite JSON and can report insufficient evidence.
+- Replaced universal retention cutoffs with one class-specific admission and ranking scorer. Release evidence now requires separate reasoning, commitment-under-pressure, historical-scope and blind identity checks.
 - Grouped independent evaluation splits, paired persona baselines, family-level discrimination and behavioral register selection, host-facing scope contracts, and hash-bound executable release checks. Missing descriptive module links now fail validation.
 
 

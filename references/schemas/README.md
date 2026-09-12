@@ -14,7 +14,7 @@ canonical, validatable form rather than five illustrative snippets scattered acr
 docs — several of which carry `//` comments for readability and are therefore not parseable as
 JSON if copied verbatim.
 
-Each schema carries a worked `examples` block. Where a schema and a prose snippet disagree, the
+Some schemas carry worked `examples` blocks. Where a schema and a prose snippet disagree, the
 schema is authoritative.
 
 ## Index
@@ -70,17 +70,11 @@ Beyond field types, a few of the skill's hard rules are expressed structurally:
 - A `cost_refusal` element requires `convenient_move`, since the divergence between the convenient
   response and the attested one *is* the signal. It is optional for `interactional`, where a move
   can be characteristic without a convenient counterpart to diverge from.
-- A `core` decision requires a `rank`, because core entries are ordered by class priority before
-  composite and the ordering has to be recoverable.
-- `scores.json` requires **`core_budget`** with its supply term, ceiling row, clamp result, and the
-  class counts that produced it. The core's size is computed per run rather than fixed, so an
-  unlogged size is an unreproducible one; the ceiling is enumerated to `4000 | 6000 | 7500` so a
-  budget cannot quietly exceed what the corpus supports.
-- `scores.json` requires **`tokenizer`**. Every budget in the file is denominated in tokens, and a
-  budget without its tokenizer is a number without a unit — the same package measures roughly twice
-  as large in Chinese as in English under the same counter. `coefficients_source` is the companion
-  fact: coefficients calibrated on a small number of corpora make two runs incomparable if one
-  silently used a different set.
+- Each retained scorer decision requires a `rank`. Admission happens before class priority,
+  within-class score, and deterministic ID tie-breaking. `score_elements.py` implements these rules.
+- `scores.json` requires the scorer version, input hash, class order, decisions and retained IDs.
+  Budget and tokenizer records are optional companion fields in this schema; record them in the
+  fidelity ledger whenever allocating runtime space.
 - Each `cluster_budgets` entry carries a **`verdict`** — `OK | FLOOR | RECUT | SPLIT_IN_MODULE` —
   rather than the bare `recut_flagged` boolean of 2.x, which could only say that a cluster was
   overloaded and not what to do about it. The distinction matters in one direction only: an
@@ -96,14 +90,10 @@ Beyond field types, a few of the skill's hard rules are expressed structurally:
 - `fidelity.json` requires **`content_hash`** and **`stale`**. Curation is a loop, and a result whose
   package has changed underneath it is stale whether or not anyone marked it — the hash makes that
   mechanically checkable rather than a matter of memory.
-- All probe scores and composites are bounded to 0–1.
+- All current within-class scores are bounded to 0–1. Optional legacy probe fields use the same bounds.
 
 Some rules are deliberately **not** encoded, because valid records violate them:
 
-- The **0.55 deletion threshold** — cut entries legitimately score below it, and entries above it
-  are still cut when they read generic or conflict with a higher-scoring voice feature.
-- **Weights summing to 1.0** — auto-weighting renormalises, but JSON Schema cannot express the sum.
-  Check it yourself when you adjust weights.
 - **The 3,000-token core floor** — `budget` is not bounded below by it, because a reduced-scope core
   shipped against a genuinely thin pool is a valid outcome, not a malformed record. What the schema
   does insist on is that the shortfall be *visible*: `floor_triggered` is required.
@@ -134,3 +124,11 @@ the script and the schema have diverged — fix the pair, and do not paste outpu
 validate into a log that claims to.
 
 Release evidence now requires grouped splits made before extraction, paired baseline/item answers and per-result hashes. See [release-evidence.md](../release-evidence.md). Legacy ID-only passage inventories must be regrouped by work or episode; old final scores cannot be relabeled as independent tests.
+
+## Current admission and behavioral contracts
+
+`scores.json` now records the output of `score_elements.py`: class admission and within-class
+ranking, not a universal weighted retention score. Existing weight/composite examples are
+historical; use [scoring.md](../scoring.md). `fidelity.json` requires the four behavioral gates
+in [behavioral-evaluation.md](../behavioral-evaluation.md). `registers.json` requires stability
+evidence and permits `INSUFFICIENT_EVIDENCE`; undefined ratios are null, never Infinity.

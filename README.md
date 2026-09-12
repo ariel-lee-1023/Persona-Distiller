@@ -108,7 +108,7 @@ You don't have to say the word "skill" for it to trigger.
 
 ### Optional focus statement
 
-Narrow the distillation by naming a facet — *"decision style in public controversies"*, *"overall voice for analysis tasks"*. Scoring re-weights toward the requested facet and prunes off-focus probes. Omit it for overall identification.
+Narrow the distillation by naming a facet — *"decision style in public controversies"*, *"overall voice for analysis tasks"*. Curation prioritizes eligible elements relevant to the requested facet. Omit it for overall identification.
 
 ### Accepted input
 
@@ -171,27 +171,11 @@ standing judgment about a named object, which must name the `object`, the `judgm
 `corpus_hits`, and which needs two independent clusters so that a judgment made once in an aside
 stays an aside.
 
-**Stage 3 — Multi-probe curation & deletion.** Every element scored 0–1 on a weighted composite:
-
-| Probe | Weight |
-|---|---|
-| Projectibility | **0.30** |
-| Cost / refusal signal | **0.25** |
-| Expressive match | 0.20 |
-| Interactional visibility | 0.15 |
-| Preoccupation / gravitational weight | 0.10 |
-
-Hard deletion rule below 0.55 composite. Hard elevation rule ranks survivors by *class priority first* — because style metrics are abundant and cost-refusals are sparse, raw ranking would let volume crowd the fingerprints out. Pure style averages may fill at most ~20% of the core.
-
-**Gate before Stage 4.** Assembly is downstream of passing a **projection gate** (held-out
-prediction), a **cost gate** (every high-signal divergence accounted for), and — whenever the corpus
-carries more than one register family — a **discrimination gate** (the families can be told apart
-blind). Gate results are *control signals*, not reports — failing one sends you back to re-curate,
-never forward to the template. Through 2.x the discrimination test ran "if the core claims
-registers", which put the gate downstream of the distiller's own judgment: it fired only when someone
-had already noticed the very thing it exists to detect. Now the corpus decides, and results carry the
-`content_hash` of the package they were computed against, so a score invalidated by a later merge is
-mechanically identifiable as stale rather than a matter of anyone's memory.
+**Stage 3: class admission and ranking.** `scripts/score_elements.py` uses class-specific
+evidence: transfer and conditions for procedures, attestation and dates for verdicts,
+discrimination for voice, and pressure behavior for costly commitments. It ranks eligible
+elements within each class and resolves conflicts deterministically. Class priority never
+overrides failed admission. See [scoring rules](references/scoring.md).
 
 **Stage 4 — Assemble.** Core `SKILL.md` plus the `references/` package, following a fixed template, obeying the no-meta rule absolutely. Module sizes are computed here too, by `scripts/cluster_budget.py`, and the reasoning is worth stating because a flat band is the obvious thing to write and the wrong thing to write. What a cluster module has to deliver is a working part of someone's thinking, so its terms are the things that constitute one — the apparatus the cluster uses, the moves it makes, the applications it commits to, the fragments kept as evidence — and each is capped, because the fifth instance of a move documents what the first three already established and the twelfth only confirms that the person had a habit. One term is not about the cluster in isolation at all: the more sibling modules a package carries, the more each one must spend marking off what it is *not*, so the fencing cost rises with sibling count and the package gets more expensive per module precisely as it gets better. Corpus mass enters last, under a square root, deliberately damped, because it is the strongest available proxy for the wrong quantity — across the calibration set module length correlated +0.82 with retained fragments and +0.70 with the cluster's own constructs, but only +0.30 with word count, so a rule leaning on mass would size a module by how much the person published rather than by how much of them is in it. The coefficients were not picked in advance either; they were recovered by fitting modules already written by hand and already judged faithful, which is the only calibration target available when the quantity you are trying to predict is "enough to carry the person". Floor and ceiling are then applied to that estimate rather than built into it, because how much material a cluster holds and how much a host will load are unrelated facts, and folding them into one expression lets each hide the other. Keeping them apart is what makes both limits informative: a supply under the floor is not a small module but a failed one — fold the cluster into a sibling, or demote it to `episodic.md` — and a cluster that saturates the input caps is carrying two registers and goes back to `segment.py`, since buying the space back by deleting evidence would fix the number and lose the person.
 
@@ -492,3 +476,17 @@ python3 -m unittest discover -s tests -v
 
 Existing evaluations need to be rerun under this protocol. The validator verifies recorded
 artifacts and freshness, not the truth of a grader's judgments or a claim of context isolation.
+
+## Executable evaluation and stronger behavioral gates
+
+The optional [evaluation runner](references/evaluation-runner.md) separates prediction from
+blind grading, captures actual retrieval and usage, seals run records, and supports human
+corrections without overwriting prior judgments. Final scenario groups are claimed once.
+The [behavioral protocol](references/behavioral-evaluation.md) now requires method transfer,
+commitment under pressure, blinded identity discrimination and historical-scope behavior.
+
+[Register discovery](references/register-evidence.md) now checks event support, absolute effect
+size and stability across equal-length subsamples. Thin or unstable evidence produces
+`INSUFFICIENT_EVIDENCE`; undefined ratios use JSON null. Existing release evidence must be
+rerun to satisfy the new behavioral and discovery requirements. Simulated endpoint tests
+verify the runner's mechanics, not the fidelity of any particular persona.

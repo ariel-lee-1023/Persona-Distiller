@@ -1,5 +1,22 @@
 # Migrating from 2.x to 3.0
 
+## Current executable evaluation contracts
+
+Re-run register discovery on the original units. Current `registers.json` requires observation
+and subsample stability evidence; `INSUFFICIENT_EVIDENCE` cannot support release. Do not add a
+`stable: true` label to old measurements. Undefined ratios are JSON null.
+
+Rebuild `scores.json` using `scripts/score_elements.py` and the class evidence described in
+[scoring.md](references/scoring.md). Old composite scores do not establish current admission.
+Budget and tokenizer records can accompany the scorer output, but do not alter its decisions.
+
+Existing projection, position-retention and style results do not satisfy the new behavioral
+gates. Collect final reasoning transfer, pressure, historical-scope and blind neighboring-thinker
+trials using [behavioral-evaluation.md](references/behavioral-evaluation.md). Run records can be
+collected with the optional [evaluation runner](references/evaluation-runner.md). Keep original
+evidence and append new results; do not relabel development trials as final evidence.
+
+
 3.0 changes the shape of three intermediate artifacts, adds required fields to two of them,
 introduces a pass that runs before all previously-existing Stage 2 work, and promotes one conditional
 test to mandatory.

@@ -21,7 +21,7 @@ later stage reads and writes here, so resolve the path once and reuse it.
 ├── coverage_map.json      # domains, dialogue ratio, decision density, temporal spread
 ├── registers.json         # Pass A0 output: register families, distance matrix, verdict
 ├── extractions.json       # Stage 2 output: every candidate element with evidence
-├── scores.json            # Stage 3 output: composite scores + keep/cut + reason
+├── scores.json            # Stage 3 output: class admission + within-class ranking + keep/cut reasons
 └── fidelity.json          # gate results + Stage 5 results
 ```
 
@@ -154,7 +154,7 @@ Write a `clusters/manifest.json`:
 }
 ```
 
-`kind` is one of `monologue | dialogue | decision_record`. It drives auto-weighting in Stage 3.
+`kind` is one of `monologue | dialogue | decision_record`. It determines which class admission evidence Stage 3 can support.
 
 `attribution` is required and one of `firsthand | secondhand | mixed | unknown` — see
 [`acquisition.md`](acquisition.md) for how to assign it and the three hard rules that depend on it.
@@ -178,7 +178,7 @@ corroborate, and computes the firsthand ratio that will set the core-budget ceil
 ## Coverage map
 
 After segmentation, compute `coverage_map.json`. This is the backbone of the honest coverage
-report and of several auto-weighting defaults.
+report and of the available class admission evidence.
 
 ```json
 {

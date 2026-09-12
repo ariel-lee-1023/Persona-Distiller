@@ -1,146 +1,70 @@
-# Stage 3 — Multi-probe curation & deletion
+# Stage 3: class-specific admission and ranking
 
-This is where the value is. The job is to score every candidate from `extractions.json` on five
-probes, combine them into one identification score, and then **delete aggressively**. Get this
-right before you polish anything else.
+Run `scripts/score_elements.py candidates.json --out scores.json` before assembly.
+The scorer is the single definition of numerical admission and precedence. It
+uses evidence appropriate to each element class and ranks eligible elements
+within that class. There is no universal composite or 0.55 deletion threshold.
+A procedure is not rescued by an exception to a voice-oriented score, and a
+verdict's historical attestation is never mislabeled as unseen-case transfer.
 
-## The composite
+## Admission rules
 
-```
-identification = 0.30·projectibility
-               + 0.25·cost_refusal
-               + 0.20·expressive_match
-               + 0.15·interactional
-               + 0.10·preoccupation
-```
+Every candidate has `id`, explicit `class`, at least two independent `clusters`
+and two source `locators`. A flagged generic, meta-forcing or contradictory element
+is excluded before ranking. Use development cases only; final cases never tune
+admission. The input is `{"elements": [...]}` and preserves source IDs from
+`extractions.json`.
 
-Each sub-score is 0–1. The weights are defaults — tunable, but keep the ordering: the two hardest,
-most diagnostic probes (projectibility, cost/refusal) together outweigh everything else. This
-ordering *is* the correction against the natural bias toward easily-measured surface style. If you
-ever find the core filling with tidy style facts, the weighting is doing its job and you should let
-it cut them.
+| Class | Required evidence and fields | Within-class rank |
+|---|---|---|
+| `procedure` | `precondition`, `on_fail`, nonempty `steps`; at least 2 development transfer cases, transfer >= .70, reasoning >= .50 | .70 transfer + .30 reasoning |
+| `projectible_regularity` | `method`, `conditions`; same transfer evidence | .70 transfer + .30 reasoning |
+| `verdict` | `object`, `judgment`, `period`, `conditions`; at least 2 corpus hits | .60 min(clusters/5,1) + .40 min(hits/10,1) |
+| `cost_refusal` | `convenient_move`, `characteristic_move`, `stakes`; at least 2 pressure cases, pressure >= .70 | pressure performance |
+| `interactional` | `trigger`, `move`; at least 2 transfer cases, transfer >= .70 | transfer performance |
+| `variation` | `trigger`, `contrast`; discrimination >= .70, at least 20 observations | discrimination |
+| `stable_style` | `feature`, `contrast`; same discriminative evidence | discrimination |
+| `preoccupation` | `theme`; at least 3 independent clusters across 2 `domains` | min(clusters/6,1) |
 
-## Scoring each probe (0–1 rubrics)
+Metrics live under `metrics`: `transfer`, `reasoning`, `transfer_cases`,
+`corpus_hits`, `pressure`, `pressure_cases`, `discrimination`, `observations`.
+Counts are integers. Scores are 0 to 1. Unsupported/missing evidence excludes an
+element; class priority never overrides failed admission. Thresholds are explicit
+initial criteria and must be evaluated on future corpora before claiming calibration.
 
-**Projectibility (0.30)** — does it predict held-out stances?
-- 1.0 — from this element alone you can correctly infer the person's position on questions they
-  never explicitly addressed; confirmed in the Stage 5 projection test.
-- 0.5 — recurs and generalizes somewhat, but predictions are shaky or under-tested.
-- 0.0 — reproduces a specific known statement only; no reach beyond it.
+Example procedure input:
 
-**Cost / refusal (0.25)** — does it sit on an incentive-vs-characteristic divergence?
-- 1.0 — a documented line the person held against their own audience/interest, with both the
-  convenient move and the characteristic move attested.
-- 0.5 — a standing commitment that recurs but carried little visible cost.
-- 0.0 — no divergence; agrees with what anyone in their position would conveniently say.
-
-**Expressive match (0.20)** — alignment with the *measured* style distribution, including variation.
-- 1.0 — a distinctive feature or a modulation *pattern* well outside the generic baseline.
-- 0.5 — present but only mildly distinctive.
-- 0.0 — a bare average indistinguishable from generic prose. (Most raw metrics land here — that is
-  correct, and why this probe is capped at 0.20.)
-
-**Interactional visibility (0.15)** — observable as a move in exchange.
-- 1.0 — a repeated, recognizable concede/reframe/dig-in/shift-footing pattern across dialogues.
-- 0.5 — appears in exchange but inconsistently.
-- 0.0 — never observable interactionally (pure monologue artifact).
-
-**Preoccupation / gravitational weight (0.10)** — the theme they keep returning to.
-- 1.0 — surfaces across several *unrelated* clusters; the person cannot stay away from it.
-- 0.5 — a recurring interest within one domain.
-- 0.0 — mentioned once or twice.
-
-### Scoring the two classes added in 3.0
-
-`procedure` and `verdict` are scored on the same five probes, but two of the rubrics need a
-reading that is not obvious from the text above, and getting it wrong systematically underrates
-both classes.
-
-**`procedure` elements** — ordered method: a guard, a translation rule, a routing row.
-- *Projectibility* is the probe that matters, and it should score high almost by construction: a
-  procedure that does not generalise to an unseen question is not a procedure, it is a description
-  of one answer. Score it against unseen **question types**, not unseen topics.
-- *Interactional visibility* is often 0.0 for a guard that fires before the exchange begins. That
-  is correct and is not a reason to drop the element; the class priority below protects it.
-- A procedure with no stated position in the sequence is not admissible as `procedure`. Send it
-  back as a `projectible_regularity` or reclassify it.
-
-**`verdict` elements** — a stable judgment on a named object.
-- *Projectibility* here means something narrower than for other classes: not "does it predict
-  other stances" but "is it stable across the corpus". A verdict restated consistently in three
-  clusters scores 1.0 even though it predicts nothing beyond its own object. This is deliberate.
-  A store of settled cases is worth having precisely because it is *not* re-derived, and scoring
-  it on reach would delete the whole class.
-- *Cost / refusal* is scored normally, and often high: the verdicts worth storing are usually the
-  ones that cost the person something to hold.
-- A verdict must record its corpus hit count (`scripts/name_audit.py`) alongside its score. A
-  judgment attested once, in an aside, is an aside — demote it to `episodic.md`.
-- A verdict that could not have been produced by the person's own method layer is a remembered
-  conclusion rather than a judgment. Keep it if it is well attested, but flag it in the ledger;
-  it will not generalise, and a host agent that treats it as exemplary will misjudge the next
-  object of the same kind.
-
-## The deletion rule (hard)
-
-After scoring, cut an element if **any** of these is true:
-
-1. Composite **< 0.55**.
-2. It introduces **generic language** — phrasing that would fit a thousand people.
-3. It **forces meta-commentary** — you cannot include it without the persona narrating itself,
-   hedging, or citing sources.
-4. It **conflicts with a higher-scoring** core voice feature — keep the stronger one; drop the
-   weaker rather than averaging them into a muddle.
-
-Do not smooth, blend, or "partially include" low-value material. A deleted element that was merely
-low-scoring (not generic/meta/conflicting) can still be **demoted** if it is attested and someone
-might want it on demand — but it does not touch the core. A concrete, attested incident or
-decision-record fragment demoted this way goes to `fidelity-ledger/episodic.md`; a demoted
-expression or modulation element goes to `references/voice.md` instead (see `output-template.md`).
-
-## Elevation & retention (hard) — why weights alone are not enough
-
-The weights tilt toward the diagnostic signals, but ranking purely by composite still lets *volume*
-defeat them: a corpus yields dozens of moderate style features and only a handful of cost-refusals,
-so a flat top-N sort can fill the core with tidy generic style while the fingerprints spill into
-references. The elevation rules below prevent that. They are not optional flavor — they are the
-mechanism that makes the whole design work.
-
-**1. Class priority in ranking.** Do not sort survivors by composite alone. Sort by **class first**,
-then by composite within class:
-
-```
-procedure  ≈  cost_refusal  ≈  verdict  ≈  projectible_regularity
-                                >   interactional   >   variation/modulation
-                                >   preoccupation   >   stable_style
+```json
+{"elements": [{
+  "id": "PROC1", "class": "procedure", "clusters": ["c01", "c02"],
+  "locators": ["work-a:chapter-2", "work-b:episode-4"],
+  "precondition": "Before accepting the question's premise",
+  "on_fail": "Ask what observation would distinguish the alternatives",
+  "steps": ["Identify the premise", "Test it against a concrete case"],
+  "metrics": {"transfer": 0.9, "reasoning": 0.8, "transfer_cases": 5}
+}]}
 ```
 
-`procedure` joins the top band because it is the only class that tells the host agent what to do
-*first*; a core full of positions with no ordered method has no way to reach a position on
-anything the corpus did not already contain. `verdict` joins it because a settled case that gets
-re-derived at runtime is the most detectable failure mode a persona has — the answer changes
-slightly every turn, in a way no individual answer looks wrong.
+It is admitted and receives within-class rank .87, without requiring stylistic
+or interactional points. A well-attested verdict can pass with temporal scope and
+no transfer score. A frequent voice feature with poor discrimination fails.
 
-**2. Reserved claim.** Cost-bearing refusals, standing commitments, and variation/modulation
-patterns get *first claim* on core space. Fill them in before any stable style feature, then fill
-remaining budget down the priority ladder.
+## Precedence and packing
 
-**3. Style-metric cap.** Pure style averages (stable_style class) may occupy **at most ~20%** of the
-core's elements. If you are over the cap, the surplus style features go to **`references/voice.md`**
-regardless of their composite — the core is a fingerprint, not a stylometry report. The cap is a
-*routing* rule, not a discard rule: everything above it is kept, in the module built to hold it and
-loaded whenever sustained prose is written in the voice. Same for surplus modulation patterns.
-Elements cut under the 0.55 rule are still cut; `voice.md` takes the demoted, not the deleted.
+The deterministic class order is procedure, cost_refusal, verdict,
+projectible_regularity, interactional, variation, preoccupation, stable_style.
+Within a class, descending class-specific score wins; IDs break exact ties.
+`conflicts_with` names other candidate IDs. Either direction records a conflict;
+the earlier eligible candidate in the ordered ranking wins. A failed candidate
+cannot displace an eligible one. The scorer logs every admission and conflict
+reason and hashes its input.
 
-**4. Sparsity protection.** A high-signal cost-refusal or variation pattern that clears the ≥2-cluster
-bar is retained even if it is rarer than, and outscored on the composite by, an abundant style class.
-Count never demotes a scarce diagnostic below a plentiful generic one.
-
-**5. Minimum presence.** If the corpus contains *any* high-signal cost-refusal or interactional move,
-the core must carry **at least one**. This is asserted again at the Stage 5 presence check; enforce
-it here so it is true by construction, not by luck.
-
-Fill the core to the computed budget (next section) under these rules — see `output-template.md`
-for the section layout; everything else attested goes to references.
+Scores across classes do not measure the same thing and must not be compared as
+one universal scalar. `retain` means eligible for the package, not automatically
+placed in the core. Assemble within the budgets below, preserving execution order,
+conditions and temporal distinctions. Pure stable-style elements occupy at most
+20% of core elements; surplus eligible style belongs in `voice.md`. A thin corpus
+calls for more evidence or a narrower persona, never threshold exceptions or padding.
 
 ## The core budget is computed, not fixed
 
@@ -209,7 +133,7 @@ references.
 
 ### When supply exceeds the ceiling
 
-The 0.55 deletion rule governs Stage 3; it says nothing about Stage 4, where the material has
+Class-specific admission governs Stage 3; it says nothing about Stage 4, where the material has
 already survived and the constraint is space rather than quality. Without a rule for this case a
 distiller improvises, and the improvisation is almost always the same one: compress every section
 a little. That is the worst available option — it degrades the sections that carry identification
@@ -239,10 +163,9 @@ record which, in the ledger.
 If `supply` lands under 3,000, the survivor pool is too thin to embody the person at full scope. Do
 these in order — stop as soon as the pool clears:
 
-1. **Re-examine the 0.45–0.55 cut band**, but only for `cost_refusal`, `projectible`,
-   `interactional`, and `variation` candidates. The 0.55 threshold is tuned for an abundant pool; a
-   thin pool means it was applied to a pool it was not tuned for. The ≥2-cluster evidence bar stays
-   hard — re-scoring is not re-labelling.
+1. **Re-examine missing evidence for diagnostic classes.** Collect additional development
+   transfer, pressure or attestation evidence where the original extraction was incomplete.
+   Re-run the shared scorer; do not lower a threshold or substitute class priority for admission.
 2. **Check for under-extraction upstream.** A monologic corpus routinely yields `n_interactional`
    = 0; that is a corpus fact, not a curation failure, and Stage 2 will not find what is not there.
    Confirm against `dialogue_ratio` before assuming the pass was lazy.
@@ -454,92 +377,11 @@ you re-include or elevate the missing divergence. Record both outcomes in the pe
 `fidelity-ledger/provenance.md`, and note any weight change they triggered. Only a set that clears
 both gates gets assembled.
 
-## Auto-weighting hooks
 
-- Dialogue-rich corpus (`coverage_map.dialogue_ratio` high) → nudge the interactional weight up
-  (e.g. 0.15 → 0.20) and renormalize; monologic corpus → nudge it down toward projectibility.
-- Narrow user focus → raise the weight of the requested facet and drop off-focus elements even if
-  they score well, since they are out of scope for this persona.
-- Record any weight change and why, at the top of the audit log, so the run stays reproducible.
+## Audit log
 
-## Audit log (`scores.json`)
-
-Every decision is logged with its scores and a one-line reason, so the whole curation is
-inspectable and defensible.
-
-```json
-{
-  "weights": {"projectibility":0.30,"cost_refusal":0.25,"expressive_match":0.20,
-              "interactional":0.15,"preoccupation":0.10},
-  "weight_notes": "dialogue_ratio 0.35 → interactional 0.15 (unchanged)",
-  "tokenizer": {"script":"token_count.py","tokens_per_han_char":1.67,"tokens_per_latin_word":1.3},
-  "n_registers": 3,
-  "core_budget": {
-    "supply": 5510, "ceiling": 6000, "ceiling_rule": "total_tokens<250k",
-    "budget": 5510, "floor_triggered": false, "over_ceiling": false,
-    "counts": {"cost_refusal":3,"projectible":5,"procedure":2,"verdict":4,
-               "interactional":3,"variation":2}
-  },
-  "standing_budgets": {
-    "frameworks": {"supply":4270,"budget":4270,"realised":4180},
-    "voice": {"supply":4310,"budget":4310,"realised":4395}
-  },
-  "cluster_budgets": [
-    {"cluster_id":"c03","supply":3310,"budget":3310,"realised":3260,
-     "counts":{"apparatus":7,"moves":8,"applications":7,"fragments":13,"siblings":9,
-               "registers":1},
-     "words":101043,"words_firsthand":630298,
-     "verdict":"OK"},
-    {"cluster_id":"c06","supply":4995,"budget":4995,"realised":5010,
-     "counts":{"apparatus":13,"moves":9,"applications":6,"fragments":19,"siblings":9,
-               "registers":2},
-     "words":74110,"words_firsthand":630298,
-     "verdict":"SPLIT_IN_MODULE",
-     "verdict_note":"two registers, one topic domain; internal A/B split with no-pooling header"},
-    {"cluster_id":"c12","supply":1635,"budget":1800,
-     "counts":{"apparatus":3,"moves":2,"applications":2,"fragments":4,"siblings":9,
-               "registers":1},
-     "words":25212,"words_firsthand":630298,
-     "verdict":"FLOOR",
-     "floor_resolution":"folded into c11's module as a subsection; shares register and period"}
-  ],
-  "coefficients_source": "defaults (cluster_budget.py --emit-coefficients recorded in provenance)",
-  "decisions": [
-    {"id":"CR1","type":"cost_refusal",
-     "scores":{"projectibility":0.9,"cost_refusal":1.0,"expressive_match":0.4,
-               "interactional":0.8,"preoccupation":0.7},
-     "composite":0.80,"decision":"core","rank":2,
-     "reason":"incentive-vs-characteristic divergence attested in 3 clusters; predicts well"},
-    {"id":"PROC1","type":"procedure","order":1,
-     "scores":{"projectibility":0.9,"cost_refusal":0.3,"expressive_match":0.2,
-               "interactional":0.0,"preoccupation":0.4},
-     "composite":0.51,"decision":"core","rank":1,
-     "reason":"the opening guard; interactional 0.0 is expected for a pre-exchange check, and class priority carries it despite the composite"},
-    {"id":"VD3","type":"verdict","object":"<named object>","corpus_hits":11,
-     "scores":{"projectibility":1.0,"cost_refusal":0.7,"expressive_match":0.3,
-               "interactional":0.2,"preoccupation":0.5},
-     "composite":0.68,"decision":"frameworks",
-     "reason":"stable across 4 clusters; beyond the core's roll-up, so §4 holds the judgment"},
-    {"id":"MOD7","type":"expression",
-     "scores":{"projectibility":0.1,"cost_refusal":0.0,"expressive_match":0.5,
-               "interactional":0.0,"preoccupation":0.0},
-     "composite":0.10,"decision":"cut",
-     "reason":"bare sentence-length average; generic; below threshold"}
-  ]
-}
-```
-
-## Two worked examples
-
-**Kept.** A candidate `cost_refusal`: the person repeatedly argues *against* a position their own
-readership favors, taking the unpopular side on principle, attested in three clusters, and from it
-you can correctly predict their stance on a fresh case. Scores: projectibility 0.9, cost 1.0,
-expressive 0.4, interactional 0.8, preoccupation 0.7 → composite **0.80** → **core**, high rank.
-This is the kind of element that earns identification.
-
-**Cut.** A candidate `expression`: "uses moderately long sentences, average 22 words." Scores:
-projectibility 0.1, cost 0.0, expressive 0.5, interactional 0.0, preoccupation 0.0 → composite
-**0.10** → **cut**. Generic and below threshold; a persona built on this reads like anyone. If a
-*modulation* version existed ("sentences collapse to clipped fragments the moment a claim is
-contested"), that would score far higher on expressive match and interactional and might reach the
-core — the pattern individuates where the average does not.
+`scores.json` is emitted by `scripts/score_elements.py`: version, input hash, scorer,
+class priority, retained IDs and one decision per candidate with eligibility,
+within-class rank and the reason. Preserve the candidates file and measured trial
+records. Budget artifacts from `cluster_budget.py` remain separate calculations;
+the admission scorer does not invent measurement or source evidence.

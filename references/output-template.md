@@ -50,7 +50,7 @@ Record the actual answers and whether they preserve dates, conditions and attrib
 │               ├── frameworks.md   # what the person thinks with
 │               └── voice.md        # how the person sounds
 └── fidelity-ledger/         # human-facing: the honesty/audit package, never loaded by the host agent
-    ├── provenance.md        # an append-only batch log: weights, element table, budgets, gate and
+    ├── provenance.md        # an append-only batch log: admission rules, element table, budgets, gate and
     │                        #   final scores, and one dated entry per curation batch
     └── episodic.md          # concrete attested one-off material: incidents, anecdotes, decision
                              #   fragments that did not clear a cluster module's floor
@@ -467,7 +467,7 @@ that happens when nobody looks.
 1. **Firsthand clusters only.** Expression and modulation are extracted from the person's own
    words. Secondhand paraphrase carries the paraphraser's voice.
 2. **Not a dumping ground.** This holds expression/modulation elements *demoted for space*.
-   Anything cut under the 0.55 rule for being generic, meta-forcing, or conflicting **stays cut**.
+   Anything excluded by class admission for being generic, meta-forcing, or conflicting **stays cut**.
 3. **Measured, never estimated.** Every number comes from an actual `scripts/style_metrics.py` or
    `scripts/zh_metrics.py` run, per unit, recorded with the script and flags used.
 4. **Rules in voice; numbers as data.** The rule sections are instructions to self, with no meta.
@@ -582,8 +582,8 @@ look stable. A family with `n` too small is reported with its `n`.
 
 ### `provenance.md` — an append-only batch log
 
-Distillation is not a single pass. Clusters get merged, elements get demoted, weights get
-re-fitted, a gate sends curation backwards. A ledger shaped as one static table records only the
+Distillation is not a single pass. Clusters get merged, elements get demoted, admission evidence gets
+re-tested, a gate sends curation backwards. A ledger shaped as one static table records only the
 final state, which means the one thing an auditor most needs — what changed, why, and what was not
 re-tested afterwards — is exactly what it cannot hold. The file is therefore a log with a fixed
 head and an append-only tail.
@@ -591,10 +591,10 @@ head and an append-only tail.
 ```markdown
 # <Person> — provenance
 
-## 1. Weights (this run)
-<The five probe weights actually used, and the reason if they differ from the defaults —
-auto-weighting hook, corpus composition, whatever drove it. First section, always, because every
-score below is meaningless without it. Also record the coefficient set used by the budget scripts
+## 1. Admission rules (this run)
+<The scorer version, class-specific admission evidence and ranking decisions,
+including the development trials and attestation that supported each decision. First section,
+always, because every rank below depends on these rules. Also record the coefficient set used by the budget scripts
 (scripts/cluster_budget.py --emit-coefficients) and the tokenizer constants from token_count.py.>
 
 ## 2. Core element table
@@ -604,7 +604,7 @@ glance and the minimum-presence assertion can be checked by counting:
   IM interactional · MOD modulation · PP preoccupation
 e.g. CR1…CR7, PROC1…PROC4, VD1…VD9.
 
-| id | element | core section | class | source clusters | composite | projection | cost-gate |
+| id | element | core section | class | source clusters | within-class rank | projection | cost-gate |
 
 Close the table with an explicit **demotions** row set: what was cut, and where it went
 (voice.md / frameworks.md / a cluster module / episodic.md / dropped). A demotion with no
@@ -714,7 +714,7 @@ that names no cause is a horoscope. I concede facts freely and premises almost n
 Corresponding `fidelity-ledger/provenance.md` rows (where the honesty lives):
 
 ```markdown
-| id | element | core section | class | clusters | composite | projection | cost-gate |
+| id | element | core section | class | clusters | within-class rank | projection | cost-gate |
 |---|---|---|---|---|---|---|---|
 | CR1 | efficiency-as-alibi | What I will not concede | cost_refusal | c02,c07,c11 | 0.81 | 0.86 | high-signal, in core |
 | IM1 | decline-the-number | How I move in an exchange | interactional | c09 | 0.58 | 0.62 | high-signal, in core |

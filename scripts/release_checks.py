@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import math
+from behavioral_checks import check_behavioral
 
 
 def file_hash(path):
@@ -70,6 +71,10 @@ def validate_declared_schema(data, name):
 
 def validate_register_evidence(registers):
     """Cross-field invariants that JSON Schema cannot express."""
+    require(registers['verdict'] != 'INSUFFICIENT_EVIDENCE', 'register discovery lacks sufficient stable evidence')
+    if 'stability' in registers:
+        require(registers['stability']['stable'] is True and registers['stability']['adequate'] is True
+                and registers['stability']['family_agreement'] >= registers['stability']['minimum_agreement'], 'unstable register discovery cannot support release')
     units = registers['units']
     unit_ids = [u['unit_id'] for u in units]
     require(len(unit_ids) == len(set(unit_ids)) == registers['n_units'],
@@ -138,8 +143,9 @@ def release_checks(skill_root, fidelity_path):
     checks = []
     def run(label, fn):
         try:
-            fn()
-            checks.append({'check': label, 'level': 'error', 'ok': True, 'detail': 'release evidence verified'})
+            result = fn()
+            checks.append({'check': label, 'level': 'error', 'ok': True,
+                           'detail': json.dumps(result, ensure_ascii=False) if result is not None else 'release evidence verified'})
         except (KeyError, TypeError, ValueError, OSError, AttributeError) as exc:
             checks.append({'check': label, 'level': 'error', 'ok': False, 'detail': str(exc)})
     try:
@@ -255,4 +261,6 @@ def release_checks(skill_root, fidelity_path):
         require(contract.is_file() and len(contract.read_text().strip()) >= 80, 'need operational references/scope.md')
         require('references/scope.md' in (root / 'SKILL.md').read_text(), 'core must load scope contract')
     run('R8', scope)
+    for kind in ('reasoning', 'commitment', 'scope', 'identity'):
+        run('R9.' + kind, lambda kind=kind: check_behavioral(f['behavioral'], digest, kind))
     return checks

@@ -37,7 +37,7 @@ Two consequences shape everything below:
    refusals** (positions they held against their own incentive), **standing verdicts** (the
    judgments they arrive at repeatedly, by name, about specific objects), **patterns of variation**
    (how their register shifts under pressure, audience, or stakes), and **interactional moves**
-   (how they concede, reframe, dig in, or shift footing in exchange). The scoring weights below
+   (how they concede, reframe, dig in, or shift footing in exchange). The class-specific admission rules below
    deliberately elevate these. When in doubt, spend your budget on the hard signals, not the easy
    ones.
 
@@ -136,7 +136,7 @@ baseline comparisons, split format and executable release requirements.
 Read the corpus. Extract text with structure preserved (headings, speaker turns, timestamps).
 Segment into coherent **clusters** — per work/chapter, per interview, per decision record, per
 time period. Build an internal **coverage map**: domains covered, dialogue-vs-monologue ratio,
-decision density, temporal spread. This map drives later auto-weighting and the honest coverage
+decision density, temporal spread. This map drives later admission evidence requirements and the honest coverage
 report. Run `scripts/corpus_clean.py` over `raw/` first — converted corpora lose ligatures, wrap
 words across lines, and carry markup residue, none of which looks like damage but all of which
 corrupts the expression pass silently. Then cut the clusters with `scripts/segment.py`, which
@@ -145,6 +145,11 @@ budget's ceiling. → See `references/pipeline.md` (Stage 1) for extraction rout
 `references/schemas/` for the validatable shape of every intermediate JSON artifact.
 
 ### Stage 2 — Multi-granularity extraction
+
+Register discovery now requires sufficient observations, a meaningful absolute difference and
+stable equal-length subsamples before assigning families. `INSUFFICIENT_EVIDENCE` means gather
+more comparable material or narrow the analysis; it does not authorize a one-family claim.
+Undefined zero-denominator ratios are JSON null. See `references/register-evidence.md`.
 Run a discovery pass, then three measurement passes:
 
 - **Pass A0 — register discovery** *(new in 3.0; runs before everything else in Stage 2)*. Measure
@@ -189,29 +194,15 @@ single lines, so `grep` returns the paragraph and misses matches that straddle a
 `--count` mode is the ≥2-independent-clusters check made cheap.
 → Full taxonomy and what-to-look-for: `references/extraction.md`.
 
-### Stage 3 — Multi-probe curation & deletion *(the main differentiator — do this carefully)*
-Score every extracted element 0–1 on a weighted composite:
+### Stage 3: class-specific admission and curation
 
-| Probe | Weight | What it measures |
-|---|---|---|
-| Projectibility | **0.30** | held-out prediction performance within the corpus |
-| Cost / refusal signal | **0.25** | sits on a documented divergence between incentive and characteristic move |
-| Expressive match | 0.20 | alignment with the person's *measured* style distribution, including variation |
-| Interactional visibility | 0.15 | observable in dialogue or exchange |
-| Preoccupation / gravitational weight | 0.10 | the theme they keep returning to across unrelated clusters |
-
-**Deletion rule (hard):** cut any element scoring below **0.55** composite, *and* cut any element
-— regardless of score — that introduces generic language, forces meta-commentary, or conflicts
-with a higher-scoring core voice feature. No smoothing, no averaging across low-value material.
-Log every keep/cut with its probe scores and a one-line reason so the decision is auditable.
-
-**Elevation rule (hard):** the weights alone are not enough — style metrics are abundant and
-cost-refusals are sparse, so raw ranking lets volume crowd the fingerprints out. So rank survivors
-by **class priority first** (procedure ≈ cost-refusal ≈ verdict ≈ projectible regularity >
-interactional > variation > preoccupation > stable style), then by composite *within* class.
-Procedures, cost-bearing refusals, standing verdicts, and variation/modulation patterns get first
-claim on core space and are retained even when sparser than style metrics; pure style averages may
-fill **at most ~20%** of the core. Everything else attested goes to references.
+Run `scripts/score_elements.py candidates.json --out scores.json`. Procedures and projectible
+regularities need demonstrated development transfer and execution conditions; verdicts need
+attestation and temporal scope; voice features need discriminative evidence; costly commitments
+need pressure behavior. See `references/scoring.md` for the exact per-class fields and metrics.
+The scorer defines admission, within-class ranking, class precedence and conflict resolution.
+There is no universal deletion score. Failed admission cannot be rescued by class priority.
+Keep pure stable-style material to at most 20% of core elements; place eligible surplus in voice.md.
 
 **Core budget (computed, not fixed):** size the core to the diagnostic material that survived,
 bounded by what the corpus supports — `supply = 2,200 + 250·min(n_cost_refusal,6) +
@@ -222,15 +213,14 @@ bounded by what the corpus supports — `supply = 2,200 + 250·min(n_cost_refusa
 verdicts are the classes a host agent can actually *execute*, and the 2.x ceilings were set before
 they existed — a corpus rich in both saturated a supply term it had no room to spend. Preoccupation
 and style still contribute nothing to supply. Landing under the floor means the pool is too thin,
-not that the core needs filler: revisit the 0.45–0.55 cut band for diagnostic classes only, then
+not that the core needs filler: collect missing admission evidence for diagnostic classes and re-run the scorer, then
 ship reduced-scope and say so.
 
 **Every budget in this skill is denominated in tokens, so count them with one counter.** Run
-`scripts/token_count.py` and record the tokenizer in `scores.json`, where it is now a required
-field. A budget without its tokenizer is a number without a unit: the same package measures roughly
+`scripts/token_count.py` and record the tokenizer with the budget artifacts. A budget without its tokenizer is a number without a unit: the same package measures roughly
 twice as large in Chinese as in English under a word-based count, and "4,000" then silently means
 two different sizes in two runs of the same skill. → The formula, the floor procedure, the standing
-module budgets, worked scoring examples, weight-tuning, and the log format: `references/scoring.md`.
+module budgets, class-specific admission examples, and the log format: `references/scoring.md`.
 
 ### Gate before Stage 4 — mandatory, and it feeds back *(do not skip)*
 Assembly is downstream of passing two gates, plus a third whenever the corpus carries more than one
@@ -312,7 +302,7 @@ fingerprint is not enough to *write* as someone at length, so the rest of the ex
 favored and **avoided** constructions, modulation rules, register range, lexical fingerprint, the
 measured `style_metrics.py` baseline, and anti-drift pairs — is written to `voice.md` from firsthand
 clusters only, and the core's loading block tells the host to load it before any sustained prose.
-The cap routes surplus style there; it does not discard it. Material cut under the 0.55 rule stays
+The cap routes surplus style there; it does not discard it. Material that fails class admission stays
 cut — `voice.md` takes the demoted, never the deleted.
 
 `fidelity-ledger/episodic.md` is the residual record: concrete, attested, one-off material —
@@ -376,6 +366,10 @@ The module formula, its counting rules, the standing-module budgets, and calibra
   the anchors you require — the checker will not impose English headings by default, since a core may
   be written in the subject's own language. A structural omission is the one defect class that
   survives careful reading, because there is nothing on the page to notice.
+- **Behavioral release gates**: require separately recorded method transfer, costly choices under
+  pressure, blinded identity discrimination against neighbors, and historical-scope behavior.
+  These gates are independent of position recall, cost inventory and style. See
+  `references/behavioral-evaluation.md`; `validate_package.py --release` enforces them.
 - **Scope boundary checks**: record answers for an attested judgment in its period, an earlier
   period with a different position, and changed conditions requiring extrapolation. Check that
   dates and conditions survive and extensions are not presented as documented positions.
@@ -521,6 +515,11 @@ patterns (lean front-loaded core, on-demand reference files, tight token budgets
   the script and the schema have diverged.
 
 ## Scripts
+
+- `scripts/evaluation_runner.py`: optional isolated prediction, blind grading, tamper-evident
+  records, final-group claims and human review. Read `references/evaluation-runner.md`.
+- `scripts/score_elements.py`: authoritative class admission and within-class ranking.
+- `scripts/behavioral_checks.py`: executable reasoning, pressure, scope and identity gates.
 - `scripts/style_metrics.py` — computes countable expression features (sentence-length
   distribution, hedge/booster rates, punctuation rhythm, lexical diversity, person-reference
   ratios, top content terms/bigrams) for a text file or directory. Stdlib only; no install.

@@ -33,6 +33,7 @@ import os
 import re
 import statistics
 import sys
+from register_evidence import analyze_units
 
 HAN = re.compile(r"[一-鿿]")
 WORD_RE = re.compile(r"[A-Za-z][A-Za-z'\-]*")
@@ -185,7 +186,7 @@ def ratios(a, b):
         if x == 0 and y == 0:
             out[dim] = 1.0
         elif x == 0 or y == 0:
-            out[dim] = float("inf")
+            out[dim] = None
         else:
             out[dim] = max(x, y) / max(min(x, y), 1e-12)
     return out
@@ -224,18 +225,9 @@ def cluster(units, distance, forced):
         merges.append((height, [set(x) for x in groups], a, b))
         groups = [g for idx, g in enumerate(groups) if idx not in (a, b)] + [merged]
 
-    # A positive largest gap says the next merge is qualitatively less natural. If all
-    # legal merges have the same height, retain the maximally merged solution.
-    chosen = [set(x) for x in groups]
-    heights = [m[0] for m in merges]
-    if len(heights) >= 2:
-        gaps = [heights[i + 1] - heights[i] for i in range(len(heights) - 1)]
-        biggest = max(gaps)
-        if biggest > 1e-12:
-            after = gaps.index(biggest)
-            state, a, b = merges[after][1:]
-            chosen = [g for idx, g in enumerate(state) if idx not in (a, b)] + [state[a] | state[b]]
-    return chosen, heights
+    # Only supported incompatible pairs prevent pooling. A gap in standardized
+    # distances alone can amplify a single sparse event into a false family.
+    return [set(x) for x in groups], [m[0] for m in merges]
 
 
 def rank(values):
@@ -281,7 +273,7 @@ def gradient(member_indices, units):
 
 
 def printable_ratio(value):
-    return "inf" if math.isinf(value) else "%.2f" % value
+    return "undefined (zero denominator)" if value is None else "%.2f" % value
 
 
 def main():
@@ -294,8 +286,15 @@ def main():
     ap.add_argument("--dims-threshold", type=int, default=3)
     ap.add_argument("--terms", help="file with core terms, one per line")
     ap.add_argument("--flagship-terms", help="file with flagship terms, one per line")
+    ap.add_argument("--min-tokens", type=int, default=600)
+    ap.add_argument("--min-events", type=int, default=5)
+    ap.add_argument("--min-rate-delta", type=float, default=10, help="minimum absolute difference per 10k tokens")
+    ap.add_argument("--subsamples", type=int, default=3)
+    ap.add_argument("--min-stability", type=float, default=.8)
     args = ap.parse_args()
-    if args.min_chars < 0 or args.ratio_threshold <= 0 or args.dims_threshold < 1:
+    if (args.min_chars < 0 or not math.isfinite(args.ratio_threshold) or args.ratio_threshold <= 1 or args.dims_threshold < 1
+            or args.min_tokens < 1 or args.min_events < 1 or not math.isfinite(args.min_rate_delta)
+            or args.min_rate_delta <= 0 or args.subsamples < 3 or not .5 < args.min_stability <= 1):
         ap.error("thresholds must be positive (and --min-chars cannot be negative)")
     if not os.path.exists(args.path):
         ap.error("path not found: %s" % args.path)
@@ -306,12 +305,14 @@ def main():
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         ap.error(str(exc))
     units = []
+    raw_texts = []
     for raw in raw_units:
         if not os.path.exists(raw["path"]):
             ap.error("unit path not found: %s" % raw["path"])
         text = read_text(raw["path"])
         if len(text) < args.min_chars:
             continue
+        raw_texts.append(text)
         lang = detect_lang(text, args.lang)
         feats = features_zh(text, terms, flagship) if lang == "zh" else features_en(text, terms, flagship)
         units.append({"unit_id": raw["unit_id"], "label": raw["label"], "chars": len(text),
@@ -321,21 +322,40 @@ def main():
     if len({u["unit_id"] for u in units}) != len(units):
         ap.error("unit_id values must be unique")
 
+    langs = sorted(set(u["lang"] for u in units))
+    if len(langs) != 1:
+        ap.error("mixed languages require separate comparable discovery runs")
+    lang = langs[0]
+    measure = lambda text: features_zh(text, terms, flagship) if lang == "zh" else features_en(text, terms, flagship)
+    sentence_count = lambda text: len([x for x in (ZH_SENT_END.split(text) if lang == "zh" else EN_SENT_SPLIT.split(text)) if (HAN if lang == "zh" else WORD_RE).search(x)])
+    observations, pairs, forced, stability, windows = analyze_units(raw_texts, measure, HAN if lang == "zh" else WORD_RE,
+        sentence_count, DIMENSIONS, args.ratio_threshold, args.dims_threshold, args.min_tokens,
+        args.min_events, args.min_rate_delta, args.subsamples, args.min_stability)
+    for unit, observation in zip(units, observations):
+        unit['observations'] = observation
     _, distance = z_distance_matrix(units)
     n = len(units)
     ratio_exceedances = [[0] * n for _ in range(n)]
-    forced, forced_splits = set(), []
-    for i in range(n):
-        for j in range(i + 1, n):
-            pair_ratios = ratios(units[i]["features"], units[j]["features"])
-            exceeded = [dim for dim in DIMENSIONS if pair_ratios[dim] > args.ratio_threshold]
-            ratio_exceedances[i][j] = ratio_exceedances[j][i] = len(exceeded)
-            if len(exceeded) >= args.dims_threshold:
-                forced.add((i, j))
-                forced_splits.append({"a": units[i]["unit_id"], "b": units[j]["unit_id"],
-                                      "dimensions": exceeded,
-                                      "ratios": {d: pair_ratios[d] for d in exceeded}})
+    forced_splits = []
+    for (i, j), exceeded in pairs.items():
+        pair_ratios = ratios(units[i]["features"], units[j]["features"])
+        ratio_exceedances[i][j] = ratio_exceedances[j][i] = len(exceeded)
+        if (i, j) in forced:
+            forced_splits.append({"a": units[i]["unit_id"], "b": units[j]["unit_id"],
+                                  "dimensions": exceeded, "ratios": {d: pair_ratios[d] for d in exceeded}})
     groups, heights = cluster(units, distance, forced)
+    def same_family(partition, i, j):
+        return any(i in group and j in group for group in partition)
+    agreements = []
+    for features, sample_forced in windows:
+        sample_units = [{'features': f} for f in features]
+        _, sample_distance = z_distance_matrix(sample_units)
+        sample_groups, _ = cluster(sample_units, sample_distance, sample_forced)
+        agreements.append({(i, j): same_family(groups, i, j) == same_family(sample_groups, i, j)
+                           for i in range(n) for j in range(i + 1, n)})
+    family_agreement = min((sum(a[pair] for a in agreements) / len(agreements) for pair in pairs), default=0) if agreements else 0
+    stability['family_agreement'] = family_agreement
+    stability['stable'] = stability['stable'] and family_agreement >= args.min_stability
     groups = sorted(groups, key=lambda group: min(units[i]["unit_id"] for i in group))
     families = []
     for index, members in enumerate(groups, 1):
@@ -346,7 +366,8 @@ def main():
                   "members": [units[i]["unit_id"] for i in member_indices], "centroid": centroid}
         found_gradient = gradient(member_indices, units)
         if found_gradient:
-            family["gradient"] = found_gradient
+            family["gradient"] = found_gradient["order"]
+            family["gradient_axis"] = found_gradient["axis"]
         families.append(family)
     gap_table = []
     for dim in DIMENSIONS:
@@ -357,26 +378,31 @@ def main():
         if not vals or all(v == 0 for v in vals):
             maximum = 1.0
         elif any(v == 0 for v in vals):
-            maximum = float("inf")
+            maximum = None
         else:
             maximum = max(vals) / max(min(vals), 1e-12)
         gap_table.append({"dimension": dim, "by_family": by_family, "max_ratio": maximum})
-    gap_table.sort(key=lambda row: (not math.isinf(row["max_ratio"]), -row["max_ratio"]))
+    gap_table.sort(key=lambda row: (row["max_ratio"] is not None, -(row["max_ratio"] or 0)))
     langs = sorted(set(u["lang"] for u in units))
     result = {
         "generated": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat(),
         "lang": langs[0] if len(langs) == 1 else "mixed",
         "n_units": n, "n_registers": len(families),
-        "thresholds": {"ratio": args.ratio_threshold, "dims": args.dims_threshold},
+        "thresholds": {"ratio": args.ratio_threshold, "dims": args.dims_threshold, "min_tokens": args.min_tokens,
+                       "min_events": args.min_events, "min_rate_delta": args.min_rate_delta},
+        "stability": stability,
         "units": [{k: v for k, v in u.items() if k != "lang"} for u in units],
         "distance_matrix": {"units": [u["unit_id"] for u in units], "z_distance": distance,
                             "ratio_exceedances": ratio_exceedances},
         "families": families, "gap_table": gap_table, "forced_splits": forced_splits,
         "verdict": "SINGLE_REGISTER" if len(families) == 1 else "MULTI_REGISTER",
     }
+    if not stability['stable']:
+        result.update(verdict='INSUFFICIENT_EVIDENCE', n_registers=0, families=[])
+        result['notes'] = 'Too little comparable text or unstable equal-length subsamples; no register conclusion.'
     if args.json:
         with open(args.json, "w", encoding="utf-8") as fh:
-            json.dump(result, fh, indent=2, ensure_ascii=False, allow_nan=True)
+            json.dump(result, fh, indent=2, ensure_ascii=False, allow_nan=False)
             fh.write("\n")
         print("wrote %s" % args.json)
 
@@ -387,7 +413,7 @@ def main():
         print("%-20s %-4s %6d %10.2f %13.2f %10.2f %10.2f" % (
             unit["unit_id"], unit["lang"], unit["chars"], f["mean_sentence_len"], f["question_rate"],
             f["hedge_rate"], f["booster_rate"]))
-    print("\nFamily assignment:")
+    print("\nFamily assignment:" if stability["stable"] else "\nProvisional families (insufficient evidence; not a release conclusion):")
     for family in families:
         print("  %s: %s" % (family["family_id"], ", ".join(family["members"])))
     print("\nFamily gap table (largest cross-family ratios first):")
@@ -406,7 +432,7 @@ def main():
         print("\nWithin-family gradients (these must NOT be split into separate families):")
         for family in gradients:
             g = family["gradient"]
-            print("  %s: %s -> %s" % (family["family_id"], g["axis"], ", ".join(g["order"])))
+            print("  %s: %s -> %s" % (family["family_id"], family["gradient_axis"], ", ".join(g)))
     if result["verdict"] == "SINGLE_REGISTER":
         print("\nRequired evidence for a single-family claim: full z-distance matrix")
         header = "          " + " ".join("%9s" % u["unit_id"] for u in units)

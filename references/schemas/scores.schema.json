@@ -2,13 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/ariel-lee-1023/Persona-Distiller/main/references/schemas/scores.schema.json",
   "title": "scores.json",
-  "description": "Stage 3 output — the curation audit log. Every keep/cut decision is recorded with its five probe scores and a one-line reason, so the whole curation is inspectable, defensible, and reproducible.",
+  "description": "Class-specific admission and ranking output from score_elements.py. Budget fields remain optional companion records; no universal retention composite.",
   "type": "object",
   "required": [
-    "weights",
-    "tokenizer",
-    "core_budget",
-    "decisions"
+    "version",
+    "scorer",
+    "input_hash",
+    "class_priority",
+    "decisions",
+    "retained"
   ],
   "additionalProperties": false,
   "properties": {
@@ -78,7 +80,7 @@
         },
         "floor_triggered": {
           "type": "boolean",
-          "description": "True when supply fell below the 3000 floor. The floor is a diagnostic trigger, never a padding target: re-examine the 0.45–0.55 cut band for diagnostic classes only, check for upstream under-extraction, and failing both ship a reduced-scope core with the shortfall logged. Never top up with stable_style material to reach it."
+          "description": "True when supply fell below the 3000 floor. Re-examine failed class admission evidence and upstream extraction; if evidence remains thin, ship reduced scope and log the shortfall. Never pad with stable style."
         },
         "floor_resolution": {
           "type": "string",
@@ -289,18 +291,88 @@
     },
     "weights": {
       "$ref": "#/$defs/probeScores",
-      "description": "The composite weights actually used for this run. Defaults: projectibility 0.30, cost_refusal 0.25, expressive_match 0.20, interactional 0.15, preoccupation 0.10. Should sum to 1.0 after any auto-weighting and renormalisation."
+      "description": "Legacy diagnostic metadata only; not used for admission or ranking."
     },
     "weight_notes": {
       "type": "string",
-      "description": "Why the weights differ from the defaults, or a note that they do not — e.g. 'dialogue_ratio 0.35 → interactional 0.15 (unchanged)'. Record every change so the run stays reproducible."
+      "description": "Optional historical weighting rationale. Not used by the version 2 admission scorer."
     },
     "decisions": {
       "type": "array",
-      "minItems": 1,
       "items": {
-        "$ref": "#/$defs/decision"
+        "type": "object",
+        "required": [
+          "id",
+          "class",
+          "eligible",
+          "within_class_score",
+          "decision",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "class": {
+            "enum": [
+              "procedure",
+              "cost_refusal",
+              "verdict",
+              "projectible_regularity",
+              "interactional",
+              "variation",
+              "preoccupation",
+              "stable_style"
+            ]
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "within_class_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "decision": {
+            "enum": [
+              "cut",
+              "retain"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
       }
+    },
+    "version": {
+      "const": 2
+    },
+    "scorer": {
+      "const": "score_elements.py"
+    },
+    "input_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "class_priority": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "retained": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
     }
   },
   "$defs": {
@@ -379,7 +451,7 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1,
-          "description": "Weighted sum of scores. The hard deletion rule cuts anything below 0.55 — but an element above 0.55 is still cut unconditionally if it introduces generic language, forces meta-commentary, or conflicts with a higher-scoring core voice feature. Conversely a diagnostic-class element can score below 0.55 on the composite and still be carried by class priority, which is the point of having a priority at all: a pre-exchange guard scores 0.0 on the interactional probe by construction."
+          "description": "Optional legacy audit value. Current retention and ranking come from version 2 class-specific admission decisions, not this field."
         },
         "decision": {
           "type": "string",
@@ -392,7 +464,7 @@
             "references",
             "cut"
           ],
-          "description": "Where the element landed. 'core' entries fill core_budget.budget by class priority first, then composite within class. The named module destinations replace the undifferentiated 'references' of 2.x, which recorded that an element survived without recording where it could be found; 'references' is retained for 2.x logs."
+          "description": "Optional legacy audit value. Current retention and ranking come from version 2 class-specific admission decisions, not this field."
         },
         "rank": {
           "type": "integer",
@@ -469,170 +541,5 @@
         }
       }
     }
-  },
-  "examples": [
-    {
-      "weights": {
-        "projectibility": 0.3,
-        "cost_refusal": 0.25,
-        "expressive_match": 0.2,
-        "interactional": 0.15,
-        "preoccupation": 0.1
-      },
-      "weight_notes": "dialogue_ratio 0.35 → interactional 0.15 (unchanged)",
-      "tokenizer": {
-        "script": "token_count.py",
-        "tokens_per_han_char": 1.67,
-        "tokens_per_latin_word": 1.3
-      },
-      "n_registers": 3,
-      "core_budget": {
-        "supply": 5510,
-        "ceiling": 6000,
-        "ceiling_rule": "total_tokens<250k",
-        "budget": 5510,
-        "floor_triggered": false,
-        "over_ceiling": false,
-        "counts": {
-          "cost_refusal": 3,
-          "projectible": 5,
-          "procedure": 2,
-          "verdict": 4,
-          "interactional": 3,
-          "variation": 2
-        }
-      },
-      "standing_budgets": {
-        "frameworks": {
-          "supply": 4270,
-          "budget": 4270,
-          "realised": 4180
-        },
-        "voice": {
-          "supply": 4310,
-          "budget": 4310,
-          "realised": 4395
-        }
-      },
-      "cluster_budgets": [
-        {
-          "cluster_id": "c03",
-          "supply": 3310,
-          "budget": 3310,
-          "counts": {
-            "apparatus": 7,
-            "moves": 8,
-            "applications": 7,
-            "fragments": 13,
-            "siblings": 9,
-            "registers": 1
-          },
-          "words": 101043,
-          "words_firsthand": 630298,
-          "verdict": "OK",
-          "actual": 3260
-        },
-        {
-          "cluster_id": "c06",
-          "supply": 4995,
-          "budget": 4995,
-          "counts": {
-            "apparatus": 13,
-            "moves": 9,
-            "applications": 6,
-            "fragments": 19,
-            "siblings": 9,
-            "registers": 2
-          },
-          "words": 74110,
-          "words_firsthand": 630298,
-          "verdict": "SPLIT_IN_MODULE",
-          "verdict_note": "two registers, one topic domain; internal A/B split with a no-pooling header",
-          "actual": 5010
-        },
-        {
-          "cluster_id": "c12",
-          "supply": 1635,
-          "budget": 1800,
-          "counts": {
-            "apparatus": 3,
-            "moves": 2,
-            "applications": 2,
-            "fragments": 4,
-            "siblings": 9,
-            "registers": 1
-          },
-          "words": 25212,
-          "words_firsthand": 630298,
-          "verdict": "FLOOR",
-          "floor_triggered": true,
-          "floor_resolution": "folded into c11's module as a subsection; shares register and period"
-        }
-      ],
-      "coefficients_source": "defaults (cluster_budget.py --emit-coefficients recorded in provenance.md)",
-      "decisions": [
-        {
-          "id": "CR1",
-          "type": "cost_refusal",
-          "scores": {
-            "projectibility": 0.9,
-            "cost_refusal": 1.0,
-            "expressive_match": 0.4,
-            "interactional": 0.8,
-            "preoccupation": 0.7
-          },
-          "composite": 0.8,
-          "decision": "core",
-          "rank": 2,
-          "reason": "incentive-vs-characteristic divergence attested in 3 clusters; predicts well"
-        },
-        {
-          "id": "PROC1",
-          "type": "procedure",
-          "order": 1,
-          "scores": {
-            "projectibility": 0.9,
-            "cost_refusal": 0.3,
-            "expressive_match": 0.2,
-            "interactional": 0.0,
-            "preoccupation": 0.4
-          },
-          "composite": 0.51,
-          "decision": "core",
-          "rank": 1,
-          "reason": "the opening guard; interactional 0.0 is expected for a pre-exchange check, and class priority carries it despite the composite"
-        },
-        {
-          "id": "VD3",
-          "type": "verdict",
-          "object": "<named object>",
-          "corpus_hits": 11,
-          "scores": {
-            "projectibility": 1.0,
-            "cost_refusal": 0.7,
-            "expressive_match": 0.3,
-            "interactional": 0.2,
-            "preoccupation": 0.5
-          },
-          "composite": 0.68,
-          "decision": "frameworks",
-          "reason": "stable across 4 clusters; beyond the core's roll-up, so §4 holds the judgment"
-        },
-        {
-          "id": "MOD7",
-          "type": "expression",
-          "scores": {
-            "projectibility": 0.1,
-            "cost_refusal": 0.0,
-            "expressive_match": 0.5,
-            "interactional": 0.0,
-            "preoccupation": 0.0
-          },
-          "composite": 0.1,
-          "decision": "cut",
-          "reason": "bare sentence-length average; generic; below threshold"
-        }
-      ]
-    }
-  ]
+  }
 }

@@ -265,10 +265,10 @@ def main():
                              "no second-person or bare-English-imperative lines found" if not bad_lines else
                              "possible second-person/imperative line(s): " + ", ".join(bad_lines)))
         heading = first_section_heading(read(provenance))
-        l2_ok = "weights" in heading.casefold() or "权重" in heading
+        l2_ok = any(word in heading.casefold() for word in ("weights", "admission", "权重", "准入"))
         results.append(check("L2", "error", l2_ok,
                              "first provenance heading identifies weights" if l2_ok else
-                             "first provenance heading must contain 'weights' or '权重' (found: %s)" % (heading or "none")))
+                             "first provenance heading must identify admission rules or legacy weights (found: %s)" % (heading or "none")))
     else:
         results.append(check("L1", "warn", True, "skipped: provenance.md is missing (reported by S3)"))
         results.append(check("L2", "error", False, "cannot check first provenance heading because provenance.md is missing"))

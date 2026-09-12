@@ -230,3 +230,12 @@ A short, honest wrap-up (kept out of the core):
   period unreliable").
 
 This is the release valve for all the honesty the core is not allowed to contain. Use it fully.
+
+## Behavioral gates and executable workflow
+
+Projection remains a recall/stance comparison and cost remains an inventory check. Neither
+substitutes for the required [behavioral gates](behavioral-evaluation.md): method application on
+new situations, commitments under pressure, blind identity discrimination against neighboring
+thinkers, and historical-scope behavior. `validate_package.py --release` enforces these separately.
+Use [evaluation-runner.md](evaluation-runner.md) for isolated prediction, actual retrieval
+capture, blind grading and human review. Final cases never feed construction or development.
