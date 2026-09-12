@@ -1,0 +1,2 @@
+# Release evidence validation only; structural checks use the standard library.
+jsonschema>=4.18,<5

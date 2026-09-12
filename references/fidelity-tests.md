@@ -28,22 +28,23 @@ The core claim of a good persona is that it can take positions the person never 
 in the tested passage. This test checks that directly. **Run it first as a pre-assembly gate on the
 top-ranked projectible regularities, then again on the assembled core in Stage 5.**
 
-1. From the qualifying passages (those that evidenced projectible regularities and cost-refusals),
-   mask **10–15%** using `scripts/holdout_split.py` with a fixed seed so the split is reproducible
-   and auditable.
-2. From the *remaining* evidence only, predict the person's stance/move on each masked item —
-   reason as the persona, not from having seen the answer.
-3. Compare each prediction to the masked truth. Score alignment per item
-   (2 = correct stance and reasoning, 1 = right direction/wrong reasoning, 0 = miss) and aggregate
-   to a 0–1 score.
-4. **Report the two hit levels separately, not only the aggregate.** `hit_2` is the share of items
-   scored 2; `hit_1` is the share scored 1. The aggregate collapses two different things: a persona
-   that reaches the right conclusion by the person's own mechanism, and one that reaches the right
-   conclusion by a mechanism the person would reject. Both look like partial credit, but only the
-   first generalises — the second is a persona that agrees with its subject about the cases in the
-   corpus and will diverge on the first case outside it. A run with a respectable aggregate and a
-   low `hit_2` is a specific, actionable diagnosis: the positions were extracted and the reasoning
-   was not.
+1. Before extraction, split the metadata inventory by underlying work/episode into train,
+   development and final test with `scripts/holdout_split.py`. Related passages never cross
+   partitions. Construction and register discovery see train only.
+2. Use development items for the pre-assembly gate and repeated curation. Keep target answers
+   out of the prediction context. Compare the same model/settings under a minimal persona role
+   prompt and the candidate core with permitted references; save both actual answers.
+3. Freeze the assembled package, confirm its development gate, then predict on the untouched
+   final set in fresh contexts. Score only after predictions are saved. A final failure blocks
+   release. Once final evidence guides revision it becomes development, so a new untouched test
+   is needed. A fixed seed does not undo exposure or prevent pretraining familiarity.
+4. Grade each item 2 for stance and reasoning, 1 for direction only, 0 for a miss. Record both
+   conditions' item grades and rationales, overall scores, `hit_2` and `hit_1` separately, and
+   per-domain findings. A .50 gate floor still applies; a baseline regression also blocks release.
+   A tie does not establish that the distillation adds value.
+
+See [release-evidence.md](release-evidence.md) for isolation, artifacts and the executable
+release command. The final set must never supply extracted regularities, refusals or examples.
 
 - **≥ 0.70** — solid; the regularities generalize. Proceed.
 - **0.50–0.70** — usable but flag the weak domains in the coverage report.
@@ -124,7 +125,9 @@ a claim. It is also **triggered by any cluster merge**, because a merge is preci
 that can pool two registers into one module without anyone deciding to.
 
 For a corpus that `register_discover.py` returns as `SINGLE_REGISTER`, this test is omitted from
-`fidelity.json` and the distance matrix stands in its place as the evidence.
+`fidelity.json` and the distance matrix stands in its place as the evidence. After a
+merge that leaves only one family, recheck that matrix and record `merge_review`;
+a one-label discrimination score would be meaningless.
 
 The two tools are a pair and the order matters: **`register_discover.py` proposes, the
 discrimination test disposes.** The first says "these units look like k families by their
@@ -140,10 +143,10 @@ claims, so the style-match test cannot catch this failure. If the registers are 
 source, the modulation rules are decoration: the host agent cannot act on a distinction the corpus
 does not support, and the voice will average toward one register whatever the rules say.
 
-1. `scripts/discrimination_test.py sample clusters/ --per-cluster 2 --seed 42 --mask-names --key
+1. `scripts/discrimination_test.py sample clusters/ --registers registers.json --per-cluster 2 --seed 42 --mask-names --key
    key.json` prints unlabelled passages and writes the answer key to a file.
-2. Classify every passage by register signature alone — **before** opening the key.
-3. `… score key.json --answers <ids>` scores it and lists the confused pairs.
+2. Classify every passage by register-family ID (`R1`, `R2`), not cluster identity, using register signature alone — **before** opening the key.
+3. `… score key.json --answers <R1 R2 ...> --json discrimination-result.json` scores it and lists the confused pairs.
 
 - **≥ 0.90** — separable; per-register rules are load-bearing. Keep them.
 - **0.70–0.90** — usable; name the confusable pairs in the coverage report and merge the worst.
@@ -155,6 +158,15 @@ Use `--mask-names` and trust that number over the unmasked one. Recognising a ca
 not recognising a register, and a user's utterance will never contain the cast. Read the confusion
 list as diagnosis, not noise: a pair confused repeatedly is one register wearing two labels, and the
 fix is to merge them in the core rather than to re-run with a different seed.
+
+The mapping comes from `registers.json` families and `units[].clusters`. Two works in one
+family have the same answer. A source mapped to multiple families is rejected: sample homogeneous
+units or recut it. Record confusions between families, not between source works.
+
+Also run a behavioral selection test on novel audience/task/stakes prompts with no source-title
+or cast cues. Cover every family, save the generated answer and selected family, and grade which
+family the answer actually realizes. Record this separately as `register_selection`; a correct
+label without the matching generated behavior is a miss. See `release-evidence.md`.
 
 The ceiling this measures is generous — classifying the subject's own prose is easier than routing a
 stranger's sentence — so treat a high score as *the registers carry information*, not as field
@@ -193,34 +205,12 @@ The rule:
 
 ## `fidelity.json`
 
-Record both phases — the gate result and the final result — so the loop is auditable:
-
-```json
-{
-  "content_hash": "sha256:9f2c…",
-  "register_families": ["R1", "R2", "R3"],
-  "stale": [],
-  "projection": {
-    "gate": {"overall": 0.58, "passed": true, "recurations": 1,
-             "note": "1st pass 0.44 (economics over-fit) → re-curated → 0.58"},
-    "final": {"overall": 0.74, "hit_2": 0.58, "hit_1": 0.32,
-              "by_domain": {"political philosophy":0.82,"economics":0.55}},
-    "seed": 42, "n_masked": 12, "stratified": true,
-    "sampling_note": "mask distributed across 4 domains; 2 items each in the two thinnest"
-  },
-  "cost": {"total_divergences": 9, "slated_for_core": 9, "in_core_final": 8,
-           "logged_out": 1, "missing_unlogged": 0, "presence_assertion": "pass"},
-  "style": {"sentence_len_delta": 0.08, "hedge_rate_delta": 0.03,
-            "modulation_reproduced": true, "notes": "clipping-under-contest present",
-            "by_family": {"R1": {"sentence_len_delta": 0.06}, "R2": {"sentence_len_delta": 0.11}}},
-  "discrimination": {"required": true, "score": 0.85, "n": 20, "seed": 42, "mask_names": true,
-                     "confusable_pairs": ["c07->c01"]}
-}
-```
-
-Mirror the same facts into `fidelity-ledger/provenance.md` in prose/table form (which core element
-came from where, its projection score, and its cost-gate status), so the Fidelity Ledger is
-self-contained.
+The authoritative release format and commands are in
+[release-evidence.md](release-evidence.md) and
+[schemas/fidelity.schema.json](schemas/fidelity.schema.json). Record per-result hashes,
+both development and final item answers/grades, the paired baseline, grouped split hashes,
+register-family mapping, cost presence, style and register selection results. Mirror the same
+facts into the human ledger. Structural validation without `--release` is a draft check only.
 
 ## What goes in the coverage report to the user
 

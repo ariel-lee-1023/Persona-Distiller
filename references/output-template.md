@@ -3,15 +3,36 @@
 Three artifacts: the **core** (embodiment), the **references package** (depth, host-agent-facing),
 and the **Fidelity Ledger** (honesty + provenance, human-facing). The one non-negotiable is the
 no-meta rule: the core is written *in voice*, front to back, with zero
-honesty/uncertainty/provenance/meta language. All of that relocates to the Fidelity Ledger and to
-the coverage report — never to `references/`, which the host agent loads at runtime and which must
-stay just as free of honesty/provenance language as the core.
+audit or provenance narration. Detailed confidence, scores and history live in the Fidelity
+Ledger and coverage report. Operational scope and attribution boundaries belong in the compact
+host-facing `references/scope.md`, as specified below; they do not rewrite the expressive voice.
 
 **A note on the examples in this file.** Every filled example below is fictional, and deliberately
 so. A specification that illustrates its slots with excerpts from a package someone actually
 produced teaches the shape of that subject rather than the shape of the slot, and the next
 distiller reproduces the example's subject-specific choices as if they were requirements. Slots are
 defined here by their **structure and admission test**; the illustrations are placeholders.
+
+## Host scope contract
+
+Write `references/scope.md` as concise host guidance and add this instruction to the
+core's Loading depth block: **Load `references/scope.md` before applying this persona.**
+This is an operational runtime module, separate from numeric fidelity and the human ledger.
+Use these sections, with only source-supported entries:
+
+- **Supported domains and periods**: what the corpus establishes, with material temporal gaps.
+- **Conditional judgments**: object, position, period and circumstances that make it applicable.
+  Preserve earlier and later positions separately, including unresolved disagreement.
+- **Extrapolation boundary**: distinguish attested stance, application of an attested method to
+  a new case, and unsupported speculation. In a new situation, recheck prerequisites instead
+  of transferring a recognizable verdict automatically. Label an extension when attribution
+  matters; do not invent a documented position or quotation.
+
+Keep numeric confidence, source inventories and evaluation history in the ledger. The scope
+contract need not add disclaimers to every paragraph or flatten the persona's expressive voice.
+Verify with three requests: a supported judgment in its period, the same subject in an earlier
+period with a different position, and a changed circumstance outside its original conditions.
+Record the actual answers and whether they preserve dates, conditions and attribution in the ledger.
 
 ## Directory layout
 
@@ -25,6 +46,7 @@ defined here by their **structure and admission test**; the illustrations are pl
 │               ├── clusters/       # one file per cluster clearing the 1,800 floor
 │               │   ├── c03-<label>.md
 │               │   └── …
+│               ├── scope.md        # domains, periods, conditions and extrapolation boundary
 │               ├── frameworks.md   # what the person thinks with
 │               └── voice.md        # how the person sounds
 └── fidelity-ledger/         # human-facing: the honesty/audit package, never loaded by the host agent

@@ -2,9 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/ariel-lee-1023/Persona-Distiller/main/references/schemas/fidelity.schema.json",
   "title": "fidelity.json",
-  "description": "Results of the pre-assembly gates (run before Stage 4) and the final Stage 5 verification. Both phases are recorded so the curation loop is auditable. Mirror the same facts into the persona's fidelity-ledger/provenance.md in prose/table form.",
+  "description": "Results of the pre-assembly gates (run before Stage 4) and the final Stage 5 verification. Both phases are recorded so the curation loop is auditable. Mirror the same facts into the persona's fidelity-ledger/provenance.md in prose/table form. Release checks additionally reconcile hashes, partitions, item aggregates, baselines and conditional register gates; see ../release-evidence.md.",
   "type": "object",
   "required": [
+    "content_hash",
+    "split_hash",
+    "registers_hash",
+    "stale",
+    "register_families",
+    "isolation",
     "projection",
     "cost",
     "style"
@@ -13,8 +19,7 @@
   "properties": {
     "content_hash": {
       "type": "string",
-      "minLength": 1,
-      "description": "Hash over the package files these results were computed against, e.g. 'sha256:9f2c…'. Curation is a loop, not a pass: a gate sends the set backwards, clusters get merged, an element is demoted two batches after the score that justified keeping it. Nothing previously said what happens to a score when the thing it measured changes underneath it, so the default was that nothing happened — the number stayed here, still labelled as this package's score, now describing a package that no longer exists. A result whose hash does not match the current package is stale whether or not anyone marked it, and that is mechanically checkable."
+      "pattern": "^sha256:[a-f0-9]{64}$"
     },
     "stale": {
       "type": "array",
@@ -25,7 +30,8 @@
           "projection.final",
           "cost",
           "style",
-          "discrimination"
+          "discrimination",
+          "register_selection"
         ]
       },
       "description": "Results invalidated by a later change and not yet re-run. Mark them at the moment of the change, not at the end, when it will be forgotten. Nothing that gated assembly may ship stale: a stale style-match result may ship if the staleness is stated in the coverage report, a stale projection or cost gate may not. An empty array asserts that every result matches the current package."
@@ -43,17 +49,24 @@
       "description": "Held-out projection test. The gate phase runs on top-ranked projectible regularities before assembly; the final phase re-checks the assembled core.",
       "required": [
         "gate",
-        "final",
-        "seed",
-        "n_masked"
+        "final"
       ],
       "additionalProperties": false,
       "properties": {
         "gate": {
           "type": "object",
           "required": [
+            "content_hash",
             "overall",
-            "passed"
+            "passed",
+            "baseline",
+            "hit_1",
+            "hit_2",
+            "fresh_context",
+            "model",
+            "settings",
+            "baseline_prompt",
+            "items"
           ],
           "additionalProperties": false,
           "properties": {
@@ -63,8 +76,7 @@
               "maximum": 1
             },
             "passed": {
-              "type": "boolean",
-              "description": "False here means re-curate. Assembly is always downstream of passing; a failed gate sends you back to Stage 3, never forward to the template."
+              "type": "boolean"
             },
             "recurations": {
               "type": "integer",
@@ -74,13 +86,112 @@
             "note": {
               "type": "string",
               "description": "What changed between passes."
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "baseline": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "hit_1": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "hit_2": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "fresh_context": {
+              "const": true
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1
+            },
+            "settings": {
+              "type": "string",
+              "minLength": 1
+            },
+            "baseline_prompt": {
+              "type": "string",
+              "minLength": 1
+            },
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "prompt",
+                  "answer",
+                  "baseline_answer",
+                  "score",
+                  "baseline_score",
+                  "rationale"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "answer": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "baseline_answer": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "rationale": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "score": {
+                    "type": "integer",
+                    "enum": [
+                      0,
+                      1,
+                      2
+                    ]
+                  },
+                  "baseline_score": {
+                    "type": "integer",
+                    "enum": [
+                      0,
+                      1,
+                      2
+                    ]
+                  }
+                }
+              }
             }
           }
         },
         "final": {
           "type": "object",
           "required": [
-            "overall"
+            "content_hash",
+            "overall",
+            "passed",
+            "baseline",
+            "hit_1",
+            "hit_2",
+            "fresh_context",
+            "model",
+            "settings",
+            "baseline_prompt",
+            "items"
           ],
           "additionalProperties": false,
           "properties": {
@@ -101,14 +212,94 @@
             "hit_2": {
               "type": "number",
               "minimum": 0,
-              "maximum": 1,
-              "description": "Share of masked items scored 2 — correct stance reached by the person's own mechanism. Reported separately because the aggregate collapses two different things: reaching the right conclusion the person's way, and reaching it by a mechanism the person would reject. Both look like partial credit, but only the first generalises; the second is a persona that agrees with its subject about the cases in the corpus and diverges on the first case outside it. A respectable aggregate with a low hit_2 is a specific, actionable diagnosis — the positions were extracted and the reasoning was not."
+              "maximum": 1
             },
             "hit_1": {
               "type": "number",
               "minimum": 0,
-              "maximum": 1,
-              "description": "Share scored 1 — right direction, wrong reasoning."
+              "maximum": 1
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "baseline": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "passed": {
+              "type": "boolean"
+            },
+            "fresh_context": {
+              "const": true
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1
+            },
+            "settings": {
+              "type": "string",
+              "minLength": 1
+            },
+            "baseline_prompt": {
+              "type": "string",
+              "minLength": 1
+            },
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "prompt",
+                  "answer",
+                  "baseline_answer",
+                  "score",
+                  "baseline_score",
+                  "rationale"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "answer": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "baseline_answer": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "rationale": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "score": {
+                    "type": "integer",
+                    "enum": [
+                      0,
+                      1,
+                      2
+                    ]
+                  },
+                  "baseline_score": {
+                    "type": "integer",
+                    "enum": [
+                      0,
+                      1,
+                      2
+                    ]
+                  }
+                }
+              }
             }
           }
         },
@@ -139,7 +330,10 @@
         "total_divergences",
         "slated_for_core",
         "in_core_final",
-        "presence_assertion"
+        "presence_assertion",
+        "content_hash",
+        "logged_out",
+        "missing_unlogged"
       ],
       "additionalProperties": false,
       "properties": {
@@ -175,6 +369,10 @@
             "fail"
           ],
           "description": "'fail' blocks delivery. This is the most common way a core ends up articulate but generic."
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
         }
       }
     },
@@ -183,7 +381,8 @@
       "description": "Style-match test. Sample passages generated under the core's expression rules PLUS references/voice.md — that pair is the sustained-prose configuration, so that is what gets tested — re-measured with style_metrics.py and compared against held-out originals. At least one sample must be long enough to drift (400+ words); a voice that is right for three sentences and generic by the twelfth is the failure this test exists to catch.",
       "required": [
         "modulation_reproduced",
-        "avoid_list_violations"
+        "avoid_list_violations",
+        "content_hash"
       ],
       "additionalProperties": false,
       "properties": {
@@ -217,6 +416,10 @@
               "type": "number"
             }
           }
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
         }
       }
     },
@@ -226,7 +429,9 @@
       "required": [
         "score",
         "n",
-        "seed"
+        "seed",
+        "content_hash",
+        "label_type"
       ],
       "additionalProperties": false,
       "properties": {
@@ -263,77 +468,154 @@
         "merge_triggered": {
           "type": "boolean",
           "description": "True when this run was triggered by a cluster merge rather than by the initial family count."
-        }
-      }
-    }
-  },
-  "examples": [
-    {
-      "content_hash": "sha256:9f2c1ab7d4e5f60123456789abcdef0123456789abcdef0123456789abcdef01",
-      "stale": [],
-      "register_families": [
-        "R1",
-        "R2",
-        "R3"
-      ],
-      "projection": {
-        "gate": {
-          "overall": 0.58,
-          "passed": true,
-          "recurations": 1,
-          "note": "1st pass 0.44 (economics over-fit) → re-curated → 0.58"
         },
-        "final": {
-          "overall": 0.74,
-          "by_domain": {
-            "political philosophy": 0.82,
-            "economics": 0.55
-          },
-          "hit_2": 0.58,
-          "hit_1": 0.32
+        "content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
         },
-        "seed": 42,
-        "n_masked": 12,
-        "stratified": true,
-        "sampling_note": "mask distributed across 4 domains; 2 items each in the two thinnest"
-      },
-      "cost": {
-        "total_divergences": 9,
-        "slated_for_core": 9,
-        "in_core_final": 8,
-        "logged_out": 1,
-        "missing_unlogged": 0,
-        "presence_assertion": "pass"
-      },
-      "style": {
-        "sentence_len_delta": 0.08,
-        "hedge_rate_delta": 0.03,
-        "modulation_reproduced": true,
-        "avoid_list_violations": 0,
-        "notes": "clipping-under-contest present; 600-word sample held voice to the end (core + voice.md)",
-        "by_family": {
-          "R1": {
-            "sentence_len_delta": 0.06
-          },
-          "R2": {
-            "sentence_len_delta": 0.11
-          },
-          "R3": {
-            "sentence_len_delta": 0.09
+        "label_type": {
+          "const": "register_family"
+        },
+        "confusions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "actual",
+              "predicted",
+              "n"
+            ],
+            "properties": {
+              "actual": {
+                "type": "string",
+                "minLength": 1
+              },
+              "predicted": {
+                "type": "string",
+                "minLength": 1
+              },
+              "n": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
           }
         }
-      },
-      "discrimination": {
-        "score": 0.85,
-        "n": 20,
-        "seed": 42,
-        "mask_names": true,
-        "confusable_pairs": [
-          "c07->c01",
-          "c11->c01"
-        ],
-        "required": true
       }
+    },
+    "split_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "registers_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "style_staleness_note": {
+      "type": "string",
+      "minLength": 1
+    },
+    "merge_triggered": {
+      "type": "boolean"
+    },
+    "isolation": {
+      "type": "object",
+      "required": [
+        "split_before_extraction",
+        "construction_partitions",
+        "test_exposures"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "split_before_extraction": {
+          "const": true
+        },
+        "construction_partitions": {
+          "const": [
+            "train"
+          ]
+        },
+        "test_exposures": {
+          "type": "integer",
+          "const": 1
+        }
+      }
+    },
+    "register_selection": {
+      "type": "object",
+      "required": [
+        "content_hash",
+        "score",
+        "cases"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "cases": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "audience",
+              "task",
+              "stakes",
+              "expected",
+              "selected",
+              "observed",
+              "answer",
+              "rationale"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "audience": {
+                "type": "string",
+                "minLength": 1
+              },
+              "task": {
+                "type": "string",
+                "minLength": 1
+              },
+              "stakes": {
+                "type": "string",
+                "minLength": 1
+              },
+              "expected": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selected": {
+                "type": "string",
+                "minLength": 1
+              },
+              "observed": {
+                "type": "string",
+                "minLength": 1
+              },
+              "answer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "merge_review": {
+      "type": "string",
+      "minLength": 1
     }
-  ]
+  }
 }

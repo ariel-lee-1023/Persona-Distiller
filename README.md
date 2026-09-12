@@ -41,7 +41,10 @@ Spending the budget elsewhere is not the same as throwing style away. Measured e
 
 The generated persona contains **no uncertainty disclaimers, no provenance hedging, no meta framing**. Those move a reader out of the voice and destroy identification.
 
-Honesty does not disappear — it **relocates**. Coverage gaps, source citations, confidence levels, and limitations live in the **Fidelity Ledger** — a human-facing audit package, separate from the `references/` package the host agent loads — and in a coverage report handed to the user, never inside the embodiment artifact and never inside `references/`. You keep full auditability; the persona keeps its voice. This split is the whole trick.
+Detailed citations, confidence and test history remain in the human-facing Fidelity Ledger.
+A compact host-facing `references/scope.md` is loaded with the core to preserve supported domains,
+periods, conditions on standing judgments and the boundary between attestation and extrapolation.
+The expressive voice stays in the core; the host can distinguish a documented position from a new application.
 
 ---
 
@@ -66,13 +69,20 @@ Restart Claude Code (or start a new session) and the skill will be discoverable.
 Zip the repository contents so that `SKILL.md` sits at the root of the archive, then upload it under **Settings → Capabilities → Skills**.
 
 ```bash
-cd Persona-Distiller && zip -r Persona-Distiller.zip SKILL.md references scripts
+cd Persona-Distiller && zip -r Persona-Distiller.zip SKILL.md references scripts requirements-release.txt
 ```
 
 ### Requirements
 
-Python 3.8+ for the helper scripts. **No third-party dependencies** — every one of them is standard
-library only, and none of them touches the network.
+Python 3.9+ for the helper scripts. Release evidence validation also requires `jsonschema`:
+
+```bash
+python3 -m pip install -r requirements-release.txt
+```
+
+The remaining helpers and structural draft checks use the standard library. Validation runs
+locally without network access. A release check fails with installation guidance if its schema
+validator is unavailable; it never silently skips schema validation.
 
 ---
 
@@ -261,7 +271,8 @@ Output quality is strictly bounded by corpus coverage, diversity, and signal den
 │       ├── scores.schema.json
 │       ├── fidelity.schema.json
 │       └── passages.schema.json
-├── scripts/                        # all stdlib-only, no install step, no network
+├── requirements-release.txt        # JSON Schema dependency for release validation
+├── scripts/                        # local helpers; release checks require jsonschema
 │   ├── corpus_clean.py             # Stage 1 — extraction-damage census and repair
 │   ├── segment.py                  # Stage 1 — cut clusters, write a schema-valid manifest
 │   ├── register_discover.py        # Stage 2 Pass A0 — how many voices does this corpus have?
@@ -270,7 +281,7 @@ Output quality is strictly bounded by corpus coverage, diversity, and signal den
 │   ├── kwic.py                     # Stage 2 — keyword-in-context evidence retrieval
 │   ├── cluster_budget.py           # Stage 4 — per-module size, with an actionable verdict
 │   ├── token_count.py              # Stage 3 / 5 — one tokenizer for every budget
-│   ├── holdout_split.py            # Stage 5 — seeded keep/masked split, optionally stratified
+│   ├── holdout_split.py            # Stage 1: grouped train/development/test split
 │   ├── discrimination_test.py      # Stage 5 — blind register-separation gate
 │   ├── validate_package.py         # Stage 5 — structural check of the produced package
 │   └── name_audit.py               # Stage 5 — named-construct consistency across the package
@@ -289,8 +300,8 @@ project containing its runnable package at `.agents/skills/<slug>-perspective/` 
 ### Host requirements
 
 The skill is written to run under **any** agent host, not a particular one. It needs a filesystem it
-can write to and Python 3 for the scripts; every one of them is standard-library-only, with no install
-step and no network access.
+can write to and Python 3.9+ for the scripts. Release checks require the dependency declared
+in `requirements-release.txt`; structural draft checks remain available without it.
 
 Three locations are host-dependent and resolved once at the start of a run: where the corpus is read
 from, where the work directory is created (default `persona_work/`), and where the finished persona
@@ -300,7 +311,8 @@ rather than failing the run.
 
 ### Scripts
 
-All run standalone, no install required. Roughly in pipeline order.
+All run standalone. Install `requirements-release.txt` before release validation or the full
+test suite. Roughly in pipeline order.
 
 ```bash
 # Stage 1 — census extraction damage. Report only; nothing is written without --fix.
@@ -328,15 +340,14 @@ python scripts/style_metrics.py path/to/corpus/
 python scripts/zh_metrics.py path/to/corpus/ --per-file --terms 秩序,封建,德性
 
 # Produce a reproducible seeded split for the held-out projection test.
-# Takes a JSON list of passage IDs — {"passages": ["p001", ...]} or a bare array — not a corpus path.
+# Before extraction: passage objects need id, group (work/episode), and optional domain.
 python scripts/holdout_split.py passages.json --seed 42 --frac 0.12 --out split.json
 
-# …or, better, with domain labels, so the mask reaches every domain rather than
-# landing almost entirely in the largest one.
-python scripts/holdout_split.py passages.json --stratify --seed 42 --frac 0.12
+# With consistent group domains, stratify; thin strata are reported as uncovered.
+python scripts/holdout_split.py passages.json --stratify --seed 42 --frac 0.12 --out split.json
 
-# …or pass the IDs inline
-python scripts/holdout_split.py --ids p001 p002 p003 p004 --seed 42
+# Set a separate development fraction
+python scripts/holdout_split.py passages.json --seed 42 --dev-frac .15 --out split.json
 
 # Stage 2 — pull evidence passages. grep returns whole paragraphs on this kind of text
 # and misses matches straddling a line break; this returns fixed-width windows.
@@ -346,8 +357,8 @@ python scripts/kwic.py clusters/ "single individual" --count
 
 # Stage 5 — blind register-separation gate, for personas that claim internal variation.
 # Two steps, because the answers must be written before the key is seen.
-python scripts/discrimination_test.py sample clusters/ --seed 42 --mask-names --key key.json
-python scripts/discrimination_test.py score key.json --answers c09 c05 c02 c06
+python scripts/discrimination_test.py sample clusters/ --registers registers.json --seed 42 --mask-names --key key.json
+python scripts/discrimination_test.py score key.json --answers R1 R2 R1 R2
 
 # Stage 4 — size one module, or a whole package from a spec file.
 # --shared-domain is what separates "re-cut this cluster" from "split it internally".
@@ -460,3 +471,24 @@ fields, so existing logs need a pass.
 MIT © 2026 Ariel Lee. [See LICENSE](LICENSE).
 
 This license covers the original text in this repository. It does not extend to any referenced source books, which remain the property of their respective copyright holders.
+
+## Independent evaluation and release validation
+
+Split the source inventory by underlying work or episode before extracting traits. Construction
+uses train; development guides revisions; a separate final set is used once in fresh contexts.
+Pair predictions with a minimal persona baseline on the same model/settings and save both answers.
+Discrimination consumes `registers.json` and scores register families. A separate audience/task/stakes
+test checks whether the generated persona selects and produces the appropriate register.
+
+`holdout_split.py` now requires passage objects with `id` and `group`; old ID-only inputs must be
+migrated. Hashes and complete release artifacts are documented in
+[release-evidence.md](references/release-evidence.md). Structural validation alone remains useful
+for drafts; verified release requires:
+
+```bash
+python3 scripts/validate_package.py /path/to/persona --release --fidelity /path/to/fidelity-ledger/fidelity.json
+python3 -m unittest discover -s tests -v
+```
+
+Existing evaluations need to be rerun under this protocol. The validator verifies recorded
+artifacts and freshness, not the truth of a grader's judgments or a claim of context isolation.

@@ -27,6 +27,8 @@ import json
 import os
 import re
 import sys
+from urllib.parse import unquote, urlsplit
+from release_checks import release_checks, runtime_hash
 
 AUDIT_WORDS = ("token", "budget", "cluster", "probe", "corpus", "distill", "score")
 BAN_STRINGS = ("provenance", "episodic.md", "extraction", "holdout", "Stage ",
@@ -106,13 +108,31 @@ def resolve_module_ids(module_paths):
     return ids
 
 
+def local_targets(text):
+    targets = set(re.findall(r"\[[^\]]*\]\(\s*(<[^>]+>|[^\s)]+)(?:\s+[^)]*)?\)", text))
+    targets.update(re.findall(r"^\s*\[[^\]]+\]:\s*(<[^>]+>|\S+)", text, re.M))
+    targets.update(re.findall(r"`([^`\n]+\.md(?:#[^`\n]*)?)`", text))
+    targets.update(re.findall(r"(?<![\w/])references/[\w./%-]+\.md", text))
+    resolved = set()
+    for target in targets:
+        parsed = urlsplit(target.strip('<>'))
+        if not parsed.scheme and not parsed.netloc and parsed.path:
+            resolved.add(unquote(parsed.path))
+    return resolved
+
+
 def main():
     ap = argparse.ArgumentParser(description="Machine-check a distilled package's structural rules.")
     ap.add_argument("package_dir", help="persona project root containing .agents/skills/<name>/")
     ap.add_argument("--json", help="write check artifact here")
     ap.add_argument("--strict", action="store_true", help="treat warnings as errors")
     ap.add_argument("--headings", help="file of required core heading anchors, one per line")
+    ap.add_argument("--release", action="store_true", help="require current fidelity evidence and release gates")
+    ap.add_argument("--fidelity", help="fidelity.json alongside split.json and registers.json (requires --release)")
+    ap.add_argument("--print-hash", action="store_true", help="print canonical runtime SHA-256 and exit")
     args = ap.parse_args()
+    if args.fidelity and not args.release:
+        ap.error("--fidelity requires --release")
     root = os.path.abspath(args.package_dir)
     if not os.path.isdir(root):
         ap.error("package directory not found: %s" % args.package_dir)
@@ -196,20 +216,34 @@ def main():
     found_bans = [value for value in BAN_STRINGS if value.casefold() in core.casefold()]
     results.append(check("C4", "error", not found_bans,
                          "no banned implementation strings in core" if not found_bans else "banned strings in core: " + ", ".join(found_bans)))
-    on_disk = {os.path.basename(path) for path in modules}
-    # A core may use full references/clusters paths or a compact code-form filename
-    # after an earlier fully-qualified path in the same load-list sentence.
-    referenced = {name for name in on_disk if re.search(
-        r"(?:references/clusters/)?%s\b" % re.escape(name), core, re.I)}
+    on_disk = {rel(path, skill_root) for path in modules}
+    # Parse targets from the text, independently of the files that happen to exist.
+    runtime_files = ([skill] if core else []) + list(markdown_files(references))
+    missing_links = []
+    for source in runtime_files:
+        for target in local_targets(read(source)):
+            dest = os.path.normpath(os.path.join(os.path.dirname(source), target))
+            if not os.path.isfile(dest) and source == skill and "/" not in target:
+                parent = references if target in {"voice.md", "frameworks.md", "scope.md"} else clusters_dir
+                dest = os.path.join(parent, target)
+            if not os.path.isfile(dest):
+                missing_links.append(rel(source, skill_root) + ": " + target)
+    referenced = set()
+    for target in local_targets(core):
+        if target in {"voice.md", "frameworks.md", "scope.md", "SKILL.md"}:
+            continue
+        candidate = target if "/" in target else "references/clusters/" + target
+        if candidate.startswith("references/clusters/"):
+            referenced.add(candidate)
+    # Compact code-form names in the core are relative to its cluster load list.
     missing = sorted(referenced - on_disk)
     unreferenced = sorted(on_disk - referenced)
-    c5_ok = not missing and not unreferenced
     details = []
-    if missing:
-        details.append("referenced but missing: " + ", ".join(missing))
+    if missing or missing_links:
+        details.append("referenced but missing: " + ", ".join(missing + missing_links))
     if unreferenced:
         details.append("on disk but not in core: " + ", ".join(unreferenced))
-    results.append(check("C5", "error", c5_ok, "cluster load-list and disk agree" if c5_ok else "; ".join(details)))
+    results.append(check("C5", "error", not details, "runtime links and disk agree" if not details else "; ".join(details)))
     known_ids = resolve_module_ids(modules)
     cited = set()
     for path in markdown_files(root):
@@ -255,6 +289,15 @@ def main():
     results.append(check("X1", "error", not score_files,
                          "references contain no numeric composite/probe score pattern" if not score_files else
                          "numeric score pattern under references/: " + ", ".join(score_files)))
+
+    if args.print_hash:
+        try:
+            print(runtime_hash(skill_root))
+            return 0
+        except (OSError, ValueError) as exc:
+            ap.error(str(exc))
+    if args.release:
+        results.extend(release_checks(skill_root, args.fidelity or os.path.join(root, "fidelity-ledger", "fidelity.json")))
 
     effective = [{**item, "effective_level": "error" if args.strict and item["level"] == "warn" else item["level"]}
                  for item in results]

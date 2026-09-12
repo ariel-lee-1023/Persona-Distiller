@@ -3,6 +3,11 @@
 Read this before running Stage 1 the first time. It covers how to get clean text out of mixed
 formats, how to cut the corpus into clusters, and the internal artifacts the later stages depend on.
 
+Before semantic extraction, follow [release-evidence.md](release-evidence.md): assign work/episode
+groups using metadata, create `split.json`, and materialize separate train, development and test
+collections. All construction steps below operate on train only. Coverage reports distinguish
+training coverage from held-out coverage. Keep final targets sealed until final verification.
+
 ## Working directories
 
 **Create the work directory before anything else.** Default to `persona_work/` under the current

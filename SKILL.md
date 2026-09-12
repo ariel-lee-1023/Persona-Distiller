@@ -1,18 +1,14 @@
 ---
-name: Persona-Distiller
+name: persona-distiller
 description: >-
-  Distills one person's uploaded public record (books, essays, transcripts, interviews,
-  decision records) into a compact, embodiment-ready persona skill — a core SKILL.md tuned
-  for maximum identification plus a modular references package. Extracts the hard, diagnostic
-  signals (cost-bearing refusals, patterns of variation, interactional moves) rather than
-  just countable surface style, discovers the person's own register families before measuring
-  anything, curates ruthlessly by a multi-probe identification score, deletes anything generic
-  or voice-diluting, and verifies fidelity with held-out projection, cost, style-match, and
-  blind register-discrimination tests. Use this whenever someone uploads a corpus of one person's
-  material and wants to "distill", "channel", "think like", "write as", "build a persona/
-  perspective/voice skill of", or "make a system prompt that embodies" that person — even if
-  they don't say the word "skill". Also use to turn a thinker's collected work into a reusable
-  perspective a host agent can load. Works only from the uploaded corpus; never invents material.
+  Distill one person's provided public record (books, essays, transcripts, interviews,
+  decision records) into a reusable persona or perspective skill with a compact core,
+  references and an operational scope contract. Extract characteristic reasoning,
+  cost-bearing refusals, interactional moves and register variation, then verify with
+  independent projection and baseline comparisons, cost and style checks, and register
+  tests. Use when the user wants to distill, channel, think like, write as, or build a
+  persona, voice skill or system prompt embodying a specific person, even without saying
+  "skill". Work from the provided corpus without inventing documented positions.
 ---
 
 # Persona Distiller
@@ -66,11 +62,14 @@ no provenance hedging, and no meta framing** — no "based on available sources"
 seems to", no "as an AI embodying". Those move the reader out of the voice and destroy
 identification. This is a deliberate departure from provenance-forward distillers.
 
-Honesty does not disappear — it **relocates**. Coverage gaps, source citations, confidence, and
-limitations live in the *Fidelity Ledger* (a human-facing audit package, separate from the
-`references/` the host agent loads) and in the *coverage report you hand the user*, never inside
-the embodiment artifact, and never inside `references/`. You keep full auditability; the persona
-keeps its voice. (This split is the whole trick — do not collapse it.)
+The detailed Fidelity Ledger remains human-facing: citations, scores, confidence and audit
+history live there. The host also needs a compact operational scope contract in
+`references/scope.md`: supported domains and periods, conditions on standing judgments,
+earlier/later positions, and the boundary between attestation and extrapolation. Load it with
+the core before answering. It is host guidance, not persona prose or an audit dump. Preserve
+the expressive core while identifying extrapolation when attribution or changed circumstances
+make that distinction material; never turn an extension into a documented quotation or position.
+See `references/output-template.md` for the contract.
 
 ---
 
@@ -127,6 +126,13 @@ from the container's scaffolding with the user's confirmation, and label every u
 `secondhand` / `mixed` / `unknown` before ingesting anything → `references/acquisition.md`.
 
 ### Stage 1 — Ingest & segment
+
+Before trait extraction, freeze a metadata-only inventory grouped by underlying work or episode,
+including related excerpts/retellings in the same group. Run `scripts/holdout_split.py` to make
+train, development and final-test partitions. Construction, including register discovery, uses
+train only. Development drives curation; final evidence stays sealed until a fresh-context final
+assessment. Read [references/release-evidence.md](references/release-evidence.md) now for isolation,
+baseline comparisons, split format and executable release requirements.
 Read the corpus. Extract text with structure preserved (headings, speaker turns, timestamps).
 Segment into coherent **clusters** — per work/chapter, per interview, per decision record, per
 time period. Build an internal **coverage map**: domains covered, dialogue-vs-monologue ratio,
@@ -230,10 +236,10 @@ module budgets, worked scoring examples, weight-tuning, and the log format: `ref
 Assembly is downstream of passing two gates, plus a third whenever the corpus carries more than one
 register family. Their results are logged to the persona's `fidelity-ledger/provenance.md` and are
 **used to adjust inclusion and weighting** — they are control signals, not just reports:
-- **Projection gate** — run the held-out projection test (procedure in `fidelity-tests.md`) on the
+- **Projection gate** — run the development projection test (procedure in `fidelity-tests.md`) on the
   top-ranked projectible regularities *now, before assembly*. If it misses threshold, re-curate:
   down-weight the over-fit elements, promote better-generalizing ones, or narrow the persona's
-  claimed scope — then re-score. Loop until it passes or you commit to a documented reduced scope.
+  claimed scope — then re-score. Loop until the revised or narrowed candidate passes on development evidence.
 - **Cost gate** — inventory every attested incentive-vs-characteristic divergence from Stage 2 and
   confirm the high-signal ones survived curation and are slated for the core. Any missing one is
   re-included or elevated *before* assembly, not after.
@@ -266,6 +272,10 @@ make a cluster module live in `fidelity-ledger/episodic.md` — attested but not
 so it sits with the audit trail rather than the host-agent-facing package, and the host agent never
 loads it. Provenance, scoring, fidelity records, and episodic material are never written under
 `references/`; they go only to `fidelity-ledger/`, which the host agent does not load.
+
+The core's host note must say to load `references/scope.md` before applying the persona. Keep
+attested judgments conditional on domain, date and circumstances. A later position cannot
+silently answer a question about an earlier period.
 
 The core's "Loading depth (host-agent note)" block must also carry the mandatory fourth line: a
 real-world-retrieval instruction, stated as host-agent operational guidance rather than persona
@@ -337,9 +347,11 @@ The module formula, its counting rules, the standing-module budgets, and calibra
 `references/scoring.md`.
 
 ### Stage 5 — Final fidelity verification *(the gates already ran at 3.5; this confirms the assembled core)*
-- **Projection re-check** — confirm the assembled persona's reasoning still predicts the masked
-  held-out passages (`scripts/holdout_split.py` gives the reproducible seeded split); record the
-  score in `fidelity-ledger/provenance.md`.
+- **Independent final projection**: after confirming the development gate on the final bytes,
+  run the reserved final test once in fresh prediction contexts, paired with a minimal persona
+  baseline on the same model/settings. Save prompts, both answers and item grades. A failure
+  blocks release; if used for revision, retire that set into development and obtain a new test.
+  The final test is never the repeatedly optimized development set.
 - **Cost / presence assertion** — re-confirm every high-signal divergence landed in the core, and
   assert the hard minimum: **if the corpus contains any high-signal cost-bearing refusal or
   interactional move, the core must contain at least one.** Failing this blocks delivery — go
@@ -351,12 +363,12 @@ The module formula, its counting rules, the standing-module budgets, and calibra
   avoid-list appears.
 - **Discrimination test** *(mandatory whenever `n_registers > 1`; also re-run after any cluster
   merge)* — `scripts/discrimination_test.py` samples passages, hides the labels, and you classify
-  them blind. The other three checks all ask whether this reads like the person; none asks whether
+  them blind using `--registers registers.json` and family labels. Also test whether novel audience/task/stakes prompts select and produce the right family, recording `register_selection` cases. The other three checks all ask whether this reads like the person; none asks whether
   the person's registers can be **told apart**, and a passage can match the aggregate baseline
   perfectly while being indistinguishable from every other register the core promises. Below 0.70,
   collapse the families into one honest voice rather than shipping a distinction the persona cannot
   perform.
-- **Mechanical package validation** — run `scripts/validate_package.py` over the outer produced project directory.
+- **Mechanical package validation** — run `scripts/validate_package.py <project> --release --fidelity <ledger>/fidelity.json` over the outer produced project directory. This enforces result hashes, split integrity, baseline comparisons and required gates as well as structure. See `references/release-evidence.md`; draft structure checks omit `--release`.
   It checks what a reader will not: ledger material sitting inside a runtime reference, a load-list
   in the core pointing at a cluster module nobody wrote, an `episodic.md` that is empty without
   saying why, implementation language leaking into the core's own description. Judgment calls come
@@ -364,6 +376,9 @@ The module formula, its counting rules, the standing-module budgets, and calibra
   the anchors you require — the checker will not impose English headings by default, since a core may
   be written in the subject's own language. A structural omission is the one defect class that
   survives careful reading, because there is nothing on the page to notice.
+- **Scope boundary checks**: record answers for an attested judgment in its period, an earlier
+  period with a different position, and changed conditions requiring extrapolation. Check that
+  dates and conditions survive and extensions are not presented as documented positions.
 - **Name audit** — run `scripts/name_audit.py --package <dir> --corpus <dir>`. It looks for every
   name the package uses **literally in the corpus**, and separates heading-like appearances from
   ordinary prose. The failure it catches has a specific mechanism: a neat diagnostic label invented
@@ -382,7 +397,7 @@ The module formula, its counting rules, the standing-module budgets, and calibra
   fabricating material, just aimed at the world instead of the person.
 
 Log all results to `fidelity-ledger/provenance.md` and the coverage report. If a check falls below
-threshold, emit a **reduced-scope** core with the gap logged, or surface it to the user for corpus
+threshold, revise or narrow the core and re-test under the independent evaluation rules, or surface it to the user for corpus
 improvement — never paper over it. → Procedures, thresholds, and reporting:
 `references/fidelity-tests.md`.
 
@@ -400,6 +415,7 @@ A directly usable local Agent Skill project:
 │           ├── SKILL.md
 │           └── references/
 │               ├── clusters/
+│               ├── scope.md        # host-facing domain, period and attribution boundaries
 │               ├── frameworks.md
 │               └── voice.md
 └── fidelity-ledger/
@@ -492,6 +508,7 @@ patterns (lean front-loaded core, on-demand reference files, tight token budgets
 - `references/output-template.md` — Stage 4: exact core `SKILL.md` template, the layered
   `frameworks.md` §0–§7 and `voice.md` §0–§11 specs, the Fidelity Ledger layout, and the
   negative-space rule for sections a corpus cannot fill.
+- `references/release-evidence.md`: before Stage 1 and at release, grouped splits, isolated predictions, baselines and machine artifact contract.
 - `references/fidelity-tests.md` — Stage 5: projection / cost / style-match / discrimination
   procedures, thresholds, the sampling-description rule, the re-test obligation, and reporting.
 - `references/schemas/` — JSON Schema (draft 2020-12) for every intermediate artifact
@@ -513,11 +530,10 @@ patterns (lean front-loaded core, on-demand reference files, tight token budgets
   absence check that feeds `voice.md`'s avoid-list. `style_metrics.py` tokenises on `[A-Za-z]`
   and returns zeros on CJK, so reach for this one whenever the corpus is Chinese. Ships with no
   term list — pass the subject's own vocabulary via `--terms` rather than baking it in.
-- `scripts/holdout_split.py` — reproducible seeded split of passages into keep/masked sets for
-  the held-out projection test. Takes a JSON list of passage IDs (see
-  `references/schemas/passages.schema.json`) or `--ids` on the command line — not a corpus path.
-  Use `--stratify` with domain-labelled input: a random mask over an uneven corpus lands mostly in
-  the largest domain, and the resulting score then gets read as though it described the persona.
+- `scripts/holdout_split.py` — grouped train/development/test split before extraction for
+  the held-out projection test. Requires passage objects with `id` and work/episode `group`
+  (see `references/schemas/passages.schema.json`), plus `--out`. Optional `--stratify` uses
+  consistent group domains and reports thin strata with no evaluation coverage.
 - `scripts/corpus_clean.py` — **Stage 1.** Extraction-damage census and repair: lost fi/fl/ff
   ligatures, words wrapped across lines by justified typesetting, and EPUB/markup residue. All three
   leave fluent, readable text that measures wrong, so nothing catches them by eye. Reports by

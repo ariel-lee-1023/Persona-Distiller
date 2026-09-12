@@ -27,10 +27,10 @@ schema is authoritative.
 | `extractions.json` | 2 — extraction | [`extractions.schema.json`](extractions.schema.json) | [extraction.md](../extraction.md) |
 | `scores.json` | 3 — curation audit log | [`scores.schema.json`](scores.schema.json) | [scoring.md](../scoring.md) |
 | `fidelity.json` | gate + 5 — verification | [`fidelity.schema.json`](fidelity.schema.json) | [fidelity-tests.md](../fidelity-tests.md) |
-| `passages.json` | 5 — projection test input | [`passages.schema.json`](passages.schema.json) | script docstring |
+| `passages.json` | 1: metadata inventory before extraction | [`passages.schema.json`](passages.schema.json) | script docstring |
 
 `passages.json` is the one artifact you hand *to* a script rather than receive from the pipeline —
-`scripts/holdout_split.py` reads it. The script's own output (`split.json`) has no schema here; the
+`scripts/holdout_split.py` reads it. The grouped v2 output (`split.json`) is checked by the release validator; the
 script is its source of truth.
 
 `registers.json` is written by `scripts/register_discover.py`. A handful of its fields are marked
@@ -113,7 +113,14 @@ Some rules are deliberately **not** encoded, because valid records violate them:
 
 ## Validating
 
-Optional, and no dependency is added to this repo:
+Release validation checks `fidelity.json` and `registers.json` against their declared schemas
+before interpreting their contents. Install the release dependency with
+`python3 -m pip install -r requirements-release.txt`. Missing dependencies or invalid artifacts
+fail release validation. Additional cross-field checks reconcile the register verdict, unit and
+family counts, complete family membership, matrix labels, dimensions, numeric values, symmetry
+and zero diagonals. Both single-family and multiple-family evidence must pass these checks.
+
+For optional standalone checks of other artifacts:
 
 ```bash
 pip install check-jsonschema
@@ -125,3 +132,5 @@ The scripts that produce these artifacts write shapes that validate as-is:
 against the `cluster_budgets` item shape in `scores.schema.json`. If one of them stops validating,
 the script and the schema have diverged — fix the pair, and do not paste output that does not
 validate into a log that claims to.
+
+Release evidence now requires grouped splits made before extraction, paired baseline/item answers and per-result hashes. See [release-evidence.md](../release-evidence.md). Legacy ID-only passage inventories must be regrouped by work or episode; old final scores cannot be relabeled as independent tests.

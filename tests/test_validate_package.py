@@ -77,6 +77,40 @@ class TestGeneratedProjectLayout(unittest.TestCase):
         mismatch = next(item for item in report["checks"] if item["check"] == "C1b")
         self.assertFalse(mismatch["ok"])
 
+    def test_missing_descriptive_links_are_rejected(self):
+        self.write_valid_project()
+        skill = self.root / '.agents/skills/demo-perspective/SKILL.md'
+        with skill.open('a') as out:
+            out.write('\nRead [missing](references/clusters/unwritten-judgment.md).\n')
+        proc, report = self.run_validator()
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertTrue(any(c['check'] == 'C5' and not c['ok'] for c in report['checks']))
+
+    def test_missing_reference_definition_link_is_rejected(self):
+        self.write_valid_project()
+        voice = self.root / '.agents/skills/demo-perspective/references/voice.md'
+        voice.write_text('[deep voice][details]\n\n[details]: <missing%20voice.md>\n')
+        proc, report = self.run_validator()
+        self.assertNotEqual(proc.returncode, 0)
+
+    def test_compact_reference_names_and_published_symlink_layout(self):
+        self.write_valid_project()
+        skill = self.root / '.agents/skills/demo-perspective'
+        with (skill / 'SKILL.md').open('a') as out:
+            out.write('\nRead `voice.md` and `frameworks.md` when needed.\n')
+        (skill / 'SKILL.md').rename(self.root / 'SKILL.md')
+        (skill / 'references').rename(self.root / 'references')
+        skill.rmdir()
+        skill.symlink_to('../..', target_is_directory=True)
+        proc, report = self.run_validator()
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_release_does_not_accept_structure_without_fidelity(self):
+        self.write_valid_project()
+        proc = subprocess.run([sys.executable, str(VALIDATOR), str(self.root), '--release'], capture_output=True, text=True)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn('R0', proc.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

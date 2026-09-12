@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Grouped independent evaluation splits, paired persona baselines, family-level discrimination and behavioral register selection, host-facing scope contracts, and hash-bound executable release checks. Missing descriptive module links now fail validation.
+
+
 All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
