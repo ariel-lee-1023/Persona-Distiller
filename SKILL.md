@@ -78,6 +78,20 @@ judgment after persuasive evidence arrives. Preserve documented humor, interacti
 explanatory habits and audience-sensitive expression. Do not replace nuance with
 slogans, mandatory catchphrases, universal style quotas or generic virtues.
 
+## Introduce the perspective to its reader
+
+A persona README is a reader-facing artifact with four obligations: recognizable
+character, an imaginable interaction, a usable first action and honest expectations.
+After establishing the supported runtime, introduce what draws this particular
+perspective's attention, how it engages a real question and what a reader might bring.
+When writing or reviewing that README, read
+[readme-experience.md](references/readme-experience.md). This is authoring guidance;
+do not route generated personas to it during ordinary use.
+
+Preserve effective introductions and examples through technical upgrades. Keep material
+limitations beside the promises they qualify, with detailed assessment machinery in
+linked maintainer records. Editorial quality never changes acceptance status.
+
 ## Freeze, assess and deliver
 
 During production, derive three to five diagnostic patterns from source evidence.

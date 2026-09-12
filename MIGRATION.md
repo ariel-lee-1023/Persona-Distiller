@@ -11,6 +11,12 @@ Follow [incremental migration](references/migration.md) for existing personas an
 [standard workflow](references/standard-workflow.md) for first adoption, resume and repair.
 Do not rebuild every module or re-OCR a corpus merely because the standard changed.
 
+README upgrades follow the [reader experience contract](references/readme-experience.md).
+Preserve effective introductions, narrator, examples and the existing language. Recover
+flattened prose selectively from available history against current scope, retaining
+current installation and status. README-only changes with unchanged recognition inputs
+preserve assessment applicability and consume zero new recognition calls.
+
 `migrate_identity.py` relocates `fidelity-ledger/` to `transworld-identity/`, preserving
 bytes and historical hashes, updating active routes and recording a relocation map.
 Operational audit scripts in the evidence directory are updated with their exact

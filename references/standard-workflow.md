@@ -38,6 +38,22 @@ the dependence recorded. Input limits use UTF-8 bytes as a conservative token bo
 The word check counts CJK characters individually; this conservative bound may require
 shorter CJK responses. Endpoint credentials use `PERSONA_API_KEY`, never a saved key.
 
+## Compose the reader's introduction
+
+Once the supported perspective and runtime behavior are established, draft the README
+and its first question or illustrative encounter in the same authoring pass. Follow the
+reader-facing contract in [output-template.md](output-template.md) and read
+[readme-experience.md](readme-experience.md). Match the promise to the actual package;
+retain useful existing prose and locally label editorial illustrations. Record only
+the status currently supported, then patch status and affected qualifications after
+assessment instead of regenerating the README.
+
+A README-only task with unchanged recognition inputs uses the existing assessment
+applicability and zero new recognition calls. Skip new plan/ledger initialization and
+freezing for that task; check links, status consistency and existing input dependencies.
+A newly noticed runtime defect follows the existing scoped repair rules, not an
+unrequested rebuild.
+
 ## Initialize once, freeze before answers
 
 Prepare a workflow plan that adds `scope`, `affected_modules`, `operation` (`new` or
@@ -130,5 +146,16 @@ Recorded hashes are tamper-evident, not protection against the owner rewriting h
 The ledger cannot count hidden calls outside its API, verify exhaustive source review,
 or turn declared context isolation into independent model errors. Unknown token usage
 or model identifiers stay unknown. Report actual usage when available; eight calls is
-not a token/cost guarantee. Update README status and stop. Publication follows existing
-user authorization, independently of acceptance.
+not a token/cost guarantee. Update only README status and qualifications affected by
+the results. Explain practical consequences: an unavailable endpoint or exhausted
+allowance means the relevant assessment remains incomplete; put the infrastructure
+details in the linked assessment record. Preserve Candidate or Standard accepted exactly.
+
+Alongside link and attribution checks, complete the four editorial questions in
+[readme-experience.md](readme-experience.md): particularity, encounter, entry and honesty.
+Point to concrete passages in the existing completion/provenance record and revise
+specific weak passages once within this authoring pass. This is editorial judgment,
+not human validation, a personality score or another evaluation round. Correct or
+remove material false claims; style uncertainty alone does not restart assessment.
+Preserve the introduction and examples unless results materially affect their accuracy.
+Then stop. Publication follows existing user authorization, independently of acceptance.

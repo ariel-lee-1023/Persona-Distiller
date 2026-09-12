@@ -196,6 +196,37 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(len(self.calls), 8)
         self.assertNotIn(str(self.root), json.dumps(completion))
 
+    def assert_readme_edit_preserves_assessment(self, expected_status):
+        readme = self.root / 'README.md'
+        readme.write_text('# Examiner\nAdministrative capability inventory.\n')
+        before = self.completion()
+        calls_before = copy.deepcopy(self.calls)
+        consumed_before = self.wf.status()['consumed']
+        readme.write_text(
+            '# Examiner\nBring a report whose conclusions you have been asked to endorse.\n'
+            'Suggested prompt: Which observations would justify signing this?\n'
+            '**Status: ' + expected_status + '.** See '
+            '[assessment](transworld-identity/validation.json).\n')
+        after = self.completion()
+        for key in ('runtime_hash', 'module_hashes', 'hashes', 'gates',
+                    'recognition', 'assessment_records', 'budget'):
+            self.assertEqual(after[key], before[key], key)
+        self.assertEqual(before['delivery_status'], expected_status)
+        self.assertEqual(after['delivery_status'], expected_status)
+        self.assertEqual(self.wf.status()['consumed'], consumed_before)
+        self.assertEqual(self.calls, calls_before)
+        self.assertIn('Bring a report', readme.read_text())
+
+    def test_readme_only_edit_keeps_candidate_without_recognition_calls(self):
+        self.assert_readme_edit_preserves_assessment('candidate')
+        self.assertEqual(self.calls, [])
+
+    def test_readme_only_edit_preserves_accepted_inputs_and_saved_results(self):
+        self.execute()
+        self.assert_readme_edit_preserves_assessment('standard_accepted')
+        self.execute()
+        self.assertEqual(len(self.calls), 8)
+
     def test_partial_resume_consumes_only_missing_calls(self):
         original = self.client
         count = 0

@@ -163,12 +163,11 @@ def migrate(root, import_from=None):
     for p in active:
         if p.is_symlink() or not p.is_file() or p.suffix not in {'.md', '.py', '.json', '.yaml', '.yml', '.sh'}:
             continue
-        text = p.read_text()
-        updated = text.replace(LEGACY + '/', CANONICAL + '/')
-        for quote in ('\"', "'", '`'):
-            updated = updated.replace(quote + LEGACY + quote, quote + CANONICAL + quote)
-        if updated != text:
-            p.write_text(updated)
+        # Preserve prose, encoding and line endings outside the relocated paths.
+        original = p.read_bytes()
+        updated = relocate_paths(original)
+        if updated != original:
+            p.write_bytes(updated)
             edits.append(p.relative_to(root).as_posix())
     result = {'schema_version': 1, 'status': 'imported' if import_from else 'migrated',
               'baseline': baseline, 'files': before, 'relocation': {LEGACY + '/': CANONICAL + '/'},

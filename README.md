@@ -37,6 +37,14 @@ Equivalent existing modules can keep their names. Runtime references contain use
 attribution and context but never load hidden assessment rubrics or answers. Raw books,
 recovered full text and scratch stay outside the published repository.
 
+Each persona's README also introduces the particular encounter it offers: what catches
+this perspective's attention, what it asks of the reader and a concrete question to try.
+The [README experience contract](references/readme-experience.md) preserves supported
+character and useful introductions through upgrades, with consequential limitations
+beside the promises they qualify. Detailed evaluation stays in linked records. This
+editorial check runs inside the existing authoring pass and adds no recognition calls.
+See [contrasting examples and a reviewed migration](references/readme-examples.md).
+
 Transworld Identity names the evidence and assessment function. It connects the
 representation to an identified historical record under explicitly changed circumstances;
 it does not claim numerical identity, metaphysical essence or fabricated memories.

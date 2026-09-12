@@ -1,5 +1,18 @@
 # Changelog
 
+## README reader experience
+
+- Make recognizable character, an imaginable interaction, a usable first action and
+  honest expectations explicit in the core, artifact contract and completion pass.
+- Ground openings in supported concerns and interactions; retain consequential limits
+  near their promises and link detailed assessment records.
+- Preserve introductions, examples, language and user edits through technical upgrades;
+  selectively recover flattened prose from history. Add contrasting editorial examples
+  and a reviewed Wittgenstein migration without new live recognition calls.
+- Preserve original bytes outside relocated paths, including README line endings.
+  Add regressions for preservation, linked Candidate status and unchanged assessment
+  dependencies and call consumption after README-only edits.
+
 ## Implementation corrections for bounded recognition
 
 - Relink operational audit scripts inside migrated evidence directories, preserving

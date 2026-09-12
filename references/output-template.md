@@ -58,6 +58,33 @@ nuance without requiring expensive measured family separation.
 Topic/source modules retain situated evidence, examples, conditions, counterexamples
 and locators. Preserve supported modules and avoid repetitive biography or raw dumps.
 
+## Reader-facing README
+
+`README.md` introduces a distinctive thinking partner to a curious first-time reader.
+Make recognizable character, an imaginable interaction, a usable first action and
+honest expectations as explicit as installation and status. Before drafting, read
+[readme-experience.md](readme-experience.md) and inspect the existing introduction,
+core, scope, frameworks, voice and their evidence links. Derive its promise from the
+package actually produced. Technical upgrades alone do not warrant a new introduction.
+
+A useful reader path is an introduction, a concrete starting question or situation,
+practical uses and installation, then scope and status/evidence. Adapt the order and
+narrator to the perspective; no fixed headings or dialogue template are required.
+Describe uses as what the reader brings and what the perspective does with it.
+Installation must be easy to find and complete for the actual delivery environment.
+
+State supported period/domains, current Candidate or Standard accepted status, and
+material limitations. Place consequential qualifications beside the capability they
+limit, even in the opening. Keep them visible without repetitive warnings. Link build
+history, call counts, model settings and evaluation protocols in `transworld-identity/`
+or another appropriate maintainer record. Readers need not understand infrastructure
+to understand the perspective. Do not paste a completion report into the introduction.
+
+Historical research outcomes remain separately scoped. Never turn an 80/100 engineering
+score into 80% human recognition or say a generic-assistant control proves value over
+a minimal named-persona prompt. Review the four reader outcomes in the existing
+completion pass; updating assessment status should change only affected passages.
+
 ## Maintainer records
 
 `provenance.md` records build contract, finite source-processing boundary and actual
@@ -75,8 +102,3 @@ prompt as supposedly independent evidence.
 `validation.json` records the exact assessed inputs, separate gates, calls/tokens,
 interruptions, reuse lineage and current limitations. Previous reports and frozen runs
 remain immutable historical evidence; changed input hashes invalidate affected claims.
-
-`README.md` explains installation/use, supported period/domains, current Candidate or
-Standard accepted status and material limitations. It may separately list historical
-research outcomes. Never turn an 80/100 engineering score into 80% human recognition
-or say a generic-assistant control proves value over a minimal named-persona prompt.
