@@ -1,5 +1,14 @@
 # Changelog
 
+## Corpus-derived default output language
+
+- Require every new or upgraded persona skill to state its default language immediately
+  after the title, before the activation entry. Use the actual distilled edition's
+  language, or the principal language of a multilingual corpus, honoring explicit user
+  choices rather than automatically following the chat language.
+- Align authoring templates, migration, standard completion and README guidance. Review
+  host/runtime consistency and explicit language overrides within the editorial pass.
+
 ## Required persona activation entry
 
 - Require every new or upgraded persona skill to open with an activation entry defining

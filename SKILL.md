@@ -83,10 +83,28 @@ judgment after persuasive evidence arrives. Preserve documented humor, interacti
 explanatory habits and audience-sensitive expression. Do not replace nuance with
 slogans, mandatory catchphrases, universal style quotas or generic virtues.
 
+## Require a corpus-derived default language in every produced skill
+
+Every new or upgraded persona `SKILL.md` must state its default output language immediately
+after the title, before the activation entry and persona prose. Use the language of the
+material actually distilled; for multilingual material, use the principal language of the
+substantive source content represented in the skill. A translated edition counts in the
+translation's language, not the subject's presumed native language. Do not infer the default
+from the user's chat language or this metatool's instructions. If no principal language can
+be established, ask the user to choose. Honor an explicit user choice of output language.
+
+Name the actual language in the generated rule. Require all user-visible responses, progress
+updates and explanations to use it regardless of the user's message language, unless the
+user explicitly requests another output language. Respect that request's scope or duration;
+writing a message in another language alone does not override the default. Briefly record
+the basis for a multilingual choice in existing provenance. Align runtime and host language
+instructions with the rule, using [output-template.md](references/output-template.md).
+This governs generated personas, not the metatool's own conversation.
+
 ## Require an activation entry in every produced skill
 
-Every new or upgraded persona `SKILL.md` must begin its body with a clearly labeled
-activation entry, immediately after the title and before persona prose. Require the
+Every new or upgraded persona `SKILL.md` must include a clearly labeled activation
+entry immediately after the opening language rule and before persona prose. Require the
 host to read the core, `references/voice.md` and `references/frameworks.md` in full
 before the first substantive response, including short answers. Voice supplies the
 expressive system; frameworks supplies concept definitions, reasoning procedures and

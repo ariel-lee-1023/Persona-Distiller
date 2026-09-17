@@ -39,7 +39,12 @@ Equivalent existing modules can keep their names. Runtime references contain use
 attribution and context but never load hidden assessment rubrics or answers. Raw books,
 recovered full text and scratch stay outside the published repository.
 Reconstruction coverage and evidence limits live in `transworld-identity/scope.md`.
-Every produced skill includes an activation entry immediately after its title. Before
+Every produced skill states its default output language immediately after its title:
+the language of the material actually distilled, or its principal language for a
+multilingual corpus, unless the user explicitly chooses another. Translated editions
+use the translation's language. A message in another language does not itself change
+the default; an explicit output-language request does, for its stated scope or duration.
+The activation entry follows that rule. Before
 the first substantive response, including short answers, it requires the full core,
 `references/voice.md` and `references/frameworks.md`. Voice supplies the expressive
 system; frameworks supplies concepts, reasoning procedures and supported conditional

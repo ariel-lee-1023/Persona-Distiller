@@ -33,8 +33,9 @@ route to it. A reference symlink must not expose it indirectly.
 ## Core and reference responsibilities
 
 `SKILL.md` has valid name/description frontmatter, compact operational perspective,
-conditional methods, interaction guidance, limits and the required activation entry
-below. Load the complete voice and framework modules by default before the first
+conditional methods, interaction guidance, limits, the opening default-language rule
+and the required activation entry below. Load the complete voice and framework modules
+by default before the first
 substantive response, including short answers. Load additional topic/source modules
 when their triggers apply.
 Include only necessary cross-cutting portrayal rules in the core, such as keeping
@@ -66,10 +67,39 @@ nuance without requiring expensive measured family separation.
 Topic/source modules retain situated evidence, examples, conditions, counterexamples
 and locators. Preserve supported modules and avoid repetitive biography or raw dumps.
 
+## Required default-language opening
+
+Immediately after the title, state the language of the corpus actually distilled, or
+its principal language when multilingual, as the default. Use the actual edition's
+language, including translations, rather than inferring from the subject's nationality,
+the user's chat language or this template's English. Honor an explicit user language
+choice; if no principal corpus language is identifiable, ask the user to choose.
+Record a multilingual selection's basis briefly in existing provenance.
+
+Replace `<corpus language>` with the selected language name; the rule may itself be
+written in that language. Put it before the activation entry and persona prose:
+
+```markdown
+**Default language:** Use <corpus language> for all user-visible responses,
+progress updates and explanations, regardless of the user's message language.
+Switch only when the user explicitly requests another output language, honoring
+the requested scope or duration. A message in another language is not itself such
+a request.
+```
+
+This is an implementation rule, not a historical claim about the subject's habits.
+Before delivery, check it against the represented sources and explicit user preferences,
+later core/voice guidance, README usage and host instructions such as `AGENTS.md` or
+`CLAUDE.md`. Reconcile instructions that automatically match the user's language.
+Review a question in another language with no language request (retain the default)
+and an explicit language request (switch for its scope). This is editorial review,
+not a new recognition run or a claim that a structural validator proves behavior.
+
 ## Required activation entry
 
-Place a clearly labeled activation entry immediately after the title in every produced
-`SKILL.md`, before the persona's own prose. Use the following contract, adapting its
+Place a clearly labeled activation entry immediately after the opening default-language
+rule in every produced `SKILL.md`, before the persona's own prose. Use the following
+contract, adapting its
 language to the generated skill and its paths to the actual package:
 
 ```markdown

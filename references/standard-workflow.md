@@ -12,7 +12,10 @@ and, for existing personas, [migration.md](migration.md). Preserve supported con
 contextualize overbroad rules. Source claims do not need a numerical research admission
 score. No automatic register certification, held-out experiment or comparator expansion.
 
-Before assessment, add the required activation entry from the output template. Confirm
+Before assessment, add the corpus-derived default-language rule immediately after the
+title, then the required activation entry, following the output template. Check the named
+language against the actual distilled editions or explicit user choice; reconcile host
+and runtime instructions so a message's language alone cannot change the default. Confirm
 that it defines voice and framework responsibilities and requires both full modules
 before the first substantive response, including short answers. Reconcile all current
 loading instructions with that entry; reuse complete context and reload lost files.

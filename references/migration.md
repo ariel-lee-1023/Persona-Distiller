@@ -22,10 +22,17 @@ unsupported promises. If no earlier version is available, compose from the curre
 supported material and describe it as new writing, not recovered voice. A technical
 upgrade alone does not justify rewriting the introduction.
 
-## Align the activation entry
+## Align the language rule and activation entry
 
-On a skill upgrade, add or correct the activation entry immediately after the core's
-title, following [output-template.md](output-template.md). Require full default reading
+On a skill upgrade, add or correct the default-language rule immediately after the core's
+title, using the actual distilled corpus language or its principal language. Preserve
+explicit user language choices; the user's message language alone does not select the
+default. Follow [output-template.md](output-template.md), including translation handling
+and the explicit-override rule, and reconcile current host/runtime language instructions.
+Preserve unrelated README prose and immutable historical records.
+
+Place the activation entry immediately after the language rule, following the same
+template. Require full default reading
 of the core, voice and framework modules before the first substantive response,
 including short answers. Briefly define each module's role; retain equivalent existing
 filenames by naming their actual paths. Reuse fully retained context and reload lost
