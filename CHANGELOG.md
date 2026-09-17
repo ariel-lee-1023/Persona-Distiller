@@ -1,5 +1,16 @@
 # Changelog
 
+## Required persona activation entry
+
+- Require every new or upgraded persona skill to open with an activation entry defining
+  voice and framework responsibilities and loading both complete modules before the
+  first substantive response, including short answers.
+- Reuse fully retained context, reload files lost after compaction and keep topic/source
+  modules conditional. Align current core, reference, README and host loading rules.
+- Align standard recognition instructions and the example plan with the default runtime
+  by explicitly listing voice and frameworks in every case. Preserve the runner's
+  explicit-reference behavior and historical or separately scoped diagnostic inputs.
+
 ## README reader experience
 
 - Make recognizable character, an imaginable interaction, a usable first action and

@@ -146,7 +146,10 @@ in [behavioral-evaluation.md](../behavioral-evaluation.md). `registers.json` req
 evidence and permits `INSUFFICIENT_EVIDENCE`; undefined ratios are null, never Infinity.
 
 New recognition plans and validation writes carry `structure_revision: 2`. Recognition
-cases require explicit `references`, including `[]` for core-only generation. The
-optional `assessment_scope` selects the canonical reconstruction report for frozen,
-separately hashed judge evidence. Legacy plans are inspected through explicit replay
+cases require explicit `references`. Standard production includes the complete voice
+and framework modules in every case, plus relevant topic modules. The schema and runner
+still permit `[]` for core-only diagnostics or historical replay; that capability does
+not satisfy the standard authoring contract. The runner does not infer required modules
+from the activation entry or route declarations. The optional `assessment_scope` selects
+the canonical reconstruction report for frozen, separately hashed judge evidence. Legacy plans are inspected through explicit replay
 or migrated with passage review; missing metadata is never silently upgraded.

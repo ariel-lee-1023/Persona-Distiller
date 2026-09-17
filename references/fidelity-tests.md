@@ -97,7 +97,7 @@ inventory and its in-core status to `transworld-identity/provenance.md`.
 
 ## 3. Style-match test  (tests expression rules)
 
-1. Generate a few sample passages under the core's expression rules **plus `references/voice.md`**,
+1. Generate a few sample passages with the full core, **`references/voice.md` and `references/frameworks.md`**,
    on topics the corpus covers, including at least one *contested* prompt so modulation is
    exercised, and at least one passage long enough to drift (400+ words — the failure this test
    exists to catch is a voice that is right for three sentences and generic by the twelfth).
@@ -110,10 +110,11 @@ inventory and its in-core status to `transworld-identity/provenance.md`.
 4. Check the avoid-list holds: none of `voice.md`'s "What I never write" items should appear in the
    generated samples. This is a cheap, binary check and it catches drift the distributions blur.
 
-Test the pair as it will actually be used. The core alone is the *framing* configuration; the
-sustained-prose configuration is core + `voice.md`, and that is what the promise of embodiment is
-measured against. If it helps localize a failure, run the core alone as a control — a large gap
-that closes when `voice.md` loads means the module is doing its job, not that the core is broken.
+Test the default activation configuration: core + `voice.md` + `frameworks.md`, for
+short answers as well as sustained prose. Add relevant topic modules for the task. If
+an explicitly scoped research budget allows it, a core-only or partial-module control
+can localize a failure. Label it as an ablation; it does not assess the default runtime.
+Record which modules changed before attributing a difference to voice or frameworks.
 
 Report divergence qualitatively and on the key numbers. Large gaps mean the expression rules are
 wrong or too generic — revise `voice.md` first (it holds most of the system), then the "How I

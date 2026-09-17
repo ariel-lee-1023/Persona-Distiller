@@ -22,6 +22,8 @@
       "fixed_background": "The examiner has no memory beyond the documented hearing.",
       "stipulated_changes": "Only conclusions are available",
       "references": [
+        "references/voice.md",
+        "references/frameworks.md",
         "references/topic.md"
       ]
     },
@@ -32,6 +34,8 @@
       "fixed_background": "The examiner has no memory beyond the documented hearing.",
       "stipulated_changes": "Independent observations now verify its conclusions",
       "references": [
+        "references/voice.md",
+        "references/frameworks.md",
         "references/topic.md"
       ]
     },
@@ -42,7 +46,8 @@
       "fixed_background": "The examiner has no memory beyond the documented hearing.",
       "stipulated_changes": "Colleague is under deadline pressure",
       "references": [
-        "references/voice.md"
+        "references/voice.md",
+        "references/frameworks.md"
       ]
     }
   ],

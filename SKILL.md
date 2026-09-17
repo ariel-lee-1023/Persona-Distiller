@@ -83,6 +83,19 @@ judgment after persuasive evidence arrives. Preserve documented humor, interacti
 explanatory habits and audience-sensitive expression. Do not replace nuance with
 slogans, mandatory catchphrases, universal style quotas or generic virtues.
 
+## Require an activation entry in every produced skill
+
+Every new or upgraded persona `SKILL.md` must begin its body with a clearly labeled
+activation entry, immediately after the title and before persona prose. Require the
+host to read the core, `references/voice.md` and `references/frameworks.md` in full
+before the first substantive response, including short answers. Voice supplies the
+expressive system; frameworks supplies concept definitions, reasoning procedures and
+supported conditional judgments. Neither is optional by topic or response length.
+Reuse files already fully available in context; reload any lost after compaction.
+For equivalent existing module names, state the actual paths and the same duties.
+Keep topic/source modules conditional on the question. Use the entry template and
+consistency review in [output-template.md](references/output-template.md).
+
 ## Introduce the perspective to its reader
 
 A persona README is a reader-facing artifact with four obligations: recognizable
@@ -107,8 +120,12 @@ Do not revise criteria after observing answers; revisions create new assessment 
 
 Run package and source integrity gates and the protocol in
 [recognition-protocol.md](references/recognition-protocol.md). Generation receives only
-task facts, the core and each case's explicitly selected runtime references. An empty
-reference list means core only. Optional scope evidence is frozen separately for judges.
+task facts, the core and each case's explicitly selected runtime references. Every
+standard case must explicitly include both default voice and framework modules, plus
+relevant topic modules: the runner cannot follow file-reading instructions or inject
+omitted references. Core-only cases are separately scoped diagnostics or historical
+replays, not assessments of the default runtime. Optional scope evidence is frozen
+separately for judges.
 Hidden rubrics, profiles and saved test
 answers never enter runtime loading. Two fresh judge contexts see anonymous pairs in
 reversed order, source-backed criteria and no builder history or other judge verdict.

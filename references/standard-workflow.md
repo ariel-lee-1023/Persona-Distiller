@@ -12,6 +12,11 @@ and, for existing personas, [migration.md](migration.md). Preserve supported con
 contextualize overbroad rules. Source claims do not need a numerical research admission
 score. No automatic register certification, held-out experiment or comparator expansion.
 
+Before assessment, add the required activation entry from the output template. Confirm
+that it defines voice and framework responsibilities and requires both full modules
+before the first substantive response, including short answers. Reconcile all current
+loading instructions with that entry; reuse complete context and reload lost files.
+
 Prepare a JSON plan using [recognition-plan.schema.json](schemas/recognition-plan.schema.json).
 Its `contract` records subject, intended use, supported `period_domains`, supplied sources,
 relative output location, delivery target and `source_boundary`: priority materials,
@@ -27,8 +32,13 @@ production findings. Do not run the example as an empirical persona assessment.
 The plan holds three cases in order (characteristic, changed_condition, interpersonal),
 situated evidence and three to five source-backed patterns with anchors 0..4.
 New plans declare `structure_revision: 2`. Every case requires an explicit `references`
-list: `[]` loads only the core, and a nonempty list loads exactly those references with
-it. Framework and voice routes can be supplied to the validator through `--routes`.
+list. For each standard case, include `references/voice.md` and
+`references/frameworks.md` (or their actual equivalent paths), then add relevant topic
+modules. The runner loads exactly the listed references with the core; it cannot open
+files named in an activation entry. Its `[]` behavior remains core-only for separately
+scoped diagnostics or historical replay, not the default-runtime assessment. Framework
+and voice routes can be supplied to the validator through `--routes`; route declarations
+do not populate a case's reference list.
 Remove a legacy `runtime_routes.scope` only after inspecting and redistributing its
 content through the migration procedure. No scope file is automatically loaded.
 

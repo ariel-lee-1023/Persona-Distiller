@@ -39,8 +39,14 @@ Equivalent existing modules can keep their names. Runtime references contain use
 attribution and context but never load hidden assessment rubrics or answers. Raw books,
 recovered full text and scratch stay outside the published repository.
 Reconstruction coverage and evidence limits live in `transworld-identity/scope.md`.
-Ordinary conversation loads the core and relevant runtime references. Necessary
-behavioral conditions stay beside the instructions they qualify.
+Every produced skill includes an activation entry immediately after its title. Before
+the first substantive response, including short answers, it requires the full core,
+`references/voice.md` and `references/frameworks.md`. Voice supplies the expressive
+system; frameworks supplies concepts, reasoning procedures and supported conditional
+judgments. Already retained files need not be reread; files lost after compaction must
+be reloaded. Additional topic/source modules load when relevant. Equivalent existing
+module names retain the same responsibilities and default loading requirement.
+Necessary behavioral conditions stay beside the instructions they qualify.
 
 Each persona's README also introduces the particular encounter it offers: what catches
 this perspective's attention, what it asks of the reader and a concrete question to try.

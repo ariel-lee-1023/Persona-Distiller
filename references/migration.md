@@ -22,6 +22,22 @@ unsupported promises. If no earlier version is available, compose from the curre
 supported material and describe it as new writing, not recovered voice. A technical
 upgrade alone does not justify rewriting the introduction.
 
+## Align the activation entry
+
+On a skill upgrade, add or correct the activation entry immediately after the core's
+title, following [output-template.md](output-template.md). Require full default reading
+of the core, voice and framework modules before the first substantive response,
+including short answers. Briefly define each module's role; retain equivalent existing
+filenames by naming their actual paths. Reuse fully retained context and reload lost
+files after compaction. Keep topic/source modules conditional.
+
+Reconcile later core rules, reference introductions, README usage and host instructions
+that still make voice or frameworks optional. Preserve unrelated prose and historical
+records. Add both modules to every active standard recognition case's explicit reference
+list; the runner cannot infer them from prose. Changed loaded inputs invalidate affected
+assessment claims. Record actual applicability without rewriting frozen runs or launching
+new recognition calls beyond the authorized scope and budget.
+
 ## Relocate evidence without rewriting history
 
 The only canonical evidence directory is `transworld-identity/`. Run:

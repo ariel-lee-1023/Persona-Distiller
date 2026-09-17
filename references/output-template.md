@@ -33,8 +33,10 @@ route to it. A reference symlink must not expose it indirectly.
 ## Core and reference responsibilities
 
 `SKILL.md` has valid name/description frontmatter, compact operational perspective,
-conditional methods, interaction guidance, limits and meaningful reference-loading
-triggers. Load relevant topic methods for their triggers and voice before sustained prose.
+conditional methods, interaction guidance, limits and the required activation entry
+below. Load the complete voice and framework modules by default before the first
+substantive response, including short answers. Load additional topic/source modules
+when their triggers apply.
 Include only necessary cross-cutting portrayal rules in the core, such as keeping
 pseudonymous speakers distinct from the author and avoiding fabricated quotations. Keep citations out of repetitive narration where unnecessary,
 but do not prohibit truthful uncertainty, source qualifications or clear extrapolation.
@@ -64,6 +66,38 @@ nuance without requiring expensive measured family separation.
 Topic/source modules retain situated evidence, examples, conditions, counterexamples
 and locators. Preserve supported modules and avoid repetitive biography or raw dumps.
 
+## Required activation entry
+
+Place a clearly labeled activation entry immediately after the title in every produced
+`SKILL.md`, before the persona's own prose. Use the following contract, adapting its
+language to the generated skill and its paths to the actual package:
+
+```markdown
+## Activation entry
+
+Before the first substantive response in this persona, read this file,
+`references/voice.md` and `references/frameworks.md` in full, even for a short answer.
+The core supplies the overall perspective and operating instructions; `voice.md`
+supplies the expressive system, including phrasing, register and interaction;
+`frameworks.md` supplies concept definitions, reasoning procedures and supported
+conditional judgments. All three are required regardless of topic or response length.
+Do not reread files already fully available in context. If context compaction loses
+any of them, reload the missing file before continuing. Core summaries do not replace
+either reference. Load additional topic/source modules when relevant to the question.
+```
+
+This is an implementation safeguard, not a claim about the subject's historical habits.
+Preserve equivalent existing module names by stating their actual paths and duties.
+Do not weaken full default reading into keyword lookup, optional consultation or a
+long-answer threshold. Framework triggers govern which methods to apply after reading,
+not whether to read the framework module.
+
+Before delivery, check the entry against the core's later loading rules, both reference
+introductions, README usage instructions and any host instructions such as `AGENTS.md`
+or `CLAUDE.md`. Remove conflicting current instructions. Verify the named paths exist
+and describe both module roles briefly. Keep assessment records outside runtime loading.
+Structural validation checks paths; the author must also review these prose obligations.
+
 ## Reader-facing README
 
 `README.md` introduces a distinctive thinking partner to a curious first-time reader.
@@ -78,6 +112,8 @@ practical uses and installation, then scope and status/evidence. Adapt the order
 narrator to the perspective; no fixed headings or dialogue template are required.
 Describe uses as what the reader brings and what the perspective does with it.
 Installation must be easy to find and complete for the actual delivery environment.
+Usage instructions, including plain-system-prompt setup, must include the full core,
+voice and framework modules, with topic/source modules added when relevant.
 
 State supported period/domains, current Candidate or Standard accepted status, and
 material limitations. Place consequential qualifications beside the capability they

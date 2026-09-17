@@ -21,7 +21,12 @@ explicitly. Do not copy source questions whose answers are in runtime references
 
 Generate one persona answer and one competent generic-assistant control per case in
 six separate fresh contexts. Give both the same scenario facts, tools and length limit.
-Only the persona receives runtime instructions. Neither receives assessment artifacts.
+Only the persona receives runtime instructions. Every standard persona case receives
+the complete core, voice and framework modules required by its activation entry, plus
+relevant topic/source modules. List both default modules explicitly in each case's
+`references`; the runner uses that list and has no file-reading tools. Core-only or
+partial-module diagnostics do not assess the default runtime and require their own
+scope and budget. Neither condition receives assessment artifacts.
 The control must be competent. This comparison does not test a minimal persona prompt.
 
 Request no self-identification. Preserve originals; narrowly conceal remaining literal
