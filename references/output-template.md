@@ -131,6 +131,9 @@ Structural validation checks paths; the author must also review these prose obli
 ## Reader-facing README
 
 `README.md` introduces a distinctive thinking partner to a curious first-time reader.
+Write it in the generated Skill's declared default output language unless the user
+explicitly chooses a different README language. The authoring conversation's language
+does not set the README language; apply the language review in the guide below.
 Make recognizable character, an imaginable interaction, a usable first action and
 honest expectations as explicit as installation and status. Before drafting, read
 [readme-experience.md](readme-experience.md) and inspect the existing introduction,

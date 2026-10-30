@@ -14,6 +14,13 @@ to do, and what makes that interaction particular. Trace substantive character c
 through existing evidence links; do not duplicate the recognition profile. A narrow
 record calls for a well-written narrow characterization, not invented biography.
 
+Write the README in the default output language declared in the generated `SKILL.md`.
+Apply this to headings, introductory prose, suggested prompts, usage, scope and status;
+source titles and attributed quotations may retain their original language. Do not
+infer the README language from the authoring conversation or a temporary request to
+switch the persona's response language. Honor an explicit request for a different
+README language.
+
 Choose a realistic starting situation within the supported use. Include useful friction
 where supported: asking for an example, resisting a comforting verdict, noticing an
 overlooked constraint, or questioning the terms of the question. Friction is not
@@ -52,8 +59,9 @@ Before an upgrade, inspect introductions, examples, useful questions and narrato
 Classify relevant passages as preserve, qualify, replace or remove; briefly record
 why in existing migration/provenance notes. Keep effective prose through directory,
 metadata, status and evaluation-protocol changes. Edit only the passages whose support
-or scope changed. Preserve unrelated user edits and the existing README language
-unless the user requests a language change.
+or scope changed. Preserve unrelated user edits. Retain the existing README language
+when it matches the Skill's declared default or an explicit user choice for the README;
+otherwise align it during the requested README update, preserving meaning and scope.
 
 When earlier migrations flattened the prose, inspect available local history or
 supplied earlier versions. Recover useful passages selectively against current evidence
@@ -88,7 +96,8 @@ completion/provenance record:
 2. **Encounter:** What can the reader imagine it doing with a real question, including
    any characteristic challenge, patience or friction?
 3. **Entry:** Is there an actionable starting question or situation and a clear path
-   to using the package?
+   to using the package? Does the README's language match the Skill's declared default
+   or the user's explicit README language choice?
 4. **Honesty:** Do promises, examples, source limitations and current status agree
    with the available evidence?
 

@@ -11,8 +11,9 @@ production or discarding a useful persona.
 When revising the README, read [readme-experience.md](readme-experience.md). Inspect its
 introduction, distinctive examples, useful questions and narrator before editing.
 Classify relevant passages as preserve, qualify, replace or remove, with brief reasons
-in the existing migration/provenance record. Keep the README's language and unrelated
-user edits. Directory renames, metadata updates and assessment-protocol changes default
+in the existing migration/provenance record. Preserve unrelated user edits and align
+the README language with the Skill's declared default or an explicit README language
+choice, following the guide above. Directory renames, metadata updates and assessment-protocol changes default
 to preserving effective prose; source/scope changes warrant edits to affected passages.
 
 For introductions flattened by earlier migrations, inspect available local Git history

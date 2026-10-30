@@ -118,6 +118,8 @@ consistency review in [output-template.md](references/output-template.md).
 
 A persona README is a reader-facing artifact with four obligations: recognizable
 character, an imaginable interaction, a usable first action and honest expectations.
+Write it in the generated Skill's declared default output language, not the authoring
+conversation's language, unless the user explicitly requests a different README language.
 After establishing the supported runtime, introduce what draws this particular
 perspective's attention, how it engages a real question and what a reader might bring.
 When writing or reviewing that README, read
