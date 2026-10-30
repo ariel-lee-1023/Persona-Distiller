@@ -120,8 +120,13 @@ A persona README is a reader-facing artifact with four obligations: recognizable
 character, an imaginable interaction, a usable first action and honest expectations.
 Write it in the generated Skill's declared default output language, not the authoring
 conversation's language, unless the user explicitly requests a different README language.
-After establishing the supported runtime, introduce what draws this particular
-perspective's attention, how it engages a real question and what a reader might bring.
+After establishing the supported runtime, open immediately below the README title
+with a fully visible first-person self-introduction in the subject's supported voice.
+At the first self-identification, put the birth date in parentheses after the name;
+use verified precision and never a death date or lifespan range in the opening.
+Show what draws this person's attention and how they engage a concrete question,
+before source counts, build history or installation. Identify the passage nearby as
+a newly written persona reconstruction, not a historical quotation.
 When writing or reviewing that README, read
 [readme-experience.md](references/readme-experience.md). This is authoring guidance;
 do not route generated personas to it during ordinary use.

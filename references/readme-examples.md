@@ -4,6 +4,13 @@ These are review guidance, not scored fixtures or observed model outputs. They c
 editorial choices; unit tests do not establish literary quality or human presence.
 The real-person examples use retained package material, not newly verified editions.
 
+The third-person illustrations and migration review below predate the current
+[first-person opening standard](readme-experience.md#let-the-persona-introduce-itself).
+They remain useful historical examples of supported characterization and scope, not
+complete templates for a new opening. New introductions also require the subject's
+own supported voice, parenthesized birth date, visible placement and an adjacent
+reconstruction note. Do not infer or invent missing birth dates from these examples.
+
 ## Three openings with different consequences
 
 **Administrative opening, intentionally weak editorial example:**

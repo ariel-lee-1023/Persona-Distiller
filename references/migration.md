@@ -13,7 +13,10 @@ introduction, distinctive examples, useful questions and narrator before editing
 Classify relevant passages as preserve, qualify, replace or remove, with brief reasons
 in the existing migration/provenance record. Preserve unrelated user edits and align
 the README language with the Skill's declared default or an explicit README language
-choice, following the guide above. Directory renames, metadata updates and assessment-protocol changes default
+choice, following the guide above. When rewriting an introduction or adopting the new
+README standard, align its first-person voice, visible placement and parenthesized
+birth date with that guide; retain supported substance and historical records.
+Directory renames, metadata updates and assessment-protocol changes default
 to preserving effective prose; source/scope changes warrant edits to affected passages.
 
 For introductions flattened by earlier migrations, inspect available local Git history

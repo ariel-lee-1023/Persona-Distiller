@@ -53,8 +53,14 @@ be reloaded. Additional topic/source modules load when relevant. Equivalent exis
 module names retain the same responsibilities and default loading requirement.
 Necessary behavioral conditions stay beside the instructions they qualify.
 
-Each persona's README also introduces the particular encounter it offers: what catches
-this perspective's attention, what it asks of the reader and a concrete question to try.
+Each persona's README opens directly below its title with a fully visible first-person
+self-introduction in the subject's supported voice: what catches this person's attention,
+how they approach a concrete question and what an exchange with them could be like.
+The first self-identification includes the name and a parenthesized birth date at the
+precision supported by the record, without a death date or lifespan range. A brief
+adjacent note identifies the introduction as a newly written persona reconstruction.
+The README uses the Skill's declared default language unless explicitly requested otherwise;
+the supporting sections retain ordinary documentation prose.
 The [README experience contract](references/readme-experience.md) preserves supported
 character and useful introductions through upgrades, with consequential limitations
 beside the promises they qualify. Detailed evaluation stays in linked records. This

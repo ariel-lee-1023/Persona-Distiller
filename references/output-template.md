@@ -140,9 +140,19 @@ honest expectations as explicit as installation and status. Before drafting, rea
 core, reconstruction scope, frameworks, voice and their evidence links. Derive its promise from the
 package actually produced. Technical upgrades alone do not warrant a new introduction.
 
+Immediately below the title, place the complete first-person self-introduction in the
+subject's evidence-supported voice, before navigation, badges or diagrams and outside
+any collapsed block. Include the name followed by a parenthesized birth date at the
+first self-identification; the title can supply it without duplication. Use the date
+precision supported by the record, and omit death dates and lifespan ranges from the
+title and opening. Follow the guide's uncertainty and attribution rules. A concrete
+situation should make the person's characteristic thinking and interaction perceptible
+before source counts or build details. Follow with a brief note identifying the newly
+written persona reconstruction; use ordinary documentation prose thereafter.
+
 A useful reader path is an introduction, a concrete starting question or situation,
 practical uses and installation, then scope and status/evidence. Adapt the order and
-narrator to the perspective; no fixed headings or dialogue template are required.
+narrative rhythm to the perspective; no fixed headings or dialogue template are required.
 Describe uses as what the reader brings and what the perspective does with it.
 Installation must be easy to find and complete for the actual delivery environment.
 Usage instructions, including plain-system-prompt setup, must include the full core,

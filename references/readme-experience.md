@@ -26,8 +26,47 @@ where supported: asking for an example, resisting a comforting verdict, noticing
 overlooked constraint, or questioning the terms of the question. Friction is not
 compulsory confrontation. Reserve, intensity, patience, humor and exuberance can each
 convey presence. Do not impose a friendly tutor voice, generic warmth, catchphrases,
-fabricated memories, endorsements or first-person impersonation. Third person, direct
-address and restrained editorial narration are all available.
+fabricated memories or endorsements. Use first person for the self-introduction;
+the supporting documentation can use ordinary editorial narration.
+
+## Let the persona introduce itself
+
+For a new persona or a requested introduction rewrite, put the complete first-person
+self-introduction immediately below the README title, fully visible before any tagline,
+badges, navigation, diagrams or intervening heading. Never collapse it in `<details>`.
+The reader should encounter the particular person before the repository's construction.
+
+At the first self-identification, write the subject's name followed by their birth date
+in parentheses. Use the README's language and a clear date format; prefer a complete
+day, month and year when supported. Do not include a death date or a birth–death range
+in the title or opening. Check the date against supplied material or an already verified
+biographical record and retain its locator in existing provenance. If only a year is
+supported, use that precision; if the date is disputed or unknown, state that briefly
+in the parentheses. Do not invent a birthday or expand source acquisition merely to
+fill this field. A title containing the name and birth date can supply this identification
+without requiring a duplicate in the prose.
+
+Derive the voice from the actual core, voice module, frameworks and situated evidence:
+what catches this person's attention, how they reframe a question, what they will risk
+or refuse, and how they respond to resistance or changed circumstances. Let a concrete
+situation reveal the relevant distinctions and judgments. Choose what naturally
+characterizes this person; these are possibilities, not a checklist or a compulsory
+reasoning sequence. Carry supported rhythm, humor, reserve, intensity and forms of
+address into the prose without reducing the person to slogans or verbal tics.
+
+First person should convey a way of thinking and relating to the reader. A capability
+list prefixed with "I," generic expert virtues, a political label or a miniature
+encyclopedia biography does not meet this requirement. Do not open with source counts,
+extraction history or an explanation of Agent Skills. A natural invitation or question
+can make the next exchange imaginable; do not force everyone into the same welcoming
+speech, paragraph count or catchphrase.
+
+Place one brief editorial note directly after the introduction identifying it as a
+source-grounded persona reconstruction, newly written rather than a historical quotation.
+First person does not authorize fabricated memories, credentials, quotations or claims
+to literally be the person. Keep consequential scope limits beside the promises they
+qualify. The rest of the README, maintainer records and this metatool's own documentation
+remain ordinary documentation; they need not speak in character.
 
 ## Give the reader a way in
 
@@ -62,6 +101,10 @@ metadata, status and evaluation-protocol changes. Edit only the passages whose s
 or scope changed. Preserve unrelated user edits. Retain the existing README language
 when it matches the Skill's declared default or an explicit user choice for the README;
 otherwise align it during the requested README update, preserving meaning and scope.
+When an introduction rewrite or an upgrade to this README standard is requested,
+adapt an older third-person opening to the first-person and birth-date contract above.
+A layout-only change preserves compliant opening prose; it does not authorize rewriting
+immutable historical examples or migrating unrelated persona repositories.
 
 When earlier migrations flattened the prose, inspect available local history or
 supplied earlier versions. Recover useful passages selectively against current evidence
@@ -92,14 +135,19 @@ Answer these four questions with concrete references to the draft in the existin
 completion/provenance record:
 
 1. **Particularity:** What makes this opening about this perspective? Would changing
-   only the name make it fit almost anyone?
+   only the name and subject nouns make it fit almost anyone? Does the first-person
+   voice express supported attention, judgments and interaction rather than generic
+   expertise or surface mimicry?
 2. **Encounter:** What can the reader imagine it doing with a real question, including
    any characteristic challenge, patience or friction?
 3. **Entry:** Is there an actionable starting question or situation and a clear path
    to using the package? Does the README's language match the Skill's declared default
-   or the user's explicit README language choice?
+   or the user's explicit README language choice? Is the complete self-introduction
+   visible immediately below the title?
 4. **Honesty:** Do promises, examples, source limitations and current status agree
-   with the available evidence?
+   with the available evidence? Is the parenthesized birth date supported at its stated
+   precision, with no death date or lifespan range in the opening, and is the newly
+   written introduction distinguishable from an authentic historical quotation?
 
 Revise specific weak passages once within this editorial pass. These are judgments,
 not numerical personality scores or human validation. No judge agents, comparative
