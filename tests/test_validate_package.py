@@ -42,15 +42,103 @@ class TestGeneratedProjectLayout(unittest.TestCase):
             "# Audit\n\n## Weights and evidence\n\nRecorded evidence.\n", encoding="utf-8"
         )
 
-    def run_validator(self) -> tuple[subprocess.CompletedProcess[str], dict]:
+    def run_validator(self, *extra_args: str) -> tuple[subprocess.CompletedProcess[str], dict]:
         report = self.root.parent / "validation.json"
         proc = subprocess.run(
-            [sys.executable, str(VALIDATOR), str(self.root), "--structure-revision", "1", "--json", str(report)],
+            [sys.executable, str(VALIDATOR), str(self.root), "--structure-revision", "1", "--json", str(report), *extra_args],
             text=True,
             capture_output=True,
             check=False,
         )
         return proc, json.loads(report.read_text(encoding="utf-8"))
+
+    def write_root_project(self, *, declared_name: str = "demo-perspective") -> None:
+        self.write_valid_project(declared_name=declared_name)
+        skill = self.root / '.agents/skills/demo-perspective'
+        (skill / 'SKILL.md').rename(self.root / 'SKILL.md')
+        (skill / 'references').rename(self.root / 'references')
+        skill.rmdir()
+        skill.parent.rmdir()
+        skill.parent.parent.rmdir()
+        (self.root / 'transworld-identity/scope.md').write_text('Existing source and reconstruction scope.\n')
+
+    def test_explicit_root_layout_accepts_different_repository_name(self):
+        self.write_root_project(declared_name='another-perspective')
+        proc, report = self.run_validator('--layout', 'root', '--structure-revision', '2')
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual(report['layout'], 'root')
+        self.assertEqual(report['skill_root'], str(self.root))
+
+    def test_root_layout_still_checks_frontmatter(self):
+        self.write_root_project()
+        core = self.root / 'SKILL.md'
+        core.write_text(core.read_text().replace("description: Embodies Demo's public reasoning and writing for analytical questions.", 'description:'))
+        proc, report = self.run_validator('--layout', 'root', '--structure-revision', '2')
+        self.assertNotEqual(proc.returncode, 0)
+        failures = {c['check'] for c in report['checks'] if not c['ok']}
+        self.assertTrue({'C1', 'C2'}.issubset(failures))
+
+    def test_root_layout_still_checks_missing_core_and_references(self):
+        self.write_root_project()
+        (self.root / 'SKILL.md').unlink()
+        (self.root / 'references/voice.md').unlink()
+        proc, report = self.run_validator('--layout', 'root', '--structure-revision', '2')
+        self.assertNotEqual(proc.returncode, 0)
+        failures = {c['check'] for c in report['checks'] if not c['ok']}
+        self.assertTrue({'S1', 'S2', 'S3'}.issubset(failures))
+
+    def test_root_layout_rejects_a_second_skill_copy(self):
+        self.write_root_project()
+        other = self.root / '.agents/skills/other-perspective'
+        other.mkdir(parents=True)
+        (other / 'SKILL.md').write_text((self.root / 'SKILL.md').read_text())
+        proc, report = self.run_validator('--layout', 'root', '--structure-revision', '2')
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertTrue(any(c['check'] == 'S1' and not c['ok'] for c in report['checks']))
+
+    def test_root_layout_checks_discovery_alias_name(self):
+        self.write_root_project()
+        alias = self.root / '.agents/skills/wrong-name'
+        alias.parent.mkdir(parents=True)
+        alias.symlink_to('../..', target_is_directory=True)
+        proc, report = self.run_validator('--layout', 'root', '--structure-revision', '2')
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertTrue(any(c['check'] == 'C1b' and not c['ok'] for c in report['checks']))
+        alias.rename(alias.with_name('demo-perspective'))
+        proc, report = self.run_validator('--layout', 'root', '--structure-revision', '2')
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_root_layout_rejects_dangling_discovery_alias(self):
+        self.write_root_project()
+        alias = self.root / '.agents/skills/demo-perspective'
+        alias.parent.mkdir(parents=True)
+        alias.symlink_to('missing', target_is_directory=True)
+        proc, report = self.run_validator('--layout', 'root', '--structure-revision', '2')
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertTrue(any(c['check'] == 'S1' and not c['ok'] for c in report['checks']))
+
+    def test_root_layout_still_rejects_broken_reference_links(self):
+        self.write_root_project()
+        (self.root / 'references/voice.md').write_text('Read `missing.md`.\n')
+        proc, report = self.run_validator('--layout', 'root', '--structure-revision', '2')
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertTrue(any(c['check'] == 'C5' and not c['ok'] for c in report['checks']))
+
+    def test_historical_cluster_citations_do_not_require_runtime_modules(self):
+        self.write_valid_project()
+        (self.root / 'transworld-identity/provenance.md').write_text('Retired modules c09 and c12.\n')
+        (self.root / 'README.md').write_text('Historical coverage included c10.\n')
+        proc, report = self.run_validator()
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertTrue(next(c for c in report['checks'] if c['check'] == 'C6')['ok'])
+
+    def test_dead_runtime_cluster_citation_still_fails(self):
+        self.write_root_project()
+        voice = self.root / 'references/voice.md'
+        voice.write_text('Read c09 when needed.\n')
+        proc, report = self.run_validator('--layout', 'root', '--structure-revision', '2')
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn('c09', next(c for c in report['checks'] if c['check'] == 'C6')['detail'])
 
     def test_accepts_agents_skill_layout(self) -> None:
         self.write_valid_project()

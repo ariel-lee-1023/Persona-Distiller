@@ -10,9 +10,13 @@ leaves judgment calls visible as warnings rather than pretending they are solved
 
 Usage:
     python3 validate_package.py <persona-project-dir> [--json validation.json] [--strict]
-        [--headings FILE]
+        [--headings FILE] [--layout discovery|root]
 
 Notes:
+- Discovery layout remains the default for packaged builds. Explicit --layout root
+  checks an existing canonical root SKILL.md/references installation without
+  requiring a host discovery alias. An alias, when present, must still be unique,
+  point to that root, and match the declared skill name.
 - YAML frontmatter uses a deliberately small key: value reader; no YAML dependency
   is required. It is sufficient for the name and description fields this check uses.
 - C3 is skipped with a warning unless --headings supplies one required heading
@@ -125,7 +129,9 @@ def local_targets(text):
 
 def main():
     ap = argparse.ArgumentParser(description="Machine-check a distilled package's structural rules.")
-    ap.add_argument("package_dir", help="persona project root containing .agents/skills/<name>/")
+    ap.add_argument("package_dir", help="persona project root")
+    ap.add_argument("--layout", choices=("discovery", "root"), default="discovery",
+                    help="discovery requires .agents/skills/<name>/; root explicitly checks a canonical root installation")
     ap.add_argument("--json", help="write check artifact here")
     ap.add_argument("--routes", help="JSON mapping of framework/voice roles to existing relative runtime paths")
     ap.add_argument("--structure-revision", type=int, choices=(1, 2), default=2, help="1 explicitly inspects a legacy layout; new validation defaults to 2")
@@ -143,14 +149,19 @@ def main():
 
     skills_home = os.path.join(root, ".agents", "skills")
     skill_roots = []
+    skill_entries = []
     if os.path.isdir(skills_home):
         for name in sorted(os.listdir(skills_home)):
             candidate = os.path.join(skills_home, name)
+            if os.path.isdir(candidate) or os.path.islink(candidate):
+                skill_entries.append(candidate)
             if os.path.isdir(candidate) and os.path.isfile(os.path.join(candidate, "SKILL.md")):
                 skill_roots.append(candidate)
 
     # Keep checking after a layout failure so one run reports all useful findings.
-    skill_root = skill_roots[0] if len(skill_roots) == 1 else os.path.join(skills_home, "<skill-name>")
+    root_layout = args.layout == "root"
+    skill_root = root if root_layout else (
+        skill_roots[0] if len(skill_roots) == 1 else os.path.join(skills_home, "<skill-name>"))
     skill = os.path.join(skill_root, "SKILL.md")
     references = os.path.join(skill_root, "references")
     clusters_dir = os.path.join(references, "clusters")
@@ -158,21 +169,31 @@ def main():
     episodic = os.path.join(root, "transworld-identity", "episodic.md")
     results = []
 
-    layout_ok = len(skill_roots) == 1
+    if root_layout:
+        aliases_ok = len(skill_entries) == len(skill_roots) <= 1 and all(
+            Path(p).is_symlink() and Path(p).resolve() == Path(root).resolve()
+            for p in skill_roots)
+        layout_ok = os.path.isfile(skill) and aliases_ok
+        layout_detail = ("canonical root SKILL.md; discovery alias optional in explicit root layout"
+                         if layout_ok else
+                         "root layout requires SKILL.md and at most one valid discovery alias to the same root; separate skill copies are not allowed")
+    else:
+        layout_ok = len(skill_roots) == 1
+        if args.structure_revision == 2:
+            layout_ok = layout_ok and Path(skill_root).is_symlink() and Path(skill_root).resolve() == Path(root).resolve()
+        layout_detail = (
+            "one discoverable skill exists under .agents/skills/"
+            if layout_ok else
+            "expected exactly one .agents/skills/<name>/SKILL.md; found %d" % len(skill_roots)
+        )
     if args.structure_revision == 2:
-        layout_ok = layout_ok and Path(skill_root).is_symlink() and Path(skill_root).resolve() == Path(root).resolve()
         issues = structure_issues(root)
         results.append(check('S9', 'error', not issues, '; '.join(issues) or 'reconstruction scope and host boundaries present; editorial responsibilities require source review'))
-    layout_detail = (
-        "one discoverable skill exists under .agents/skills/"
-        if layout_ok else
-        "expected exactly one .agents/skills/<name>/SKILL.md; found %d" % len(skill_roots)
-    )
     results.append(check("S1", "error", layout_ok, layout_detail))
     results.append(check("S2", "error", os.path.isfile(skill),
-                         "SKILL.md exists inside the discovered skill directory"
+                         "SKILL.md exists at the selected runtime root"
                          if os.path.isfile(skill) else
-                         "missing .agents/skills/<name>/SKILL.md"))
+                         ("missing root SKILL.md" if root_layout else "missing .agents/skills/<name>/SKILL.md")))
     routes = {'voice': 'references/voice.md', 'frameworks': 'references/frameworks.md'}
     if args.routes:
         supplied_routes = json.loads(read(args.routes))
@@ -206,10 +227,17 @@ def main():
                          "frontmatter has name and description" if c1_ok else "frontmatter needs non-empty name and description"))
     path_name = os.path.basename(skill_root)
     declared_name = fields.get("name", "") if fields else ""
-    results.append(check("C1b", "error", bool(declared_name) and declared_name == path_name,
-                         "frontmatter name matches .agents/skills directory"
-                         if declared_name == path_name else
-                         "frontmatter name '%s' must match skill directory '%s'" % (declared_name or "<missing>", path_name)))
+    if root_layout:
+        alias_names = [os.path.basename(p) for p in skill_entries]
+        safe_name = bool(declared_name) and declared_name not in {".", ".."} and not re.search(r"[/\\]", declared_name)
+        name_ok = safe_name and (not alias_names or alias_names == [declared_name])
+        name_detail = ("root skill name is declared; any discovery alias matches (repository name may differ)"
+                       if name_ok else "root skill needs a valid declared name and any discovery alias must match it")
+    else:
+        name_ok = bool(declared_name) and declared_name == path_name
+        name_detail = ("frontmatter name matches .agents/skills directory" if name_ok else
+                       "frontmatter name '%s' must match skill directory '%s'" % (declared_name or "<missing>", path_name))
+    results.append(check("C1b", "error", name_ok, name_detail))
     description = fields.get("description", "") if fields else ""
     found_audit = [word for word in AUDIT_WORDS if re.search(r"\b%s\b" % re.escape(word), description, re.I)]
     c2_ok = bool(description.strip()) and not found_audit
@@ -285,7 +313,9 @@ def main():
     results.append(check("C5", "error", not details, "runtime links and disk agree" if not details else "; ".join(details)))
     known_ids = resolve_module_ids(modules)
     cited = set()
-    for path in markdown_files(root):
+    # Historical ledgers may retain retired cNN identifiers. Only the core and
+    # runtime references load module citations; history is not a current route.
+    for path in runtime_files:
         cited.update(token.lower() for token in CITATION_RE.findall(read(path)))
     unresolved = sorted(cited - known_ids)
     results.append(check("C6", "error", not unresolved,
@@ -338,7 +368,7 @@ def main():
     effective = [{**item, "effective_level": "error" if args.strict and item["level"] == "warn" else item["level"]}
                  for item in results]
     failed = [item for item in effective if not item["ok"] and item["effective_level"] == "error"]
-    artifact = {"structure_revision": args.structure_revision, "package": root, "skill_root": skill_root, "strict": args.strict, "checks": effective,
+    artifact = {"structure_revision": args.structure_revision, "layout": args.layout, "package": root, "skill_root": skill_root, "strict": args.strict, "checks": effective,
                 "errors": len(failed), "warnings": sum(not x["ok"] and x["level"] == "warn" for x in effective),
                 "verdict": "FAIL" if failed else "PASS"}
     if args.json:

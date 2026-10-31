@@ -139,8 +139,17 @@ python3 scripts/validate_package.py /path/to/persona
 Regression tests use fictional records and mocked model responses. They cover scoring
 boundaries, per-dimension floors, disagreement, incomplete outputs, runtime isolation,
 budget/resume, dependency invalidation, truthful status and lossless migration. These
-verify implementation contracts, not empirical recognition validity. The strict
-`validate_package.py --release --fidelity ...` command remains a research evidence check.
+verify implementation contracts, not empirical recognition validity.
+
+For an existing installation that intentionally keeps only the canonical root
+`SKILL.md` and `references/`, use `validate_package.py /path/to/persona --layout root`.
+This explicit mode does not require a host discovery alias; an alias, if present,
+must still point to that root and match the declared name. The default discovery
+check and the packaging requirements for new deliverables remain unchanged.
+Cluster citation checks inspect the core and runtime references, not retired
+identifiers preserved in historical ledgers.
+
+The strict `validate_package.py --release --fidelity ...` command remains a research evidence check.
 
 ## Scope and contribution
 
