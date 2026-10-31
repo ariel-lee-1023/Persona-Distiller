@@ -61,11 +61,15 @@ precision supported by the record, without a death date or lifespan range. A bri
 adjacent note identifies the introduction as a newly written persona reconstruction.
 The README uses the Skill's declared default language unless explicitly requested otherwise;
 the supporting sections retain ordinary documentation prose.
-The [README experience contract](references/readme-experience.md) preserves supported
-character and useful introductions through upgrades, with consequential limitations
-beside the promises they qualify. Detailed evaluation stays in linked records. This
-editorial check runs inside the existing authoring pass and adds no recognition calls.
-See [contrasting examples and a reviewed migration](references/readme-examples.md).
+The [README experience contract](references/readme-experience.md#default-content-order)
+extends that encounter through concise navigation, distinct concrete uses, an actionable
+start, repository/loading relationships, sources organized by contribution, and visible
+scope and status. It selects tables and diagrams by purpose and excludes conversation
+excerpts and sample persona responses. Upgrades preserve effective openings and useful
+situations, with consequential limitations beside their promises and detailed evaluation
+in linked records. This editorial pass adds no recognition calls when runtime and
+assessment inputs are unchanged. See the [complete structural example and historical
+editorial reviews](references/readme-examples.md).
 
 Transworld Identity names the evidence and assessment function. It connects the
 representation to an identified historical record under explicitly changed circumstances;

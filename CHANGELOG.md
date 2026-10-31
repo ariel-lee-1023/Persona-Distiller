@@ -1,5 +1,17 @@
 # Changelog
 
+## Complete persona README authoring and maintenance
+
+- Centralize the default reading order, navigation, distinct use situations, starting
+  instructions, repository/loading relationships, source contributions and visual
+  organization in `references/readme-experience.md`; align authoring and migration entry
+  points. Conversation excerpts, simulated exchanges and sample responses are excluded.
+- Preserve supported openings and useful situations, reorganize before filling gaps,
+  and keep material limits and actual status visible while linking maintenance detail.
+  README-only edits with unchanged runtime and assessment inputs make zero recognition calls.
+- Add a complete fictional structural example while preserving historical editorial
+  reviews. These documentation changes do not rebuild personas or renew assessments.
+
 ## Corpus-derived default output language
 
 - Require every new or upgraded persona skill to state its default language immediately

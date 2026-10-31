@@ -60,13 +60,16 @@ the dependence recorded. Input limits use UTF-8 bytes as a conservative token bo
 The word check counts CJK characters individually; this conservative bound may require
 shorter CJK responses. Endpoint credentials use `PERSONA_API_KEY`, never a saved key.
 
-## Compose the reader's introduction
+## Compose the reader's README
 
 Once the supported perspective and runtime behavior are established, draft the README
-and its first question or illustrative encounter in the same authoring pass. Follow the
+and its concrete uses and starting instructions in the same authoring pass. Follow the
 reader-facing contract in [output-template.md](output-template.md) and read
-[readme-experience.md](readme-experience.md). Match the promise to the actual package;
-retain useful existing prose and locally label editorial illustrations. Record only
+[readme-experience.md](readme-experience.md), including its default content order,
+navigation, source contributions and visual organization. Use situations, questions or
+tasks without accompanying answers; do not add conversation excerpts. Match the promise
+to the actual package; reorganize useful existing prose before filling gaps and retain
+accurate attribution. Record only
 the status currently supported, then patch status and affected qualifications after
 assessment instead of regenerating the README.
 
@@ -175,9 +178,11 @@ details in the linked assessment record. Preserve Candidate or Standard accepted
 
 Alongside link and attribution checks, complete the four editorial questions in
 [readme-experience.md](readme-experience.md): particularity, encounter, entry and honesty.
+These include use-case variety, navigation/anchors, source contributions and visual
+hierarchy, with actual file links and any diagrams checked as the guide describes.
 Point to concrete passages in the existing completion/provenance record and revise
 specific weak passages once within this authoring pass. This is editorial judgment,
 not human validation, a personality score or another evaluation round. Correct or
 remove material false claims; style uncertainty alone does not restart assessment.
-Preserve the introduction and examples unless results materially affect their accuracy.
+Preserve the introduction and useful situations unless results materially affect their accuracy.
 Then stop. Publication follows existing user authorization, independently of acceptance.

@@ -2,14 +2,176 @@
 
 These are review guidance, not scored fixtures or observed model outputs. They contrast
 editorial choices; unit tests do not establish literary quality or human presence.
-The real-person examples use retained package material, not newly verified editions.
+The historical real-person examples use retained package material, not newly verified editions.
 
-The third-person illustrations and migration review below predate the current
+The third-person illustrations and migration review after the complete example predate the current
 [first-person opening standard](readme-experience.md#let-the-persona-introduce-itself).
 They remain useful historical examples of supported characterization and scope, not
 complete templates for a new opening. New introductions also require the subject's
 own supported voice, parenthesized birth date, visible placement and an adjacent
 reconstruction note. Do not infer or invent missing birth dates from these examples.
+
+## Complete example of the current reading order
+
+This is a **fictional structural illustration**, not a new persona deliverable or an
+assessment. Mara Vale, the other people, the bibliography and the repository contents
+below are invented teaching material. The opening and uses are supported only by the
+following synthetic dossier, not a historical record:
+
+- **Identity card:** Mara Vale, born 1908; no more precise date supplied. The illustrative
+  package's source language and default output language are English.
+- **The Workshop Ledger (1936), Mara Vale and Ivo Reed, entry “Closing time”:** The
+  fictional record describes repairs completed after the recorded shift by the person
+  who also cleans the tools. Vale treats this hidden work as part of the workshop's
+  success. Reed favors a common quota; Vale accepts it only if it includes repair and
+  cleanup. Their disagreement remains unresolved.
+- **Letters on Practice (1941), Mara Vale, correspondence with Ada Finch, letter “The
+  second attempt”:** Vale distinguishes a novice's need for a demonstration from an
+  experienced worker's need for room to try; Finch's objection makes Vale concede that
+  silence can also leave a beginner stranded. Finch's contributions are not Vale's words.
+- **Notes from the Listening Room (1948), Mara Vale, entry “A rough phrase”:** Vale
+  describes an uneven musical phrase worth hearing again before correcting its timing.
+  Here she questions her earlier preference for uniform practice. This is a shift in
+  emphasis, not proof that every inconsistency should be preserved.
+
+The draft follows the [default content order](readme-experience.md#default-content-order).
+It assumes a delivered local folder named `mara-vale-perspective` and a host that discovers
+`.agents/skills/` within the opened workspace. **Every file link inside the fenced example
+is relative to that hypothetical package, not this tool repository.** Its names, paths,
+source titles, host instructions, license and status must be replaced with verified facts
+when writing a real README; they are not universal facts or defaults. No source acquisition,
+recognition calls or empirical performance claims are involved. Tables suffice for these
+relationships; diagrams would add no necessary information.
+
+````markdown
+# Mara Vale perspective
+
+I am Mara Vale (1908). A workshop can meet its quota while leaving its tools broken
+for the next person. Before you show me the total, tell me who stayed to put things
+right. I want to know what had to happen for that tidy number to become possible.
+
+Bring me a rule that works well for some people and badly for others. We can look at
+what each person has learned, who has to repair a mistake, and when help becomes an
+interruption. I would not give the beginner and the practiced hand the same silence.
+
+And if it is a piece of music you bring, let us hear the rough phrase again before
+we smooth it away. Correction can help a thing find its form; it can also keep us
+from noticing the form it already has.
+
+*This introduction is newly written from the fictional source dossier described below;
+it is a persona reconstruction for a structural example, not a historical quotation.*
+
+This page connects Vale's attention to hidden work, the timing of help and the limits
+of correction with questions you can bring to the skill.
+
+[Uses](#what-we-can-examine) · [Getting started](#getting-started) ·
+[Files and loading](#files-and-loading) · [Sources](#sources-and-contributions) ·
+[Scope and status](#scope-and-current-status) · [License](#license)
+
+## What we can examine
+
+These are intended applications of the supplied records, not demonstrated outcomes.
+
+- **A rota that looks fair on paper:** Bring the assigned duties and the work people
+  actually finish. Examine whether repairs, preparation and care fall outside the count,
+  and what would make a shared quota fairer.
+- **Helping someone learn without taking over:** Describe what the learner already knows
+  and when you step in. Consider when a demonstration opens a possibility and when
+  repeated correction prevents an experienced person from trying it.
+- **A performance that sounds better before it is polished:** Bring a description of
+  the passage and what you value in it. Compare what an adjustment clarifies with what
+  it erases; the skill does not hear audio or evaluate a recording on its own.
+
+A question to try: “I keep correcting a colleague's drafts, but now they wait for my
+edits before making a decision. What would help me tell useful guidance from taking over?”
+
+## Getting started
+
+1. Place the delivered `mara-vale-perspective/` folder in your local projects directory
+   and open that folder as your agent workspace.
+2. In a host that discovers workspace skills, use the included
+   `.agents/skills/mara-vale-perspective` entry, which points to this repository root.
+3. Invoke `$mara-vale-perspective` and supply a situation or use the question above.
+
+The default output language is **English**. To switch, explicitly request, for example,
+“Answer in Chinese for this conversation.” Writing a question in Chinese alone does
+not change the default.
+
+For manual configuration in a host without skill discovery, supply the full
+[core](SKILL.md), [voice](references/voice.md) and [frameworks](references/frameworks.md)
+as the persona instructions before the first substantive response. The core alone is
+incomplete. Add the relevant topic modules below when needed. Retain complete modules
+already in context and reload any lost after compaction; do not load maintenance records
+as ordinary persona instructions.
+
+## Files and loading
+
+This table describes loading responsibilities, not a sequence of reasoning steps.
+
+| File or entry | Responsibility | When used |
+| --- | --- | --- |
+| [SKILL.md](SKILL.md) | Overall perspective, language and activation | Read in full by default |
+| [Voice](references/voice.md) | Expression, register and interaction | Read in full by default |
+| [Frameworks](references/frameworks.md) | Concepts and conditional judgments | Read in full by default |
+| [Work and repair](references/work-and-repair.md) | Quotas, hidden labor and the Vale–Reed disagreement | When the question concerns allocation or repair |
+| [Practice and help](references/practice-and-help.md) | Learning, intervention and Finch's objections | When the question concerns helping someone learn |
+| [Listening and correction](references/listening-and-correction.md) | Attention to expression and the later change in emphasis | When the question concerns criticism or revision |
+| [Maintenance records](transworld-identity/) | Scope, attribution, editorial history and assessment | Maintenance or explicit source inspection; outside ordinary runtime |
+| [.agents/skills/mara-vale-perspective](.agents/skills/mara-vale-perspective) | Discovery symlink to the repository root | Host discovery; not a second copy or a loading step |
+
+## Sources and contributions
+
+All titles and people in this example are fictional. The contributions below come from
+the synthetic dossier, not independently verified books. Modern workplace applications
+are editorial extensions; the source notes do not document such uses.
+
+| Question or concern | Source, attribution and period | Contribution and reference |
+| --- | --- | --- |
+| What does a successful total leave out? | Mara Vale and Ivo Reed, *The Workshop Ledger* (1936), “Closing time” | Repair and cleanup qualify the meaning of a quota; the coauthors disagree about its fairness. [Work and repair](references/work-and-repair.md) |
+| When does help open room for someone else? | Mara Vale, *Letters on Practice* (1941), “The second attempt,” correspondence with Ada Finch | Assistance depends on experience; Finch's objection changes Vale's account of silence. [Practice and help](references/practice-and-help.md) |
+| What is lost through correction? | Mara Vale, *Notes from the Listening Room* (1948), “A rough phrase” | Musical expression complicates the earlier preference for uniform practice. [Listening and correction](references/listening-and-correction.md) |
+| How does experience change a useful standard? | Cross-source editorial synthesis of the 1936 ledger and 1941 letters | Relates quotas to learning without treating the sources or their contributors as agreeing. [Frameworks](references/frameworks.md) |
+
+See [provenance](transworld-identity/provenance.md) for the complete synthetic inventory,
+locators and attribution notes. No authentic historical quotation can be supplied from
+these fictional materials.
+
+## Scope and current status
+
+The reconstruction covers the supplied fictional 1936–1948 records on workshop work,
+teaching and listening. It does not supply a whole biography or support claims about
+Vale's views on subjects absent from that dossier. Contemporary uses above are intended
+applications within those concerns, not observed historical decisions.
+
+**Illustrative status: Candidate.** Package structure checks, source-based editorial
+review, diagnostic responses and recognition assessment have not been completed for
+this hypothetical package. There is no demonstrated performance result. A structural
+pass would establish organization and links; source review would examine support and
+attribution; diagnostic responses would show only the sampled behavior; recognition
+would require a separate applicable comparison. None can be inferred from this README.
+
+See [scope](transworld-identity/scope.md) and the [assessment record](transworld-identity/validation.json)
+for the corresponding records in a real deliverable. No earlier version's result certifies
+this version. Build details belong in those records, not in the introduction.
+
+## License
+
+See [LICENSE](LICENSE) for the terms covering the package's original text. Original source
+materials and any separately licensed assets retain their own terms; the package license
+does not grant rights to them.
+````
+
+The particularity comes from what gets counted, when help is useful and what correction
+may erase, with conditions and tensions supplied by the dossier. The source table carries
+those concerns beyond the opening. The three situations illustrate distinct supported
+uses, not a required count. Local setup is appropriate only to the stated hypothetical
+delivery; a distributed real repository must supply its actual installation URL and host
+entry. The Candidate statement is explicitly illustrative and certifies nothing.
+
+## Historical editorial material
+
+The remaining examples and migration findings retain their original facts and scope.
+Their third-person openings are not the current complete README template.
 
 ## Three openings with different consequences
 

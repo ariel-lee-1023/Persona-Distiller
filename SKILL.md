@@ -118,6 +118,10 @@ consistency review in [output-template.md](references/output-template.md).
 
 A persona README is a reader-facing artifact with four obligations: recognizable
 character, an imaginable interaction, a usable first action and honest expectations.
+Carry these through the complete reading experience: follow the default content order,
+provide concise navigation, organize distinct supported use situations, and make the
+installation and invocation entry easy to find. Use visual hierarchy to separate uses,
+loading relationships, source contributions and current scope/status.
 Write it in the generated Skill's declared default output language, not the authoring
 conversation's language, unless the user explicitly requests a different README language.
 After establishing the supported runtime, open immediately below the README title
@@ -131,9 +135,15 @@ When writing or reviewing that README, read
 [readme-experience.md](references/readme-experience.md). This is authoring guidance;
 do not route generated personas to it during ordinary use.
 
-Preserve effective introductions and examples through technical upgrades. Keep material
-limitations beside the promises they qualify, with detailed assessment machinery in
-linked maintainer records. Editorial quality never changes acceptance status.
+The guide is the central source for section responsibilities, presentation and revision
+rules; adapt headings and rhythm without omitting them. Conversation excerpts, simulated
+exchanges and sample persona responses are not README components. Use concrete situations,
+individual questions or tasks without accompanying answers.
+Preserve effective introductions and useful situations through technical upgrades;
+reorganize supported material before filling gaps. Keep material limitations beside the
+promises they qualify, with detailed assessment machinery in linked maintainer records.
+Editorial quality never changes acceptance status. README-only changes with unchanged
+runtime and assessment inputs make zero new recognition calls.
 
 ## Freeze, assess and deliver
 

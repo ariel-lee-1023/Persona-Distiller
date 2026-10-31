@@ -150,13 +150,23 @@ situation should make the person's characteristic thinking and interaction perce
 before source counts or build details. Follow with a brief note identifying the newly
 written persona reconstruction; use ordinary documentation prose thereafter.
 
-A useful reader path is an introduction, a concrete starting question or situation,
-practical uses and installation, then scope and status/evidence. Adapt the order and
-narrative rhythm to the perspective; no fixed headings or dialogue template are required.
-Describe uses as what the reader brings and what the perspective does with it.
-Installation must be easy to find and complete for the actual delivery environment.
-Usage instructions, including plain-system-prompt setup, must include the full core,
-voice and framework modules, with topic/source modules added when relevant.
+Follow the guide's [default content order](readme-experience.md#default-content-order):
+title/introduction and reconstruction note; one-sentence orientation and navigation;
+distinct concrete uses; getting started; repository/loading relationships; sources and
+their contributions; reconstruction scope/current status; license. Headings and narrative
+rhythm remain flexible; navigation, uses and setup remain delivery responsibilities.
+Explicit user instructions and destination documentation requirements take precedence,
+while the complete opening, usable entry and important limitations stay visible.
+
+Use situations, individual questions or tasks without accompanying answers; conversation
+excerpts, simulated exchanges and sample persona responses are not delivery components.
+Start setup with the shortest actual installation/invocation steps and the default language
+and explicit override. Keep detailed configuration secondary. Usage instructions, including
+plain-system-prompt setup, must include the full core, voice and framework modules, with
+topic/source modules added when relevant. Map actual files and loading responsibilities,
+keeping maintenance records outside ordinary runtime. Explain sources by contribution
+while retaining attribution, periods and disagreements. Choose tables or diagrams for
+their informational purpose, not a diagram quota or a compulsory reasoning pipeline.
 
 State supported period/domains, current Candidate or Standard accepted status, and
 material limitations. Place consequential qualifications beside the capability they
@@ -168,7 +178,10 @@ to understand the perspective. Do not paste a completion report into the introdu
 Historical research outcomes remain separately scoped. Never turn an 80/100 engineering
 score into 80% human recognition or say a generic-assistant control proves value over
 a minimal named-persona prompt. Review the four reader outcomes in the existing
-completion pass; updating assessment status should change only affected passages.
+completion pass, including navigation, use variety, source contributions and visual
+hierarchy; updating assessment status should change only affected passages. Follow the
+guide's preservation workflow for existing READMEs. Unchanged runtime and assessment
+inputs require zero new recognition calls for README prose or layout changes.
 
 ## Maintainer records
 

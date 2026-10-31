@@ -10,7 +10,7 @@ production or discarding a useful persona.
 
 When revising the README, read [readme-experience.md](readme-experience.md). Inspect its
 introduction, distinctive examples, useful questions and narrator before editing.
-Classify relevant passages as preserve, qualify, replace or remove, with brief reasons
+Classify relevant passages as preserve, relocate, qualify, rewrite or remove, with brief reasons
 in the existing migration/provenance record. Preserve unrelated user edits and align
 the README language with the Skill's declared default or an explicit README language
 choice, following the guide above. When rewriting an introduction or adopting the new
@@ -18,6 +18,14 @@ README standard, align its first-person voice, visible placement and parenthesiz
 birth date with that guide; retain supported substance and historical records.
 Directory renames, metadata updates and assessment-protocol changes default
 to preserving effective prose; source/scope changes warrant edits to affected passages.
+Reorganize supported material before filling gaps, following the guide's default order,
+navigation, distinct uses and source contributions. Condense maintenance detail into links
+while retaining consequences for use. Do not add conversation excerpts or sample persona
+responses; historical examples and assessment evidence keep their attribution and scope.
+Check paths, anchors and visual organization and record only completed work. README prose
+and layout alone do not initiate reconstruction or recognition: unchanged runtime and
+assessment inputs preserve applicability and make zero new recognition calls. A rule
+upgrade does not authorize batch edits to other persona repositories.
 
 For introductions flattened by earlier migrations, inspect available local Git history
 or supplied earlier versions. Recover useful passages selectively, checking current
