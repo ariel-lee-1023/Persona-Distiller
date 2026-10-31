@@ -46,13 +46,13 @@ opening visible, the usage entry easy to find and important limitations clear.
 
 | Order | Content responsibility | Reader's question | Default presentation |
 | --- | --- | --- | --- |
-| 1 | Title and persona introduction | What kind of person am I encountering? | A complete first-person introduction directly below the title, followed by a brief reconstruction note |
+| 1 | Title and persona introduction | What kind of person am I encountering? | A complete, uninterrupted first-person introduction directly below the title |
 | 2 | One-sentence orientation and page navigation | What will this README help me understand? | A concise orientation sentence and navigation links in body-section order |
 | 3 | What to think about together | What questions can I bring? | Concrete situations, individual questions or a task list; a small topic relationship map where useful |
 | 4 | Getting started | How do I install, invoke and choose a language? | The shortest actionable steps, followed by necessary configuration guidance |
 | 5 | Repository structure and loading relationships | What provides voice, reasoning, knowledge and maintenance? | A compact file diagram or table, with links to actual files |
 | 6 | Sources and their contributions | How do these materials shape the perspective? | A contribution table organized by questions or concerns; a source map where relationships warrant one |
-| 7 | Reconstruction scope and current status | What does this version support, and what remains unverified? | Visible scope, actual status and links to supporting records |
+| 7 | Reconstruction scope and current status | What does this version support, and what remains unverified? | The reconstruction notice with the introduction's editorial-basis and birth-date source links, visible scope, actual status and supporting records |
 | 8 | License | How may I use and share it? | A license link and exclusions for original sources and other material |
 
 These are content responsibilities, not eight mandatory headings. There is no separate
@@ -90,8 +90,11 @@ extraction history or an explanation of Agent Skills. A natural invitation or qu
 can make the next exchange imaginable; do not force everyone into the same welcoming
 speech, paragraph count or catchphrase.
 
-Place one brief editorial note directly after the introduction identifying it as a
-source-grounded persona reconstruction, newly written rather than a historical quotation.
+Place one brief editorial note in the later **Scope and current status** section (or
+its translated equivalent) identifying the introduction as a source-grounded persona
+reconstruction, newly written rather than a historical quotation. Group the introduction's
+editorial-basis and birth-date source links with that note. Keep both out of the opening
+and the transition from the complete introduction to orientation/navigation.
 First person does not authorize fabricated memories, credentials, quotations or claims
 to literally be the person. Keep consequential scope limits beside the promises they
 qualify. The rest of the README, maintainer records and this metatool's own documentation
@@ -102,7 +105,7 @@ do not rewrite it merely to make it livelier, friendlier or longer.
 
 ## Orient the reader and provide navigation
 
-After the introduction and reconstruction note, add one concise orientation sentence
+After the complete introduction, add one concise orientation sentence
 about relationships or questions that commonly draw this persona's attention. Derive
 it from the actual material; generic claims of rigorous, profound or multidimensional
 analysis do not orient the reader. An arrow sequence is not required.
@@ -173,6 +176,13 @@ important attribution and source limitations affecting use must remain visible.
 
 ## State reconstruction scope and current status
 
+Keep the introduction's reconstruction notice and its editorial-basis and birth-date
+source links together and visible in this later section, headed **Scope and current
+status** or its translated equivalent. The notice identifies the opening as newly
+written persona prose rather than a historical quotation; the links lead to the actual
+supporting records. Do not repeat this notice beside the introduction or hide it solely
+in a collapsed block. Source-contribution links remain with the sources they explain.
+
 State supported periods, domains, source boundaries and the current version's actual
 status. Explain what that means for use in ordinary language. Distinguish structural
 checks (package organization and links), source-based editorial review (support and
@@ -185,10 +195,11 @@ scope of research outcomes. Editorial quality or layout improvements cannot conf
 acceptance, recognizability, authenticity or model performance.
 
 Keep consequential source/scope limitations beside the promises they qualify, including
-near the opening when necessary. Use this section for overall scope without repeating
-the same disclaimer everywhere. Do not hide essential limits solely in collapsed blocks
-or substitute an unexplained experimental/status label. Keep edition-dependent quotation
-limits beside quotation promises.
+near the opening when necessary. These are specific limits on a promise, not a reason
+to move or duplicate the general reconstruction notice there. Use this section for
+overall scope without repeating the same disclaimer everywhere. Do not hide essential
+limits solely in collapsed blocks or substitute an unexplained experimental/status label.
+Keep edition-dependent quotation limits beside quotation promises.
 
 By default, reading-unit counts, exact word counts, model settings, call counts, build
 history and assessment procedures belong in existing linked maintainer records, usually
@@ -230,6 +241,8 @@ For an existing README, use this bounded revision sequence:
    Prioritize effective openings, useful situations and unrelated user edits.
 3. Reorganize existing content before filling gaps in navigation, uses and source
    contributions. Do not regenerate the whole page merely to fit the default structure.
+   Move an opening reconstruction notice and its editorial-basis/birth-date source links
+   together to **Scope and current status**, preserving accurate wording and link targets.
 4. Condense maintenance narratives into links to existing records, retaining their
    consequences for use and the actual status.
 5. Review prose, section responsibilities, file paths, anchors, diagrams and readability
@@ -242,7 +255,8 @@ edit substantive promises when their support or scope changes. Retain the existi
 when it matches the Skill's declared default or an explicit user choice for the README;
 otherwise align it during the requested README update, preserving meaning and scope.
 When an introduction rewrite or an upgrade to this README standard is requested,
-adapt an older third-person opening to the first-person and birth-date contract above.
+adapt an older third-person opening to the first-person and birth-date contract above,
+with its reconstruction notice and supporting links in the later scope/status section.
 A layout-only change preserves compliant opening prose; it does not authorize rewriting
 immutable historical examples or migrating unrelated persona repositories.
 This rule upgrade does not itself authorize batch changes to other persona repositories;
@@ -295,16 +309,18 @@ completion/provenance record:
 3. **Entry:** Is there an actionable starting question or situation and a clear path
    to using the package? Does the README's language match the Skill's declared default
    or the user's explicit README language choice? Is the complete self-introduction
-   visible immediately below the title? Are default section responsibilities covered,
-   navigation and file links valid and in body order, and the shortest setup steps clear
-   before detailed configuration? Does visual hierarchy make the page readable, with
+   visible immediately below the title, with no reconstruction notice or provenance links
+   interrupting it or the transition to orientation/navigation? Are default section
+   responsibilities covered, navigation and file links valid and in body order, and the
+   shortest setup steps clear before detailed configuration? Does visual hierarchy make the page readable, with
    purposeful tables/diagrams, accessible explanations and an honest rendering-check record?
 4. **Honesty:** Do promises, examples, source limitations and current status agree
    with the available evidence? Is the parenthesized birth date supported at its stated
    precision, with no death date or lifespan range in the opening, and is the newly
-   written introduction distinguishable from an authentic historical quotation? Do source
-   contributions retain authorship, periods, disagreements and the distinction between
-   source positions, synthesis and application? Are material limits visible, default/on-demand
+   written introduction identified as a reconstruction in the later **Scope and current
+   status** section, alongside working links to its editorial basis and birth-date source?
+   Do source contributions retain authorship, periods, disagreements and the distinction
+   between source positions, synthesis and application? Are material limits visible, default/on-demand
    loading accurate and historical results kept within their actual version scope?
 
 Revise specific weak passages once within this editorial pass. These are judgments,

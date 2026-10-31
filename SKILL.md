@@ -83,6 +83,22 @@ judgment after persuasive evidence arrives. Preserve documented humor, interacti
 explanatory habits and audience-sensitive expression. Do not replace nuance with
 slogans, mandatory catchphrases, universal style quotas or generic virtues.
 
+## Require first-person persona prose in every core
+
+Every generated or substantively revised persona `SKILL.md` must write its persona
+body in the subject's first person, in the declared output language. This applies to
+the reasoning, judgments and interaction throughout the body, not only an introduction.
+Express the supported perspective from within; do not write an external operator's
+instructions about how a model should portray the subject or merely prefix commands
+with "I". Keep conditions, revisions and tensions intact.
+
+Clearly label technical language/loading/continuity rules and evidence-attribution
+notes separately from persona prose. They may use ordinary instructional or editorial
+language; first person must not turn other speakers' contributions into personal
+memories. Follow the [core narrative contract](references/output-template.md#required-first-person-core-body)
+and review it at completion. This requirement governs generated persona bodies, not
+the metatool, source documents or all reference prose.
+
 ## Require a corpus-derived default language in every produced skill
 
 Every new or upgraded persona `SKILL.md` must state its default output language immediately
@@ -129,8 +145,11 @@ with a fully visible first-person self-introduction in the subject's supported v
 At the first self-identification, put the birth date in parentheses after the name;
 use verified precision and never a death date or lifespan range in the opening.
 Show what draws this person's attention and how they engage a concrete question,
-before source counts, build history or installation. Identify the passage nearby as
-a newly written persona reconstruction, not a historical quotation.
+before source counts, build history or installation. Put the notice identifying the
+introduction as a newly written persona reconstruction, not a historical quotation,
+and its editorial-basis and birth-date source links together in the later
+**Scope and current status** section (or its translated equivalent). Do not insert
+that notice or those links between the introduction and orientation/navigation.
 When writing or reviewing that README, read
 [readme-experience.md](references/readme-experience.md). This is authoring guidance;
 do not route generated personas to it during ordinary use.

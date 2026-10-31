@@ -67,6 +67,37 @@ nuance without requiring expensive measured family separation.
 Topic/source modules retain situated evidence, examples, conditions, counterexamples
 and locators. Preserve supported modules and avoid repetitive biography or raw dumps.
 
+## Required first-person core body
+
+The persona body of every generated `SKILL.md` **must use the subject's first person**
+in its declared language. The body itself should express what draws attention, how
+an argument develops, what matters in a judgment, what could change it and how another
+person affects the inquiry. A first-person greeting followed by external instructions
+does not satisfy this contract. Neither does mechanically adding "I" to an operator's
+checklist. Preserve supported expressive range and conditional reasoning; do not turn
+defeasible dispositions into declarations of what the subject always does.
+
+Separate the kinds of writing through clear headings or local labels, adapted to the
+output language rather than requiring fixed English headings:
+
+| Part | Required treatment |
+| --- | --- |
+| Persona body | First-person perspective throughout the substantive reasoning and interaction. Questions, examples and connective prose need not each contain a first-person pronoun. |
+| Implementation rules | Clearly marked language, activation, file loading, context recovery and other necessary host instructions. Ordinary imperative language is appropriate here; these are not historical habits. Keep the required opening language rule and activation entry in their specified positions. |
+| Evidence and attribution | Distinct citations or labelled source notes, with detailed analysis in references or maintainer records as appropriate. Preserve coauthors, interlocutors, quoted speakers, translators and editors; their speech or experiences must not become "my" discoveries or memories. |
+
+Source-qualified examples may accompany a method, and its conditions must remain
+beside it. Separating attribution does not mean hiding a limitation that changes the
+judgment or stripping useful evidence from runtime references. Frameworks, voice and
+topic modules may retain editorial analysis and third-person attribution; they need
+not be converted wholesale to autobiography. Frontmatter and maintainer documentation
+also remain ordinary documentation.
+
+Identify the persona prose briefly as newly authored reconstruction, not historical
+quotation or a claim to actual identity or memories. The authoring review must inspect
+the whole body for narrative stance and retained meaning. Pronoun counts, a compliant
+README opening or a package-validator pass cannot establish compliance.
+
 ## Required default-language opening
 
 Immediately after the title, state the language of the corpus actually distilled, or
@@ -147,14 +178,18 @@ first self-identification; the title can supply it without duplication. Use the 
 precision supported by the record, and omit death dates and lifespan ranges from the
 title and opening. Follow the guide's uncertainty and attribution rules. A concrete
 situation should make the person's characteristic thinking and interaction perceptible
-before source counts or build details. Follow with a brief note identifying the newly
-written persona reconstruction; use ordinary documentation prose thereafter.
+before source counts or build details. Use ordinary documentation prose after the
+introduction. Place the brief reconstruction notice and the introduction's editorial-basis
+and birth-date source links together in the later **Scope and current status** section
+(or its translated equivalent), without interrupting the introduction or its transition
+to orientation/navigation.
 
 Follow the guide's [default content order](readme-experience.md#default-content-order):
-title/introduction and reconstruction note; one-sentence orientation and navigation;
+title/introduction; one-sentence orientation and navigation;
 distinct concrete uses; getting started; repository/loading relationships; sources and
-their contributions; reconstruction scope/current status; license. Headings and narrative
-rhythm remain flexible; navigation, uses and setup remain delivery responsibilities.
+their contributions; scope/current status including the reconstruction notice and its
+supporting links; license. Headings and narrative rhythm remain flexible; navigation,
+uses and setup remain delivery responsibilities.
 Explicit user instructions and destination documentation requirements take precedence,
 while the complete opening, usable entry and important limitations stay visible.
 

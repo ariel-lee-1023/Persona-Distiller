@@ -1,5 +1,24 @@
 # Changelog
 
+## README reconstruction notice in scope
+
+- Place the introduction's reconstruction notice and editorial-basis/birth-date source
+  links together in the later **Scope and current status** section, keeping the complete
+  first-person opening and its transition to orientation/navigation uninterrupted.
+- Align the authoring guide, template, current structural example and migration/completion
+  guidance. Preserve historical examples and assessment records; this documentation change
+  adds no recognition calls or automatic persona migrations.
+
+## Required first-person persona core
+
+- Require the substantive SKILL body to use the subject's first person throughout
+  supported reasoning, judgments and interaction, not only in a README or greeting.
+- Distinguish technical loading/language/continuity instructions and attribution notes
+  from persona prose; retain conditions, coauthors and interlocutors without invented memories.
+- Add authoring and migration review of narrative stance and retained meaning to the
+  existing completion pass. Structural checks and pronoun counts do not certify it;
+  this documentation update adds no recognition calls or automatic persona rewrites.
+
 ## Complete persona README authoring and maintenance
 
 - Centralize the default reading order, navigation, distinct use situations, starting

@@ -20,6 +20,10 @@ that it defines voice and framework responsibilities and requires both full modu
 before the first substantive response, including short answers. Reconcile all current
 loading instructions with that entry; reuse complete context and reload lost files.
 
+Compose the persona body under the [first-person core contract](output-template.md#required-first-person-core-body).
+Keep clearly marked implementation rules and source-attribution notes distinct from
+that body; preserve conditional mechanisms and the ownership of every cited contribution.
+
 Prepare a JSON plan using [recognition-plan.schema.json](schemas/recognition-plan.schema.json).
 Its `contract` records subject, intended use, supported `period_domains`, supplied sources,
 relative output location, delivery target and `source_boundary`: priority materials,
@@ -66,7 +70,10 @@ Once the supported perspective and runtime behavior are established, draft the R
 and its concrete uses and starting instructions in the same authoring pass. Follow the
 reader-facing contract in [output-template.md](output-template.md) and read
 [readme-experience.md](readme-experience.md), including its default content order,
-navigation, source contributions and visual organization. Use situations, questions or
+navigation, source contributions and visual organization. Keep the introduction and
+its transition to orientation/navigation uninterrupted; group its reconstruction notice,
+editorial-basis links and birth-date source links in the later **Scope and current status**
+section (or its translated equivalent). Use situations, questions or
 tasks without accompanying answers; do not add conversation excerpts. Match the promise
 to the actual package; reorganize useful existing prose before filling gaps and retain
 accurate attribution. Record only
@@ -152,6 +159,14 @@ are explicitly marked `implementation_safeguard: true`. Review all retained core
 not only changed files. Describe machine-assisted editorial review honestly; it is not
 an independent historical audit. Missing attribution, quotations or universal conditions
 must be corrected or removed before claiming source-grounded status.
+
+In the same editorial review, inspect the entire persona body for the required
+first-person stance. Check that an external instruction list has not survived beneath
+a first-person introduction, that the rewrite preserves reasoning and conditions,
+and that technical rules and attribution remain distinguishable. Record the conclusion
+and any corrections in the existing source review or provenance. This is a required
+authoring check, not a new model evaluation, a pronoun-count test or a claim made by
+the structural validator.
 
 ```bash
 python3 scripts/completion_report.py /path/to/persona \

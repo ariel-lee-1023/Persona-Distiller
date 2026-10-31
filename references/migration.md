@@ -15,7 +15,11 @@ in the existing migration/provenance record. Preserve unrelated user edits and a
 the README language with the Skill's declared default or an explicit README language
 choice, following the guide above. When rewriting an introduction or adopting the new
 README standard, align its first-person voice, visible placement and parenthesized
-birth date with that guide; retain supported substance and historical records.
+birth date with that guide; retain supported substance and historical records. Move an
+existing reconstruction notice and the introduction's editorial-basis and birth-date
+source links together to the later **Scope and current status** section (or its translated
+equivalent), preserving accurate wording and link targets. Keep the introduction and
+its transition to orientation/navigation uninterrupted.
 Directory renames, metadata updates and assessment-protocol changes default
 to preserving effective prose; source/scope changes warrant edits to affected passages.
 Reorganize supported material before filling gaps, following the guide's default order,
@@ -56,6 +60,22 @@ records. Add both modules to every active standard recognition case's explicit r
 list; the runner cannot infer them from prose. Changed loaded inputs invalidate affected
 assessment claims. Record actual applicability without rewriting frozen runs or launching
 new recognition calls beyond the authorized scope and budget.
+
+## Restore the core's first-person perspective
+
+During a requested core or runtime upgrade, inspect the substantive core against the
+[first-person contract](output-template.md#required-first-person-core-body). If it is
+written as an external operator's instructions, rewrite that body in the subject's
+first person. Preserve supported reasoning, triggers, tradeoffs, revisions, exceptions
+and source links; adding "I" to commands is not enough. Clearly label technical rules
+and attribution separately, without inventing memories or appropriating another speaker.
+Do not convert all reference analysis to first person or rewrite immutable evidence.
+
+Record the editorial decision and review the changed claims under the normal source
+check. Changed prose changes runtime inputs even when its underlying meaning survives;
+retain historical assessment scope and honor the existing evaluation authorization.
+This rule does not turn a README-only task into a runtime rewrite or authorize batch
+changes to unrelated personas.
 
 ## Relocate evidence without rewriting history
 

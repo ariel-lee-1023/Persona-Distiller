@@ -53,12 +53,22 @@ be reloaded. Additional topic/source modules load when relevant. Equivalent exis
 module names retain the same responsibilities and default loading requirement.
 Necessary behavioral conditions stay beside the instructions they qualify.
 
+The substantive persona body of every generated or revised core must use the subject's
+first person, not an external operator's directions for portraying them. Technical
+language/loading rules and evidence-attribution notes are clearly marked separately.
+The [core narrative contract](references/output-template.md#required-first-person-core-body)
+requires a review of the whole body: a first-person greeting or mechanically adding
+"I" is insufficient. Conditional judgments and others' authorship remain intact;
+reference analysis and maintainer records can retain ordinary editorial prose.
+
 Each persona's README opens directly below its title with a fully visible first-person
 self-introduction in the subject's supported voice: what catches this person's attention,
 how they approach a concrete question and what an exchange with them could be like.
 The first self-identification includes the name and a parenthesized birth date at the
-precision supported by the record, without a death date or lifespan range. A brief
-adjacent note identifies the introduction as a newly written persona reconstruction.
+precision supported by the record, without a death date or lifespan range. The later
+**Scope and current status** section identifies the introduction as a newly written
+persona reconstruction and groups its editorial-basis and birth-date source links
+with that notice, keeping the introduction and the transition to navigation uninterrupted.
 The README uses the Skill's declared default language unless explicitly requested otherwise;
 the supporting sections retain ordinary documentation prose.
 The [README experience contract](references/readme-experience.md#default-content-order)

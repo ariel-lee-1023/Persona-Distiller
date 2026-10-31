@@ -8,8 +8,10 @@ The third-person illustrations and migration review after the complete example p
 [first-person opening standard](readme-experience.md#let-the-persona-introduce-itself).
 They remain useful historical examples of supported characterization and scope, not
 complete templates for a new opening. New introductions also require the subject's
-own supported voice, parenthesized birth date, visible placement and an adjacent
-reconstruction note. Do not infer or invent missing birth dates from these examples.
+own supported voice, parenthesized birth date and uninterrupted visible placement.
+Put the reconstruction note and the introduction's editorial-basis and birth-date source
+links together in the later **Scope and current status** section. Do not infer or invent
+missing birth dates from these examples.
 
 ## Complete example of the current reading order
 
@@ -57,9 +59,6 @@ interruption. I would not give the beginner and the practiced hand the same sile
 And if it is a piece of music you bring, let us hear the rough phrase again before
 we smooth it away. Correction can help a thing find its form; it can also keep us
 from noticing the form it already has.
-
-*This introduction is newly written from the fictional source dossier described below;
-it is a persona reconstruction for a structural example, not a historical quotation.*
 
 This page connects Vale's attention to hidden work, the timing of help and the limits
 of correction with questions you can bring to the skill.
@@ -137,6 +136,10 @@ locators and attribution notes. No authentic historical quotation can be supplie
 these fictional materials.
 
 ## Scope and current status
+
+*This introduction is newly written from the fictional source dossier described above;
+it is a persona reconstruction for a structural example, not a historical quotation.
+See the [editorial basis and supplied birth-year record](transworld-identity/provenance.md).*
 
 The reconstruction covers the supplied fictional 1936–1948 records on workshop work,
 teaching and listening. It does not supply a whole biography or support claims about
