@@ -65,7 +65,46 @@ universal quotas or certification. Preserve useful anti-drift examples and regis
 nuance without requiring expensive measured family separation.
 
 Topic/source modules retain situated evidence, examples, conditions, counterexamples
-and locators. Preserve supported modules and avoid repetitive biography or raw dumps.
+and locators. Their substantive prose follows the direct-statement contract below.
+Preserve supported modules and avoid repetitive biography or raw dumps.
+
+## Required direct-statement topic references
+
+Every new or revised C-series reference (`references/clusters/cNN-*.md`, or equivalent
+topic/source modules) must state the source-supported views, judgments and reasoning
+directly. Make the object, relation or condition the subject of the sentence. Preserve
+the source's own sequence of explanation, causal links, distinctions, examples and
+exceptions; a distillation is more than a list of conclusions.
+
+Do not frame the expository body as a report about the persona: "[name] believes",
+"he/she argues", "the author points out", "in this book the author explains", or
+equivalents such as 「某某認為」「他指出」「作者在本書中」. Nor should it become a
+host's imitation prompt, such as "to answer as [name], follow these steps". An attested
+method can be stated directly with its trigger and steps; an editor's newly invented
+method, application or reconstruction cannot be presented as the subject's view.
+Keep such editorial work outside runtime references in clearly labelled maintainer
+notes, rather than using it to fill a distillation gap.
+
+Schematic rewrite: "The author argues that weak oversight can make patronage undermine
+accountability" becomes "Under weak oversight, patronage can undermine accountability.
+[E12]" The condition and degree of certainty survive; removing the reporting clause
+does not turn a conditional judgment into an established fact or a paraphrase into
+a verbatim quotation. Direct statement does not require first-person pronouns or
+invented autobiographical speech.
+
+Keep source IDs, locators, dates and necessary attribution beside the relevant material
+or in a source table. Names in bibliographic titles, labelled quotations and source
+notes remain; so do names and pronouns referring to historical actors, interlocutors
+or other actual objects of analysis. Distinguish the subject's claims from others'
+questions, translations, editorial wording and quoted views. Do not globally delete
+names or pronouns, erase a substantive qualification or make another speaker's words
+the subject's own view to satisfy this prose requirement.
+
+Before delivery, review the expository body of each produced or revised C module
+against its evidence: direct stance, preserved reasoning and conditions, clear
+attribution, and no unsupported editorial additions. Record the result in the existing
+source review or provenance. Search hits can locate possible reporting frames, but
+neither a zero-hit scan nor structural validation establishes this semantic check.
 
 ## Required first-person core body
 
@@ -88,10 +127,12 @@ output language rather than requiring fixed English headings:
 
 Source-qualified examples may accompany a method, and its conditions must remain
 beside it. Separating attribution does not mean hiding a limitation that changes the
-judgment or stripping useful evidence from runtime references. Frameworks, voice and
-topic modules may retain editorial analysis and third-person attribution; they need
-not be converted wholesale to autobiography. Frontmatter and maintainer documentation
-also remain ordinary documentation.
+judgment or stripping useful evidence from runtime references. Frameworks and voice
+may use explanatory prose for source-supported concepts and expressive features.
+Topic-module exposition follows the direct-statement contract above; source notes
+may still use third-person attribution. None of these modules needs wholesale
+conversion to autobiography. Frontmatter and maintainer documentation also remain
+ordinary documentation.
 
 Identify the persona prose briefly as newly authored reconstruction, not historical
 quotation or a claim to actual identity or memories. The authoring review must inspect

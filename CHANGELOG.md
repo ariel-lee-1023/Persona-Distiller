@@ -1,5 +1,15 @@
 # Changelog
 
+## Direct statements in C-series references
+
+- Require topic/source reference bodies to state supported views and reasoning directly,
+  instead of reporting what the persona believes or instructing a host to imitate them.
+- Preserve conditions, source locators, quoted speakers and historical actors; direct
+  statement is neither autobiography nor a blanket ban on names and pronouns.
+- Align production, migration and completion review; remove the template's broad
+  permission for third-person topic narration. No automatic persona rewrites or new
+  recognition calls accompany this documentation change.
+
 ## README reconstruction notice in scope
 
 - Place the introduction's reconstruction notice and editorial-basis/birth-date source

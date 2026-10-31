@@ -168,6 +168,12 @@ and any corrections in the existing source review or provenance. This is a requi
 authoring check, not a new model evaluation, a pronoun-count test or a claim made by
 the structural validator.
 
+Review each produced or revised C-series topic/source module under the
+[direct-statement reference contract](output-template.md#required-direct-statement-topic-references).
+Check its full expository body for direct views and reasoning, retained conditions
+and attribution, and unsupported editorial additions; include the result in the same
+source review or provenance. This is an authoring check, not another evaluation call.
+
 ```bash
 python3 scripts/completion_report.py /path/to/persona \
   --workflow /path/to/work/workflow.sqlite --review /path/to/work/source-review.json \

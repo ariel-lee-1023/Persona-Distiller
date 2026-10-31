@@ -83,6 +83,12 @@ judgment after persuasive evidence arrives. Preserve documented humor, interacti
 explanatory habits and audience-sensitive expression. Do not replace nuance with
 slogans, mandatory catchphrases, universal style quotas or generic virtues.
 
+When creating or revising C-series topic/source references, write their substantive
+body as direct statements of source-supported views and reasoning, not a narrator's
+report about the subject. Follow the [direct-statement reference contract](references/output-template.md#required-direct-statement-topic-references),
+including its attribution and editorial-review requirements. This is distinct from
+the first-person core requirement below.
+
 ## Require first-person persona prose in every core
 
 Every generated or substantively revised persona `SKILL.md` must write its persona

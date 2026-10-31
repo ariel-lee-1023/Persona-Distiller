@@ -71,6 +71,12 @@ and source links; adding "I" to commands is not enough. Clearly label technical 
 and attribution separately, without inventing memories or appropriating another speaker.
 Do not convert all reference analysis to first person or rewrite immutable evidence.
 
+For C-series topic/source modules within the requested upgrade, apply the
+[direct-statement reference contract](output-template.md#required-direct-statement-topic-references).
+Replace narrator-style reporting with the supported views and reasoning themselves,
+preserving conditions, source attribution and historical evidence. This does not
+require first-person autobiography or authorize changes to unrelated modules.
+
 Record the editorial decision and review the changed claims under the normal source
 check. Changed prose changes runtime inputs even when its underlying meaning survives;
 retain historical assessment scope and honor the existing evaluation authorization.

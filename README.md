@@ -59,7 +59,12 @@ language/loading rules and evidence-attribution notes are clearly marked separat
 The [core narrative contract](references/output-template.md#required-first-person-core-body)
 requires a review of the whole body: a first-person greeting or mechanically adding
 "I" is insufficient. Conditional judgments and others' authorship remain intact;
-reference analysis and maintainer records can retain ordinary editorial prose.
+framework/voice explanations, source notes and maintainer records need not become
+autobiography. C-series topic/source references must directly state supported views
+and reasoning rather than narrate what the subject "believes" or "points out".
+The [reference prose contract](references/output-template.md#required-direct-statement-topic-references)
+preserves source attribution, historical actors, conditions and uncertainty while
+excluding unsupported editorial reconstructions from runtime references.
 
 Each persona's README opens directly below its title with a fully visible first-person
 self-introduction in the subject's supported voice: what catches this person's attention,
